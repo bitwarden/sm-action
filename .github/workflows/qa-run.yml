@@ -1,0 +1,33 @@
+name: "qa-run"
+on:
+  workflow_dispatch:
+    inputs:
+      apiUrl:
+        description: "API URL to use"
+        required: true
+        type: string
+      identityUrl:
+        description: "Identity URL to use"
+        required: true
+        type: string
+      secretId:
+        description: "Secret GUID to use"
+        required: true
+        type: string
+
+jobs:
+  run:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@24cb9080177205b6e8c946b17badbe402adc938f # v3
+      - name: Run Action
+        uses: ./
+        with:
+          access_token: ${{ secrets.ACCESS_TOKEN }}
+          api_url: ${{ inputs.apiUrl }}
+          identity_url: ${{ inputs.identityUrl }}
+          secrets: |
+            ${{inputs.secretId}} > TEST_EXAMPLE
+      - name: Show secrets
+        run: echo $TEST_EXAMPLE is secrets value

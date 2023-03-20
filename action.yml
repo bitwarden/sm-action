@@ -1,0 +1,24 @@
+name: "Bitwarden Secrets Manager GitHub Action"
+description: "GitHub action for retrieving secrets from Bitwarden Secrets Manager"
+author: "Bitwarden"
+inputs:
+  access_token:
+    description: "The service account access token for retrieving secrets"
+    required: true
+  secrets:
+    description: "One or more secret Ids to retrieve and the corresponding GitHub environment variable name to set"
+    required: true
+  base_url:
+    description: "(Optional) For self-hosted bitwarden instances provide your https://your.domain.com"
+    required: false
+  identity_url:
+    description: "(Optional) For self-hosted bitwarden instances provide your https://your.domain.com/identity"
+    required: false
+    default: "https://identity.bitwarden.com"
+  api_url:
+    description: "(Optional) For self-hosted bitwarden instances provide your https://your.domain.com/api"
+    required: false
+    default: "https://api.bitwarden.com"
+runs:
+  using: "node16"
+  main: "dist/index.js"

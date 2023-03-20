@@ -1,0 +1,19 @@
+{
+  "$schema": "https://docs.renovatebot.com/renovate-schema.json",
+  "extends": ["config:base"],
+  "separateMajorMinor": true,
+  "packageRules": [
+    {
+      "matchManagers": ["npm"],
+      "matchPackagePatterns": ["*"],
+      "matchDepTypes": ["*"],
+      "matchUpdateTypes": ["minor", "patch"],
+      "groupName": "node non-major"
+    },
+    {
+      "matchManagers": ["github-actions"],
+      "matchPackagePatterns": ["*"],
+      "groupName": "gh actions all"
+    }
+  ]
+}

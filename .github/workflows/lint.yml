@@ -1,0 +1,33 @@
+---
+name: Lint
+
+on:
+  push:
+    paths-ignore:
+      - ".github/workflows/**"
+  workflow_dispatch:
+    inputs: {}
+
+defaults:
+  run:
+    shell: bash
+
+jobs:
+  lint:
+    name: Lint
+    runs-on: ubuntu-22.04
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@24cb9080177205b6e8c946b17badbe402adc938f # v3
+
+      - name: Set up Node
+        uses: actions/setup-node@64ed1c7eab4cce3362f8c340dee64e5eaeef8f7c # v3
+        with:
+          cache: "npm"
+          cache-dependency-path: "**/package-lock.json"
+          node-version: "18"
+
+      - name: Run linter
+        run: |
+          npm ci
+          npm run lint
