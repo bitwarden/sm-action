@@ -19,9 +19,6 @@ To use the action, add a step to your GitHub workflow using the following syntax
     access_token: ${{ secrets.ACCESS_TOKEN }}
     secrets: |
       SECRET_ID > ENVIRONMENT_VARIABLE_NAME
-    base_url: BASE_URL
-    identity_url: IDENTITY_URL
-    api_url: API_URL
 ```
 
 ## Parameters
