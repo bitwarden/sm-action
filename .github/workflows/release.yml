@@ -64,9 +64,9 @@ jobs:
             exit 1
           fi
 
-          echo "version=v$VERSION" >> $GITHUB_OUTPUT
+          echo "version=$VERSION" >> $GITHUB_OUTPUT
 
-          echo "Version is v$VERSION"
+          echo "Version is $VERSION"
 
           MAJOR_VERSION=$(echo $VERSION | cut -d "." -f 1)
 
