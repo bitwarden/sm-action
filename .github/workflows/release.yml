@@ -65,7 +65,12 @@ jobs:
 
           echo "version=$VERSION" >> $GITHUB_OUTPUT
 
+          echo "Version is $VERSION"
+
           MAJOR_VERSION=$(echo $VERSION | cut -d "." -f 1)
+
+          echo "Major version is $MAJOR_VERSION"
+
           echo "major_version=$MAJOR_VERSION" >> $GITHUB_OUTPUT
 
       - name: Setup git
