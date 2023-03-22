@@ -55,6 +55,8 @@ jobs:
         run: |
           function version { echo "$@" | awk -F. '{ printf("%d%03d%03d%03d\n", $1,$2,$3,$4); }'; }
 
+          VERSION="v"$VERSION
+
           if [ $(version $VERSION) -le $(version $LATEST_VERSION) ]; then
             echo "==================================="
             echo "[!] Version provided $VERSION is not greater than latest release $LATEST_VERSION"
@@ -62,9 +64,9 @@ jobs:
             exit 1
           fi
 
-          echo "version=$VERSION" >> $GITHUB_OUTPUT
+          echo "version=v$VERSION" >> $GITHUB_OUTPUT
 
-          echo "Version is $VERSION"
+          echo "Version is v$VERSION"
 
           MAJOR_VERSION=$(echo $VERSION | cut -d "." -f 1)
 
