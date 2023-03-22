@@ -95,9 +95,9 @@ jobs:
       - name: git tag
         env:
           VERSION: ${{ steps.version.outputs.major_version }}
-        run: git tag $VERSION
+        run: git tag -f $VERSION
 
       - name: Push tags
         if: ${{ github.event.inputs.release_type != 'Dry Run' }}
-        run: git push --tags
+        run: git push -f --tags
 
