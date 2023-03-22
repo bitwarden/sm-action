@@ -1,0 +1,97 @@
+---
+name: Release
+run-name: Release sm-action ${{ inputs.release_type }} ${{ inputs.version_number }}
+
+on:
+  workflow_dispatch:
+    inputs:
+      release_type:
+        description: "Release Options"
+        required: true
+        default: "Initial Release"
+        type: choice
+        options:
+          - Initial Release
+          - Redeploy
+          - Dry Run
+      version_number:
+        description: "New Version"
+        required: true
+
+defaults:
+  run:
+    shell: bash
+
+jobs:
+  release:
+    name: "Release sm-action ${{ github.event.inputs.version_number }} Version"
+    runs-on: ubuntu-22.04
+    steps:
+      - name: Checkout Branch
+        uses: actions/checkout@ac593985615ec2ede58e132d2e21d2b1cbd6127c # v3.3.0
+
+      - name: Branch check
+        if: ${{ github.event.inputs.release_type != 'Dry Run' }}
+        run: |
+          if [[ "$GITHUB_REF" != "refs/heads/master" ]] then
+            echo "==================================="
+            echo "[!] Can only release from the 'master' branch"
+            echo "==================================="
+            exit 1
+          fi
+
+      - name: Get latest release version
+        id: get-latest-release
+        run: |
+          latest_version=$(curl --silent "https://api.github.com/repos/${GITHUB_REPOSITORY}/releases/latest" | jq -r '.tag_name')
+          echo "Latest release version is $latest_version"
+          echo "latest_version=$latest_version" >> $GITHUB_OUTPUT
+
+      - name: Check Release Version
+        id: version
+        env:
+          VERSION: ${{ github.event.inputs.version_number }}
+          LATEST_VERSION: ${{ steps.get-latest-release.outputs.latest_version }}
+        run: |
+          function version { echo "$@" | awk -F. '{ printf("%d%03d%03d%03d\n", $1,$2,$3,$4); }'; }
+
+          if [ $(version $VERSION) -le $(version $LATEST_VERSION) ]; then
+          else
+            echo "==================================="
+            echo "[!] Version provided $VERSION is not greater than latest release $LATEST_VERSION"
+            echo "==================================="
+            exit 1
+          fi
+
+          echo "version=$VERSION" >> $GITHUB_OUTPUT
+
+          MAJOR_VERSION=$(echo $VERSION | cut -d "." -f 1)
+          echo "major_version=$MAJOR_VERSION" >> $GITHUB_OUTPUT
+
+      - name: Setup git
+        run: |
+          git config --local user.email "106330231+bitwarden-devops-bot@users.noreply.github.com"
+          git config --local user.name "bitwarden-devops-bot"
+
+      - name: Create release
+        if: ${{ github.event.inputs.release_type != 'Dry Run' }}
+        uses: ncipollo/release-action@a2e71bdd4e7dab70ca26a852f29600c98b33153e # v1.12.0
+        env:
+          PKG_VERSION: ${{ github.event.inputs.version_number }}
+        with:
+          commit: ${{ github.sha }}
+          tag: v${{ env.PKG_VERSION }}
+          name: v${{ env.PKG_VERSION }}
+          body: "<insert release notes here>"
+          token: ${{ secrets.GITHUB_TOKEN }}
+          draft: true
+
+      - name: git tag
+        env:
+          VERSION: ${{ steps.version.outputs.major_version }}
+        run: git tag $VERSION
+
+      - name: Push tags
+        if: ${{ github.event.inputs.release_type != 'Dry Run' }}
+        run: git push --tags
+
