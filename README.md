@@ -114,7 +114,7 @@ $ npm install
 Build the typescript and package it for distribution
 
 ```bash
-$ npm run build && npm run package
+$ npm run build && npm run pack
 ```
 
 Run the tests :heavy_check_mark:
@@ -132,5 +132,5 @@ The alternative being to check in the node_modules directory which is known to c
 - Compile dependencies into ./dist/index.js
 
 ```bash
-$ npm run package
+$ npm run dist
 ```
