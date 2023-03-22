@@ -33,7 +33,7 @@ jobs:
       - name: Branch check
         if: ${{ github.event.inputs.release_type != 'Dry Run' }}
         run: |
-          if [[ "$GITHUB_REF" != "refs/heads/master" ]] then
+          if [[ "$GITHUB_REF" != "refs/heads/master" ]]; then
             echo "==================================="
             echo "[!] Can only release from the 'master' branch"
             echo "==================================="
