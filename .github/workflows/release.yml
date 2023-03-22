@@ -56,7 +56,6 @@ jobs:
           function version { echo "$@" | awk -F. '{ printf("%d%03d%03d%03d\n", $1,$2,$3,$4); }'; }
 
           if [ $(version $VERSION) -le $(version $LATEST_VERSION) ]; then
-          else
             echo "==================================="
             echo "[!] Version provided $VERSION is not greater than latest release $LATEST_VERSION"
             echo "==================================="
