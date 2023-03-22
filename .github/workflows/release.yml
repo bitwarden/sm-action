@@ -53,7 +53,7 @@ jobs:
           VERSION: ${{ github.event.inputs.version_number }}
           LATEST_VERSION: ${{ steps.get-latest-release.outputs.latest_version }}
         run: |
-          function version { echo "$@" | awk -F. '{ printf("%d%03d%03d%03d\n", $1,$2,$3,$4); }'; }
+          function version { printf "%03d%03d%03d" $(echo "$1" | tr 'v' ' ' | tr '.' ' '); }
 
           VERSION="v"$VERSION
 
