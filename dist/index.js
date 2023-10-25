@@ -79,23 +79,28 @@ function run() {
             const client = new sdk_napi_1.BitwardenClient(settings, 2 /* LogLevel.Info */);
             const result = yield client.loginWithAccessToken(accessToken);
             if (!result.success) {
-                throw Error("Authentication to Bitwarden failed");
+                throw Error("Authentication with Bitwarden failed");
             }
             core.info("Setting Secrets");
-            for (const secretInput of secretInputs) {
-                const secretResponse = yield client.secrets().get(secretInput.id);
-                if (secretResponse.data) {
-                    core.setSecret(secretResponse.data.value);
-                    core.exportVariable(secretInput.outputEnvName, secretResponse.data.value);
-                    core.setOutput(secretInput.outputEnvName, secretResponse.data.value);
-                }
-                else {
-                    let errorMessage = `The secret ${secretInput.id} could not be found `;
-                    if (secretResponse.errorMessage) {
-                        errorMessage = errorMessage + "error message was: " + secretResponse.errorMessage;
+            const secretIds = secretInputs.map((secretInput) => secretInput.id);
+            const secretResponse = yield client.secrets().getByIds(secretIds);
+            if (secretResponse.data) {
+                const secrets = secretResponse.data.data;
+                secrets.forEach((secret) => {
+                    const secretInput = secretInputs.find((secretInput) => secretInput.id === secret.id);
+                    if (secretInput) {
+                        core.setSecret(secret.value);
+                        core.exportVariable(secretInput.outputEnvName, secret.value);
+                        core.setOutput(secretInput.outputEnvName, secret.value);
                     }
-                    throw Error(errorMessage);
+                });
+            }
+            else {
+                let errorMessage = "The secrets provided could not be found. Please check the service account has access to the secret UUIDs provided.";
+                if (secretResponse.errorMessage) {
+                    errorMessage = errorMessage + `\n\n` + secretResponse.errorMessage;
                 }
+                throw Error(errorMessage);
             }
             core.info("Completed setting secrets as environment variables.");
         }
