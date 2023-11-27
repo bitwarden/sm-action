@@ -23,7 +23,7 @@
     },
     {
       "matchManagers": ["npm"],
-      "description": "SM owned dependencies",
+      "description": "Secrets Manager owned dependencies",
       "commitMessagePrefix": "[deps] SM:"
     }
   ]
