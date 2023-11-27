@@ -14,5 +14,17 @@
   ],
   "enabledManagers": ["github-actions", "npm"],
   "commitMessagePrefix": "[deps]:",
-  "commitMessageTopic": "{{depName}}"
+  "commitMessageTopic": "{{depName}}",
+  "packageRules": [
+    {
+      "matchManagers": ["github-actions"],
+      "description": "DevOps owned dependencies",
+      "commitMessagePrefix": "[deps] DevOps:"
+    },
+    {
+      "matchManagers": ["npm"],
+      "description": "SM owned dependencies",
+      "commitMessagePrefix": "[deps] SM:"
+    }
+  ]
 }
