@@ -1,7 +1,10 @@
 import { isUniqueEnvNames, isValidEnvName, isValidGuid } from "./validators";
 
 export class SecretInput {
-  constructor(public id: string, public outputEnvName: string) {}
+  constructor(
+    public id: string,
+    public outputEnvName: string,
+  ) {}
 }
 
 export function parseSecretInput(secrets: string[]): SecretInput[] {

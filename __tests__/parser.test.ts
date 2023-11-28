@@ -33,7 +33,7 @@ test("parseSecretInput: test parser bad env name", () => {
   };
   expect(t).toThrow(TypeError);
   expect(t).toThrow(
-    "Error occurred when attempting to parse bdbb16bc-0b9b-472e-99fa-af4101309076 > "
+    "Error occurred when attempting to parse bdbb16bc-0b9b-472e-99fa-af4101309076 > ",
   );
 });
 
