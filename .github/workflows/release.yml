@@ -100,4 +100,3 @@ jobs:
       - name: Push tags
         if: ${{ github.event.inputs.release_type != 'Dry Run' }}
         run: git push -f --tags
-
