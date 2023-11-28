@@ -25,10 +25,10 @@
     "node": ">=20"
   },
   "scripts": {
-    "all": "npm run pack && npm run prettier && npm run lint && npm test",
+    "all": "npm run dist && npm run prettier && npm run lint && npm test",
     "lint": "eslint src/**/*.ts && prettier --check '**/*.ts'",
     "lint:fix": "eslint src/**/*.ts --fix",
-    "pack": "pwsh ./pack.ps1 && ncc build src/index.ts --license licenses.txt --external @bitwarden/sdk-napi",
+    "dist": "pwsh ./pack.ps1 && ncc build src/index.ts --license licenses.txt --external @bitwarden/sdk-napi",
     "prepare": "husky install",
     "prettier": "prettier --write .",
     "test": "jest"
