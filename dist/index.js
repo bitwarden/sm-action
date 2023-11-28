@@ -1,202 +1,6 @@
 /******/ (() => { // webpackBootstrap
 /******/ 	var __webpack_modules__ = ({
 
-/***/ 3109:
-/***/ (function(__unused_webpack_module, exports, __nccwpck_require__) {
-
-"use strict";
-
-var __createBinding = (this && this.__createBinding) || (Object.create ? (function(o, m, k, k2) {
-    if (k2 === undefined) k2 = k;
-    var desc = Object.getOwnPropertyDescriptor(m, k);
-    if (!desc || ("get" in desc ? !m.__esModule : desc.writable || desc.configurable)) {
-      desc = { enumerable: true, get: function() { return m[k]; } };
-    }
-    Object.defineProperty(o, k2, desc);
-}) : (function(o, m, k, k2) {
-    if (k2 === undefined) k2 = k;
-    o[k2] = m[k];
-}));
-var __setModuleDefault = (this && this.__setModuleDefault) || (Object.create ? (function(o, v) {
-    Object.defineProperty(o, "default", { enumerable: true, value: v });
-}) : function(o, v) {
-    o["default"] = v;
-});
-var __importStar = (this && this.__importStar) || function (mod) {
-    if (mod && mod.__esModule) return mod;
-    var result = {};
-    if (mod != null) for (var k in mod) if (k !== "default" && Object.prototype.hasOwnProperty.call(mod, k)) __createBinding(result, mod, k);
-    __setModuleDefault(result, mod);
-    return result;
-};
-var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, generator) {
-    function adopt(value) { return value instanceof P ? value : new P(function (resolve) { resolve(value); }); }
-    return new (P || (P = Promise))(function (resolve, reject) {
-        function fulfilled(value) { try { step(generator.next(value)); } catch (e) { reject(e); } }
-        function rejected(value) { try { step(generator["throw"](value)); } catch (e) { reject(e); } }
-        function step(result) { result.done ? resolve(result.value) : adopt(result.value).then(fulfilled, rejected); }
-        step((generator = generator.apply(thisArg, _arguments || [])).next());
-    });
-};
-Object.defineProperty(exports, "__esModule", ({ value: true }));
-const core = __importStar(__nccwpck_require__(2186));
-const sdk_napi_1 = __nccwpck_require__(9862);
-const parser_1 = __nccwpck_require__(267);
-const validators_1 = __nccwpck_require__(8694);
-function run() {
-    return __awaiter(this, void 0, void 0, function* () {
-        try {
-            const accessToken = core.getInput("access_token");
-            const secrets = core.getMultilineInput("secrets", {
-                required: true,
-            });
-            const baseUrl = core.getInput("base_url");
-            let identityUrl = core.getInput("identity_url");
-            let apiUrl = core.getInput("api_url");
-            core.info("Validating bitwarden/sm-action inputs...");
-            if (baseUrl) {
-                if (!(0, validators_1.isValidUrl)(baseUrl)) {
-                    throw TypeError("input provided for base_url not in expected format");
-                }
-                identityUrl = baseUrl + "/identity";
-                apiUrl = baseUrl + "/api";
-            }
-            if (!(0, validators_1.isValidUrl)(identityUrl)) {
-                throw TypeError("input provided for identity_url not in expected format");
-            }
-            if (!(0, validators_1.isValidUrl)(apiUrl)) {
-                throw TypeError("input provided for api_url not in expected format");
-            }
-            core.info("Parsing secrets input");
-            const secretInputs = (0, parser_1.parseSecretInput)(secrets);
-            core.info("Authenticating to Bitwarden");
-            const settings = {
-                apiUrl: apiUrl,
-                identityUrl: identityUrl,
-                userAgent: "bitwarden/sm-action",
-                deviceType: sdk_napi_1.DeviceType.SDK,
-            };
-            const client = new sdk_napi_1.BitwardenClient(settings, 2 /* LogLevel.Info */);
-            const result = yield client.loginWithAccessToken(accessToken);
-            if (!result.success) {
-                throw Error("Authentication with Bitwarden failed");
-            }
-            core.info("Setting Secrets");
-            const secretIds = secretInputs.map((secretInput) => secretInput.id);
-            const secretResponse = yield client.secrets().getByIds(secretIds);
-            if (secretResponse.data) {
-                const secrets = secretResponse.data.data;
-                secrets.forEach((secret) => {
-                    const secretInput = secretInputs.find((secretInput) => secretInput.id === secret.id);
-                    if (secretInput) {
-                        core.setSecret(secret.value);
-                        core.exportVariable(secretInput.outputEnvName, secret.value);
-                        core.setOutput(secretInput.outputEnvName, secret.value);
-                    }
-                });
-            }
-            else {
-                let errorMessage = "The secrets provided could not be found. Please check the service account has access to the secret UUIDs provided.";
-                if (secretResponse.errorMessage) {
-                    errorMessage = errorMessage + `\n\n` + secretResponse.errorMessage;
-                }
-                throw Error(errorMessage);
-            }
-            core.info("Completed setting secrets as environment variables.");
-        }
-        catch (error) {
-            if (error instanceof Error) {
-                core.setFailed(error.message);
-            }
-        }
-    });
-}
-run();
-
-
-/***/ }),
-
-/***/ 267:
-/***/ ((__unused_webpack_module, exports, __nccwpck_require__) => {
-
-"use strict";
-
-Object.defineProperty(exports, "__esModule", ({ value: true }));
-exports.parseSecretInput = exports.SecretInput = void 0;
-const validators_1 = __nccwpck_require__(8694);
-class SecretInput {
-    constructor(id, outputEnvName) {
-        this.id = id;
-        this.outputEnvName = outputEnvName;
-    }
-}
-exports.SecretInput = SecretInput;
-function parseSecretInput(secrets) {
-    const results = secrets.map((secret) => {
-        try {
-            let [id, envName] = secret.split(">", 2);
-            id = id.trim();
-            envName = envName.trim();
-            if ((0, validators_1.isValidGuid)(id) && (0, validators_1.isValidEnvName)(envName)) {
-                return new SecretInput(id, envName);
-            }
-            else {
-                throw TypeError();
-            }
-        }
-        catch (_a) {
-            throw TypeError(`Error occurred when attempting to parse ${secret}`);
-        }
-    });
-    if (!(0, validators_1.isUniqueEnvNames)(results)) {
-        throw TypeError("Environmental variable names provided are not unique, names must be unique");
-    }
-    return results;
-}
-exports.parseSecretInput = parseSecretInput;
-
-
-/***/ }),
-
-/***/ 8694:
-/***/ ((__unused_webpack_module, exports) => {
-
-"use strict";
-
-Object.defineProperty(exports, "__esModule", ({ value: true }));
-exports.isUniqueEnvNames = exports.isValidGuid = exports.isValidEnvName = exports.isValidUrl = void 0;
-const ENV_NAME_REGEX = /^[a-zA-Z_]+[a-zA-Z0-9_]*$/;
-const GUID_REGEX = /^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$/;
-function isValidUrl(url) {
-    try {
-        const tempUrl = new URL(url);
-        if (tempUrl.protocol === "https:") {
-            return true;
-        }
-    }
-    catch (_a) {
-        return false;
-    }
-    return false;
-}
-exports.isValidUrl = isValidUrl;
-function isValidEnvName(name) {
-    return ENV_NAME_REGEX.test(name);
-}
-exports.isValidEnvName = isValidEnvName;
-function isValidGuid(value) {
-    return GUID_REGEX.test(value);
-}
-exports.isValidGuid = isValidGuid;
-function isUniqueEnvNames(secretInputs) {
-    const envNames = [...new Set(secretInputs.map((s) => s.outputEnvName))];
-    return envNames.length === secretInputs.length;
-}
-exports.isUniqueEnvNames = isUniqueEnvNames;
-
-
-/***/ }),
-
 /***/ 7351:
 /***/ (function(__unused_webpack_module, exports, __nccwpck_require__) {
 
@@ -24899,6 +24703,198 @@ exports["default"] = _default;
 
 /***/ }),
 
+/***/ 399:
+/***/ (function(__unused_webpack_module, exports, __nccwpck_require__) {
+
+"use strict";
+
+var __createBinding = (this && this.__createBinding) || (Object.create ? (function(o, m, k, k2) {
+    if (k2 === undefined) k2 = k;
+    var desc = Object.getOwnPropertyDescriptor(m, k);
+    if (!desc || ("get" in desc ? !m.__esModule : desc.writable || desc.configurable)) {
+      desc = { enumerable: true, get: function() { return m[k]; } };
+    }
+    Object.defineProperty(o, k2, desc);
+}) : (function(o, m, k, k2) {
+    if (k2 === undefined) k2 = k;
+    o[k2] = m[k];
+}));
+var __setModuleDefault = (this && this.__setModuleDefault) || (Object.create ? (function(o, v) {
+    Object.defineProperty(o, "default", { enumerable: true, value: v });
+}) : function(o, v) {
+    o["default"] = v;
+});
+var __importStar = (this && this.__importStar) || function (mod) {
+    if (mod && mod.__esModule) return mod;
+    var result = {};
+    if (mod != null) for (var k in mod) if (k !== "default" && Object.prototype.hasOwnProperty.call(mod, k)) __createBinding(result, mod, k);
+    __setModuleDefault(result, mod);
+    return result;
+};
+Object.defineProperty(exports, "__esModule", ({ value: true }));
+exports.run = void 0;
+const core = __importStar(__nccwpck_require__(2186));
+const sdk_napi_1 = __nccwpck_require__(9862);
+const parser_1 = __nccwpck_require__(8412);
+const validators_1 = __nccwpck_require__(9783);
+/**
+ * The main function for the action.
+ * @returns {Promise<void>} Resolves when the action is complete.
+ */
+async function run() {
+    try {
+        const accessToken = core.getInput("access_token");
+        const secrets = core.getMultilineInput("secrets", {
+            required: true,
+        });
+        const baseUrl = core.getInput("base_url");
+        let identityUrl = core.getInput("identity_url");
+        let apiUrl = core.getInput("api_url");
+        core.info("Validating bitwarden/sm-action inputs...");
+        if (baseUrl) {
+            if (!(0, validators_1.isValidUrl)(baseUrl)) {
+                throw TypeError("input provided for base_url not in expected format");
+            }
+            identityUrl = baseUrl + "/identity";
+            apiUrl = baseUrl + "/api";
+        }
+        if (!(0, validators_1.isValidUrl)(identityUrl)) {
+            throw TypeError("input provided for identity_url not in expected format");
+        }
+        if (!(0, validators_1.isValidUrl)(apiUrl)) {
+            throw TypeError("input provided for api_url not in expected format");
+        }
+        core.info("Parsing secrets input");
+        const secretInputs = (0, parser_1.parseSecretInput)(secrets);
+        core.info("Authenticating to Bitwarden");
+        const settings = {
+            apiUrl: apiUrl,
+            identityUrl: identityUrl,
+            userAgent: "bitwarden/sm-action",
+            deviceType: sdk_napi_1.DeviceType.SDK,
+        };
+        const client = new sdk_napi_1.BitwardenClient(settings, 2 /* LogLevel.Info */);
+        const result = await client.loginWithAccessToken(accessToken);
+        if (!result.success) {
+            throw Error("Authentication with Bitwarden failed");
+        }
+        core.info("Setting Secrets");
+        const secretIds = secretInputs.map((secretInput) => secretInput.id);
+        const secretResponse = await client.secrets().getByIds(secretIds);
+        if (secretResponse.data) {
+            const secrets = secretResponse.data.data;
+            secrets.forEach((secret) => {
+                const secretInput = secretInputs.find((secretInput) => secretInput.id === secret.id);
+                if (secretInput) {
+                    core.setSecret(secret.value);
+                    core.exportVariable(secretInput.outputEnvName, secret.value);
+                    core.setOutput(secretInput.outputEnvName, secret.value);
+                }
+            });
+        }
+        else {
+            let errorMessage = "The secrets provided could not be found. Please check the service account has access to the secret UUIDs provided.";
+            if (secretResponse.errorMessage) {
+                errorMessage = errorMessage + `\n\n` + secretResponse.errorMessage;
+            }
+            throw Error(errorMessage);
+        }
+        core.info("Completed setting secrets as environment variables.");
+    }
+    catch (error) {
+        if (error instanceof Error) {
+            core.setFailed(error.message);
+        }
+    }
+}
+exports.run = run;
+
+
+/***/ }),
+
+/***/ 8412:
+/***/ ((__unused_webpack_module, exports, __nccwpck_require__) => {
+
+"use strict";
+
+Object.defineProperty(exports, "__esModule", ({ value: true }));
+exports.parseSecretInput = exports.SecretInput = void 0;
+const validators_1 = __nccwpck_require__(9783);
+class SecretInput {
+    id;
+    outputEnvName;
+    constructor(id, outputEnvName) {
+        this.id = id;
+        this.outputEnvName = outputEnvName;
+    }
+}
+exports.SecretInput = SecretInput;
+function parseSecretInput(secrets) {
+    const results = secrets.map((secret) => {
+        try {
+            let [id, envName] = secret.split(">", 2);
+            id = id.trim();
+            envName = envName.trim();
+            if ((0, validators_1.isValidGuid)(id) && (0, validators_1.isValidEnvName)(envName)) {
+                return new SecretInput(id, envName);
+            }
+            else {
+                throw TypeError();
+            }
+        }
+        catch {
+            throw TypeError(`Error occurred when attempting to parse ${secret}`);
+        }
+    });
+    if (!(0, validators_1.isUniqueEnvNames)(results)) {
+        throw TypeError("Environmental variable names provided are not unique, names must be unique");
+    }
+    return results;
+}
+exports.parseSecretInput = parseSecretInput;
+
+
+/***/ }),
+
+/***/ 9783:
+/***/ ((__unused_webpack_module, exports) => {
+
+"use strict";
+
+Object.defineProperty(exports, "__esModule", ({ value: true }));
+exports.isUniqueEnvNames = exports.isValidGuid = exports.isValidEnvName = exports.isValidUrl = void 0;
+const ENV_NAME_REGEX = /^[a-zA-Z_]+[a-zA-Z0-9_]*$/;
+const GUID_REGEX = /^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$/;
+function isValidUrl(url) {
+    try {
+        const tempUrl = new URL(url);
+        if (tempUrl.protocol === "https:") {
+            return true;
+        }
+    }
+    catch {
+        return false;
+    }
+    return false;
+}
+exports.isValidUrl = isValidUrl;
+function isValidEnvName(name) {
+    return ENV_NAME_REGEX.test(name);
+}
+exports.isValidEnvName = isValidEnvName;
+function isValidGuid(value) {
+    return GUID_REGEX.test(value);
+}
+exports.isValidGuid = isValidGuid;
+function isUniqueEnvNames(secretInputs) {
+    const envNames = [...new Set(secretInputs.map((s) => s.outputEnvName))];
+    return envNames.length === secretInputs.length;
+}
+exports.isUniqueEnvNames = isUniqueEnvNames;
+
+
+/***/ }),
+
 /***/ 9862:
 /***/ ((module) => {
 
@@ -26796,12 +26792,22 @@ module.exports = parseParams
 /******/ 	if (typeof __nccwpck_require__ !== 'undefined') __nccwpck_require__.ab = __dirname + "/";
 /******/ 	
 /************************************************************************/
-/******/ 	
-/******/ 	// startup
-/******/ 	// Load entry module and return exports
-/******/ 	// This entry module is referenced by other modules so it can't be inlined
-/******/ 	var __webpack_exports__ = __nccwpck_require__(3109);
-/******/ 	module.exports = __webpack_exports__;
-/******/ 	
+var __webpack_exports__ = {};
+// This entry need to be wrapped in an IIFE because it need to be in strict mode.
+(() => {
+"use strict";
+var exports = __webpack_exports__;
+
+Object.defineProperty(exports, "__esModule", ({ value: true }));
+/**
+ * The entrypoint for the action.
+ */
+const main_1 = __nccwpck_require__(399);
+// eslint-disable-next-line @typescript-eslint/no-floating-promises
+(0, main_1.run)();
+
+})();
+
+module.exports = __webpack_exports__;
 /******/ })()
 ;

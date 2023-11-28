@@ -1,6 +1,9 @@
 name: "Bitwarden Secrets Manager GitHub Action"
 description: "GitHub action for retrieving secrets from Bitwarden Secrets Manager"
 author: "Bitwarden"
+branding:
+  icon: "unlock"
+  color: "blue"
 inputs:
   access_token:
     description: "The service account access token for retrieving secrets"
@@ -22,6 +25,3 @@ inputs:
 runs:
   using: "node20"
   main: "dist/index.js"
-branding:
-  icon: "unlock"
-  color: "blue"

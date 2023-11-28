@@ -18,14 +18,17 @@
   },
   "license": "GPL-3.0",
   "author": "Bitwarden Inc. <hello@bitwarden.com> (https://bitwarden.com)",
-  "main": "lib/main.js",
+  "exports": {
+    ".": "./dist/index.js"
+  },
+  "engines": {
+    "node": ">=20"
+  },
   "scripts": {
-    "all": "npm run dist && npm run prettier && npm run lint && npm test",
-    "build": "rimraf lib && tsc",
-    "dist": "npm run build && npm run pack",
+    "all": "npm run pack && npm run prettier && npm run lint && npm test",
     "lint": "eslint src/**/*.ts && prettier --check '**/*.ts'",
     "lint:fix": "eslint src/**/*.ts --fix",
-    "pack": "pwsh ./pack.ps1 && ncc build --license licenses.txt --external @bitwarden/sdk-napi",
+    "pack": "pwsh ./pack.ps1 && ncc build src/index.ts --license licenses.txt --external @bitwarden/sdk-napi",
     "prepare": "husky install",
     "prettier": "prettier --write .",
     "test": "jest"
@@ -51,11 +54,7 @@
     "js-yaml": "4.1.0",
     "lint-staged": "15.1.0",
     "prettier": "3.1.0",
-    "rimraf": "5.0.5",
     "ts-jest": "29.1.1",
     "typescript": "5.3.2"
-  },
-  "engines": {
-    "node": ">=20"
   }
 }
