@@ -17,7 +17,15 @@ on:
 
 jobs:
   run:
-    runs-on: ubuntu-latest
+    name: Running QA test on ${{ matrix.settings.os }}
+    runs-on: ${{ matrix.settings.os || 'ubuntu-latest' }}
+    strategy:
+      fail-fast: false
+      matrix:
+        settings:
+          - os: macos-12
+          - os: windows-2022
+          - os: ubuntu-22.04
     steps:
       - name: Checkout
         uses: actions/checkout@8e5e7e5ab8b370d6c329ec480221332ada57f0ab # v3.5.2
