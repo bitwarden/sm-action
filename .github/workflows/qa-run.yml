@@ -38,4 +38,5 @@ jobs:
           secrets: |
             ${{inputs.secretId}} > TEST_EXAMPLE
       - name: Show secrets
+        shell: bash
         run: echo $TEST_EXAMPLE is secrets value
