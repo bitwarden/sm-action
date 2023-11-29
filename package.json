@@ -25,7 +25,8 @@
     "node": ">=20"
   },
   "scripts": {
-    "all": "npm run dist && npm run prettier && npm run lint && npm test",
+    "all": "npm run prettier && npm run lint && npm test && npm run dist",
+    "bundle": "npm run prettier && npm run lint && npm run dist",
     "lint": "eslint src/**/*.ts && prettier --check '**/*.ts'",
     "lint:fix": "eslint src/**/*.ts --fix",
     "dist": "pwsh ./pack.ps1 && ncc build src/index.ts --license licenses.txt --external @bitwarden/sdk-napi",
