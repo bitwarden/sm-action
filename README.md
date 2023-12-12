@@ -111,10 +111,10 @@ Install the dependencies
 $ npm install
 ```
 
-Build the typescript and package it for distribution
+Run formatter and lint
 
 ```bash
-$ npm run build && npm run pack
+$ npm run prettier && npm run lint
 ```
 
 Run the tests :heavy_check_mark:
@@ -127,10 +127,8 @@ $ npm test
 
 GitHub recommends using a tool called [@vercel/ncc](https://github.com/vercel/ncc) to compile code and modules into one file used for distribution.
 
-The alternative being to check in the node_modules directory which is known to cause problems.
-
-- Compile dependencies into ./dist/index.js
+- Package the TypeScript for distribution
 
 ```bash
-$ npm run dist
+$ npm run bundle
 ```

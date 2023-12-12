@@ -3,7 +3,11 @@ import { BitwardenClient, ClientSettings, DeviceType, LogLevel } from "@bitwarde
 import { SecretInput, parseSecretInput } from "./parser";
 import { isValidUrl } from "./validators";
 
-async function run(): Promise<void> {
+/**
+ * The main function for the action.
+ * @returns {Promise<void>} Resolves when the action is complete.
+ */
+export async function run(): Promise<void> {
   try {
     const accessToken: string = core.getInput("access_token");
     const secrets: string[] = core.getMultilineInput("secrets", {
@@ -73,5 +77,3 @@ async function run(): Promise<void> {
     }
   }
 }
-
-run();

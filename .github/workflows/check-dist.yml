@@ -23,10 +23,10 @@ jobs:
     steps:
       - uses: actions/checkout@f43a0e5ff2bd294095638e18286ca9a3d1956744 # v3.6.0
 
-      - name: Set Node.js 18
+      - name: Setup Node
         uses: actions/setup-node@64ed1c7eab4cce3362f8c340dee64e5eaeef8f7c # v3.6.0
         with:
-          node-version: 18
+          node-version: 20
           cache-dependency-path: "**/package-lock.json"
           cache: "npm"
 
@@ -37,14 +37,14 @@ jobs:
         run: |
           npm run all
 
-      - name: Compare the expected and actual dist/ directories
+      - name: Compare Expected and Actual Directories
+        id: diff
         run: |
-          if [ "$(git diff --ignore-space-at-eol dist/ | wc -l)" -gt "0" ]; then
-            echo "Detected uncommitted changes after build.  See status below:"
-            git diff
+          if [ "$(git diff --ignore-space-at-eol --text dist/ | wc -l)" -gt "0" ]; then
+            echo "Detected uncommitted changes after build. See status below:"
+            git diff --ignore-space-at-eol --text dist/
             exit 1
           fi
-        id: diff
 
       # If index.js was different than expected, upload the expected version as an artifact
       - uses: actions/upload-artifact@a8a3f3ad30e3422c9c7b888a15615d19a852ae32 # v3
