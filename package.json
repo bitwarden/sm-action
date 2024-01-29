@@ -30,7 +30,7 @@
     "lint": "eslint src/**/*.ts && prettier --check '**/*.ts'",
     "lint:fix": "eslint src/**/*.ts --fix",
     "dist": "pwsh ./pack.ps1 && ncc build src/index.ts --license licenses.txt --external @bitwarden/sdk-napi",
-    "prepare": "husky install",
+    "prepare": "husky",
     "prettier": "prettier --write .",
     "test": "jest"
   },
