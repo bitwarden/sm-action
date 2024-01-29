@@ -30,7 +30,7 @@
     "lint": "eslint src/**/*.ts && prettier --check '**/*.ts'",
     "lint:fix": "eslint src/**/*.ts --fix",
     "dist": "pwsh ./pack.ps1 && ncc build src/index.ts --license licenses.txt --external @bitwarden/sdk-napi",
-    "prepare": "husky install",
+    "prepare": "husky",
     "prettier": "prettier --write .",
     "test": "jest"
   },
@@ -51,7 +51,7 @@
     "eslint": "8.56.0",
     "eslint-config-prettier": "9.1.0",
     "eslint-plugin-jest": "27.6.3",
-    "husky": "8.0.3",
+    "husky": "9.0.7",
     "jest": "29.7.0",
     "js-yaml": "4.1.0",
     "lint-staged": "15.2.0",
