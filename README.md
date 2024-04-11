@@ -25,9 +25,9 @@ To use the action, add a step to your GitHub workflow using the following syntax
 
 - `access_token`
 
-  The service account access token for retrieving secrets.
+  The machine account access token for retrieving secrets.
 
-  Use GitHub's [encrypted secrets](https://docs.github.com/en/actions/security-guides/encrypted-secrets) to store and retrieve service account access tokens securely.
+  Use GitHub's [encrypted secrets](https://docs.github.com/en/actions/security-guides/encrypted-secrets) to store and retrieve machine account access tokens securely.
 
 - `secrets`
 
