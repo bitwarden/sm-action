@@ -13,6 +13,7 @@ export async function run(): Promise<void> {
     const secrets: string[] = core.getMultilineInput("secrets", {
       required: true,
     });
+    const cloudRegion = core.getInput("cloud_region");
     const baseUrl: string = core.getInput("base_url");
     let identityUrl: string = core.getInput("identity_url");
     let apiUrl: string = core.getInput("api_url");
@@ -24,6 +25,20 @@ export async function run(): Promise<void> {
       }
       identityUrl = baseUrl + "/identity";
       apiUrl = baseUrl + "/api";
+    } 
+    else if (cloudRegion) {
+      let cloudBaseUrl
+      if (cloudRegion === "com") {
+        cloudBaseUrl = "bitwarden.com";
+      }
+      else if (cloudRegion === "eu") {
+        cloudBaseUrl = "bitwarden.eu";
+      }
+      else { 
+        throw TypeError("input provided for cloud_region not in expected format");
+      }
+      identityUrl = "https://identity." + cloudBaseUrl;
+      apiUrl = "https://api." + cloudBaseUrl;
     }
     if (!isValidUrl(identityUrl)) {
       throw TypeError("input provided for identity_url not in expected format");
