@@ -28,7 +28,7 @@ export async function run(): Promise<void> {
     } 
     else if (cloudRegion) {
       let cloudBaseUrl
-      if (cloudRegion === "com") {
+      if (cloudRegion === "us") {
         cloudBaseUrl = "bitwarden.com";
       }
       else if (cloudRegion === "eu") {

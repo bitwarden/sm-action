@@ -24758,7 +24758,7 @@ async function run() {
             apiUrl = baseUrl + "/api";
         } else if (cloudRegion) {
             let cloudBaseUrl
-            if (cloudRegion === "com") {
+            if (cloudRegion === "us") {
                 cloudBaseUrl = "bitwarden.com";
             }
             else if (cloudRegion === "eu") {
