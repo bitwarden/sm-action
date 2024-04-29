@@ -63,7 +63,7 @@ export async function run(): Promise<void> {
       });
     } else {
       let errorMessage =
-        "The secrets provided could not be found. Please check the service account has access to the secret UUIDs provided.";
+        "The secrets provided could not be found. Please check the machine account has access to the secret UUIDs provided.";
       if (secretResponse.errorMessage) {
         errorMessage = errorMessage + `\n\n` + secretResponse.errorMessage;
       }
