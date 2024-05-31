@@ -14,7 +14,7 @@ jobs:
       fail-fast: false
       matrix:
         settings:
-          - os: macos-12
+          - os: macos-13
             target: x86_64-apple-darwin
             build: |
               npm run dist
