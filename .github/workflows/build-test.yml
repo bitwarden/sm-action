@@ -14,7 +14,7 @@ jobs:
       fail-fast: false
       matrix:
         settings:
-          - os: macos-12
+          - os: macos-13
             target: x86_64-apple-darwin
             build: |
               npm run dist
@@ -33,7 +33,7 @@ jobs:
               npm run test
     steps:
       - name: Checkout repo
-        uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11 # v4.1.1
+        uses: actions/checkout@a5ac7e51b41094c92402da3b24376905380afc29 # v4.1.6
 
       - name: Setup Node
         uses: actions/setup-node@60edb5dd545a775178f52524783378180af0d1f8 # v4.0.2

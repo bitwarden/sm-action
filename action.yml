@@ -6,7 +6,7 @@ branding:
   color: "blue"
 inputs:
   access_token:
-    description: "The service account access token for retrieving secrets"
+    description: "The machine account access token for retrieving secrets"
     required: true
   secrets:
     description: "One or more secret Ids to retrieve and the corresponding GitHub environment variable name to set"
