@@ -19,32 +19,32 @@ export async function run(): Promise<void> {
     let apiUrl: string = core.getInput("api_url");
 
     core.info("Validating bitwarden/sm-action inputs...");
-    if (baseUrl) {
-      if (!isValidUrl(baseUrl)) {
-        throw TypeError("input provided for base_url not in expected format");
+    if (identityUrl || apiUrl) {
+      if (baseUrl) {
+        if (!isValidUrl(baseUrl)) {
+          throw TypeError("input provided for base_url not in expected format");
+        }
+        identityUrl = baseUrl + identityUrl;
+        apiUrl = baseUrl + apiUrl;
       }
-      identityUrl = baseUrl + "/identity";
-      apiUrl = baseUrl + "/api";
-    } 
-    else if (cloudRegion) {
-      let cloudBaseUrl
+    } else if (cloudRegion) {
+      let cloudBaseUrl;
       if (cloudRegion === "us") {
         cloudBaseUrl = "bitwarden.com";
-      }
-      else if (cloudRegion === "eu") {
+      } else if (cloudRegion === "eu") {
         cloudBaseUrl = "bitwarden.eu";
-      }
-      else { 
+      } else {
         throw TypeError("input provided for cloud_region not in expected format");
       }
       identityUrl = "https://identity." + cloudBaseUrl;
       apiUrl = "https://api." + cloudBaseUrl;
     }
+
     if (!isValidUrl(identityUrl)) {
-      throw TypeError("input provided for identity_url not in expected format");
+      throw TypeError("identity_url not in expected format: " + identityUrl);
     }
     if (!isValidUrl(apiUrl)) {
-      throw TypeError("input provided for api_url not in expected format");
+      throw TypeError("api_url not in expected format: " + identityUrl);
     }
 
     core.info("Parsing secrets input");
