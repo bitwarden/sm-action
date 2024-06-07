@@ -41,10 +41,10 @@ export async function run(): Promise<void> {
     }
 
     if (!isValidUrl(identityUrl)) {
-      throw TypeError("identity_url not in expected format: " + identityUrl);
+      throw TypeError("input provided for identity_url not in expected format");
     }
     if (!isValidUrl(apiUrl)) {
-      throw TypeError("api_url not in expected format: " + identityUrl);
+      throw TypeError("input provided for api_url not in expected format");
     }
 
     core.info("Parsing secrets input");
