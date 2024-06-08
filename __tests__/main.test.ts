@@ -1,7 +1,10 @@
 import * as core from "@actions/core";
 import * as main from "../src/main";
 import {
+  ClientSettings,
   DatumClass,
+  DeviceType,
+  LogLevel,
   ResponseForAPIKeyLoginResponse,
   ResponseForSecretsResponse,
 } from "@bitwarden/sdk-napi";
@@ -10,8 +13,9 @@ import { randomUUID } from "crypto";
 const INVALID_URL = "INVALID_URL";
 const TEST_ACCESS_TOKEN = randomUUID().toString();
 const TEST_SECRETS = [`\t${randomUUID().toString()} > TEST_VALUE`];
-const TEST_IDENTITY_URL = "https://identity.bitwarden.com";
-const TEST_API_URL = "https://api.bitwarden.com";
+const DEFAULT_BASE_URL = "";
+const DEFAULT_IDENTITY_URL = "https://identity.bitwarden.com";
+const DEFAULT_API_URL = "https://api.bitwarden.com";
 
 // Mock the GitHub Actions core library
 let errorMock: jest.SpyInstance;
@@ -21,6 +25,7 @@ let setFailedMock: jest.SpyInstance;
 let setSecretMock: jest.SpyInstance;
 let exportVariableMock: jest.SpyInstance;
 let setOutputMock: jest.SpyInstance;
+let setDebugMock: jest.SpyInstance;
 
 // Mock the Bitwarden SDK
 const secretsClientMock = jest.fn();
@@ -32,7 +37,7 @@ const bitwardenClientMock = jest.fn().mockImplementation(() => {
   };
 });
 jest.mock("@bitwarden/sdk-napi", () => ({
-  BitwardenClient: jest.fn().mockImplementation(() => bitwardenClientMock()),
+  BitwardenClient: jest.fn().mockImplementation((...args: any) => bitwardenClientMock(args)),
   DeviceType: jest.requireActual("@bitwarden/sdk-napi").DeviceType,
   ClientSettings: jest.requireActual("@bitwarden/sdk-napi").ClientSettings,
   LogLevel: jest.requireActual("@bitwarden/sdk-napi").LogLevel,
@@ -49,6 +54,7 @@ describe("action", () => {
     setSecretMock = jest.spyOn(core, "setSecret").mockImplementation();
     exportVariableMock = jest.spyOn(core, "exportVariable").mockImplementation();
     setOutputMock = jest.spyOn(core, "setOutput").mockImplementation();
+    setDebugMock = jest.spyOn(core, "isDebug").mockReturnValue(false);
   });
 
   describe("sets a failed status", () => {
@@ -78,7 +84,7 @@ describe("action", () => {
         {
           accessToken: TEST_ACCESS_TOKEN,
           secrets: TEST_SECRETS,
-          identityUrl: TEST_IDENTITY_URL,
+          identityUrl: DEFAULT_IDENTITY_URL,
           apiUrl: INVALID_URL,
         } as Inputs,
         "input provided for api_url not in expected format",
@@ -95,8 +101,8 @@ describe("action", () => {
       mockInputs({
         accessToken: TEST_ACCESS_TOKEN,
         secrets: ["UUID : ENV_VAR_NAME"],
-        identityUrl: TEST_IDENTITY_URL,
-        apiUrl: TEST_API_URL,
+        identityUrl: DEFAULT_IDENTITY_URL,
+        apiUrl: DEFAULT_API_URL,
       } as Inputs);
 
       await main.run();
@@ -110,8 +116,8 @@ describe("action", () => {
       mockInputs({
         accessToken: TEST_ACCESS_TOKEN,
         secrets: TEST_SECRETS,
-        identityUrl: TEST_IDENTITY_URL,
-        apiUrl: TEST_API_URL,
+        identityUrl: DEFAULT_IDENTITY_URL,
+        apiUrl: DEFAULT_API_URL,
       } as Inputs);
       loginWithAccessToken.mockReturnValue(
         Promise.resolve(<ResponseForAPIKeyLoginResponse>{
@@ -129,21 +135,12 @@ describe("action", () => {
       mockInputs({
         accessToken: TEST_ACCESS_TOKEN,
         secrets: TEST_SECRETS,
-        identityUrl: TEST_IDENTITY_URL,
-        apiUrl: TEST_API_URL,
+        identityUrl: DEFAULT_IDENTITY_URL,
+        apiUrl: DEFAULT_API_URL,
       } as Inputs);
-      loginWithAccessToken.mockReturnValue(
-        Promise.resolve(<ResponseForAPIKeyLoginResponse>{
-          success: true,
-        }),
-      );
-      secretsClientMock.mockImplementation(() => {
-        return {
-          getByIds: jest.fn().mockReturnValue(<ResponseForSecretsResponse>{
-            success: false,
-            errorMessage: "Test error message",
-          }),
-        };
+      mockSecretsGetByIdResponse({
+        success: false,
+        errorMessage: "Test error message",
       });
 
       await main.run();
@@ -163,28 +160,138 @@ describe("action", () => {
     }
   });
 
+  describe("default inputs", () => {
+    it.each([
+      [
+        "no optional inputs",
+        {
+          baseUrl: DEFAULT_BASE_URL,
+          identityUrl: DEFAULT_IDENTITY_URL,
+          apiUrl: DEFAULT_API_URL,
+        } as OptionalInputs,
+        {
+          identityUrl: DEFAULT_IDENTITY_URL,
+          apiUrl: DEFAULT_API_URL,
+        } as ClientSettings,
+        false,
+      ],
+      [
+        "base_url provided",
+        {
+          baseUrl: "https://bitwarden.example.com",
+          identityUrl: DEFAULT_IDENTITY_URL,
+          apiUrl: DEFAULT_API_URL,
+        } as OptionalInputs,
+        {
+          identityUrl: "https://bitwarden.example.com/identity",
+          apiUrl: "https://bitwarden.example.com/api",
+        } as ClientSettings,
+        false,
+      ],
+      [
+        "identity_url provided",
+        {
+          baseUrl: DEFAULT_BASE_URL,
+          identityUrl: "https://identity.bitwarden.example.com",
+          apiUrl: DEFAULT_API_URL,
+        } as OptionalInputs,
+        {
+          identityUrl: "https://identity.bitwarden.example.com",
+          apiUrl: DEFAULT_API_URL,
+        } as ClientSettings,
+        false,
+      ],
+      [
+        "api_url provided",
+        {
+          baseUrl: DEFAULT_BASE_URL,
+          identityUrl: DEFAULT_IDENTITY_URL,
+          apiUrl: "https://api.bitwarden.example.com",
+        } as OptionalInputs,
+        {
+          identityUrl: DEFAULT_IDENTITY_URL,
+          apiUrl: "https://api.bitwarden.example.com",
+        } as ClientSettings,
+        false,
+      ],
+      [
+        "api_url and identity_url provided",
+        {
+          baseUrl: DEFAULT_BASE_URL,
+          identityUrl: "https://identity.bitwarden.example.com",
+          apiUrl: "https://api.bitwarden.example.com",
+        } as OptionalInputs,
+        {
+          identityUrl: "https://identity.bitwarden.example.com",
+          apiUrl: "https://api.bitwarden.example.com",
+        } as ClientSettings,
+        false,
+      ],
+      [
+        "debug logging enabled",
+        {
+          baseUrl: DEFAULT_BASE_URL,
+          identityUrl: DEFAULT_IDENTITY_URL,
+          apiUrl: DEFAULT_API_URL,
+        } as OptionalInputs,
+        {
+          identityUrl: DEFAULT_IDENTITY_URL,
+          apiUrl: DEFAULT_API_URL,
+        } as ClientSettings,
+        true,
+      ],
+    ])(
+      "%s",
+      async (
+        _,
+        optionalInputs: OptionalInputs,
+        expectedClientSettings: ClientSettings,
+        isDebugEnabled: boolean,
+      ) => {
+        mockInputs({
+          accessToken: TEST_ACCESS_TOKEN,
+          secrets: [] as string[],
+          ...optionalInputs,
+        } as Inputs);
+        mockSecretsGetByIdResponse({
+          success: true,
+          data: {
+            data: [],
+          },
+        });
+        setDebugMock.mockReturnValue(isDebugEnabled);
+
+        await main.run();
+
+        expect(setFailedMock).not.toHaveBeenCalled();
+        expect(errorMock).not.toHaveBeenCalled();
+        expect(setSecretMock).not.toHaveBeenCalled();
+        expect(bitwardenClientMock).toHaveBeenCalledTimes(1);
+        expect(bitwardenClientMock).toHaveBeenCalledWith([
+          {
+            deviceType: DeviceType.SDK,
+            userAgent: "bitwarden/sm-action",
+            ...expectedClientSettings,
+          } as ClientSettings,
+          isDebugEnabled ? LogLevel.Debug : LogLevel.Info,
+        ]);
+      },
+    );
+  });
+
   describe("sets secrets", () => {
     it("no secrets", async () => {
       mockInputs({
         accessToken: TEST_ACCESS_TOKEN,
         secrets: [] as string[],
-        identityUrl: TEST_IDENTITY_URL,
-        apiUrl: TEST_API_URL,
+        identityUrl: DEFAULT_IDENTITY_URL,
+        apiUrl: DEFAULT_API_URL,
       } as Inputs);
-      loginWithAccessToken.mockReturnValue(
-        Promise.resolve(<ResponseForAPIKeyLoginResponse>{
-          success: true,
-        }),
-      );
-      secretsClientMock.mockImplementation(() => {
-        return {
-          getByIds: jest.fn().mockReturnValue(<ResponseForSecretsResponse>{
-            success: true,
-            data: {
-              data: [],
-            },
-          }),
-        };
+      mockSecretsGetByIdResponse({
+        success: true,
+        data: {
+          data: [],
+        },
       });
 
       await main.run();
@@ -216,23 +323,14 @@ describe("action", () => {
           `${secretsResponse[0].id} > TEST_ENV_VAR_1`,
           `${secretsResponse[1].id} > TEST_ENV_VAR_2`,
         ],
-        identityUrl: TEST_IDENTITY_URL,
-        apiUrl: TEST_API_URL,
+        identityUrl: DEFAULT_IDENTITY_URL,
+        apiUrl: DEFAULT_API_URL,
       } as Inputs);
-      loginWithAccessToken.mockReturnValue(
-        Promise.resolve(<ResponseForAPIKeyLoginResponse>{
-          success: true,
-        }),
-      );
-      secretsClientMock.mockImplementation(() => {
-        return {
-          getByIds: jest.fn().mockReturnValue(<ResponseForSecretsResponse>{
-            success: true,
-            data: {
-              data: secretsResponse,
-            },
-          }),
-        };
+      mockSecretsGetByIdResponse({
+        success: true,
+        data: {
+          data: secretsResponse,
+        },
       });
 
       await main.run();
@@ -260,13 +358,29 @@ describe("action", () => {
   });
 });
 
-type Inputs = {
-  accessToken?: string;
-  secrets?: string[];
+function mockSecretsGetByIdResponse(response: ResponseForSecretsResponse) {
+  loginWithAccessToken.mockReturnValue(
+    Promise.resolve(<ResponseForAPIKeyLoginResponse>{
+      success: true,
+    }),
+  );
+  secretsClientMock.mockImplementation(() => {
+    return {
+      getByIds: jest.fn().mockReturnValue(response),
+    };
+  });
+}
+
+type OptionalInputs = {
   baseUrl?: string;
   identityUrl?: string;
   apiUrl?: string;
 };
+
+type Inputs = {
+  accessToken?: string;
+  secrets?: string[];
+} & OptionalInputs;
 
 function mockInputs(inputs: Inputs) {
   const { accessToken, secrets, baseUrl, identityUrl, apiUrl } = inputs;
