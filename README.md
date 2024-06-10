@@ -69,13 +69,13 @@ To use the action, add a step to your GitHub workflow using the following syntax
 
   (Optional) For self-hosted bitwarden instances provide your https://your.domain.com/identity
 
-  Depending on the `cloud_region` setting, the default value will use https://identity.bitwarden.com for `us` or https://identity.bitwarden.eu for `eu`.
+  Depending on the `cloud_region` setting, the default value will use https://identity.bitwarden.com for `us` (default) or https://identity.bitwarden.eu for `eu`.
 
 - `api_url`
 
   (Optional) For self-hosted bitwarden instances provide your https://your.domain.com/api
 
-  Depending on the `cloud_region` setting, the default value will use https://api.bitwarden.com for `us` or https://api.bitwarden.eu for `eu`.
+  Depending on the `cloud_region` setting, the default value will use https://api.bitwarden.com for `us` (default) or https://api.bitwarden.eu for `eu`.
 
 ## Examples
 
