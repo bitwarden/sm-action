@@ -41,7 +41,7 @@ describe("action", () => {
     // Verify that all of the core library functions were called correctly
     expect(setFailedMock).toHaveBeenNthCalledWith(
       1,
-      "input provided for identity_url not in expected format",
+      "input provided for cloud_region not in expected format",
     );
     expect(errorMock).not.toHaveBeenCalled();
   });
