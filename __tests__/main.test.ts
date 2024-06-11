@@ -25,7 +25,6 @@ let setFailedMock: jest.SpyInstance;
 let setSecretMock: jest.SpyInstance;
 let exportVariableMock: jest.SpyInstance;
 let setOutputMock: jest.SpyInstance;
-let setDebugMock: jest.SpyInstance;
 
 // Mock the Bitwarden SDK
 const secretsClientMock = jest.fn();
@@ -54,7 +53,6 @@ describe("action", () => {
     setSecretMock = jest.spyOn(core, "setSecret").mockImplementation();
     exportVariableMock = jest.spyOn(core, "exportVariable").mockImplementation();
     setOutputMock = jest.spyOn(core, "setOutput").mockImplementation();
-    setDebugMock = jest.spyOn(core, "isDebug").mockReturnValue(false);
   });
 
   describe("sets a failed status", () => {
@@ -173,7 +171,6 @@ describe("action", () => {
           identityUrl: DEFAULT_IDENTITY_URL,
           apiUrl: DEFAULT_API_URL,
         } as ClientSettings,
-        false,
       ],
       [
         "base_url provided",
@@ -186,7 +183,6 @@ describe("action", () => {
           identityUrl: "https://bitwarden.example.com/identity",
           apiUrl: "https://bitwarden.example.com/api",
         } as ClientSettings,
-        false,
       ],
       [
         "identity_url provided",
@@ -199,7 +195,6 @@ describe("action", () => {
           identityUrl: "https://identity.bitwarden.example.com",
           apiUrl: DEFAULT_API_URL,
         } as ClientSettings,
-        false,
       ],
       [
         "api_url provided",
@@ -212,7 +207,6 @@ describe("action", () => {
           identityUrl: DEFAULT_IDENTITY_URL,
           apiUrl: "https://api.bitwarden.example.com",
         } as ClientSettings,
-        false,
       ],
       [
         "api_url and identity_url provided",
@@ -225,58 +219,35 @@ describe("action", () => {
           identityUrl: "https://identity.bitwarden.example.com",
           apiUrl: "https://api.bitwarden.example.com",
         } as ClientSettings,
-        false,
       ],
-      [
-        "debug logging enabled",
+    ])("%s", async (_, optionalInputs: OptionalInputs, expectedClientSettings: ClientSettings) => {
+      mockInputs({
+        accessToken: TEST_ACCESS_TOKEN,
+        secrets: [] as string[],
+        ...optionalInputs,
+      } as Inputs);
+      mockSecretsGetByIdResponse({
+        success: true,
+        data: {
+          data: [],
+        },
+      });
+
+      await main.run();
+
+      expect(setFailedMock).not.toHaveBeenCalled();
+      expect(errorMock).not.toHaveBeenCalled();
+      expect(setSecretMock).not.toHaveBeenCalled();
+      expect(bitwardenClientMock).toHaveBeenCalledTimes(1);
+      expect(bitwardenClientMock).toHaveBeenCalledWith([
         {
-          baseUrl: DEFAULT_BASE_URL,
-          identityUrl: DEFAULT_IDENTITY_URL,
-          apiUrl: DEFAULT_API_URL,
-        } as OptionalInputs,
-        {
-          identityUrl: DEFAULT_IDENTITY_URL,
-          apiUrl: DEFAULT_API_URL,
+          deviceType: DeviceType.SDK,
+          userAgent: "bitwarden/sm-action",
+          ...expectedClientSettings,
         } as ClientSettings,
-        true,
-      ],
-    ])(
-      "%s",
-      async (
-        _,
-        optionalInputs: OptionalInputs,
-        expectedClientSettings: ClientSettings,
-        isDebugEnabled: boolean,
-      ) => {
-        mockInputs({
-          accessToken: TEST_ACCESS_TOKEN,
-          secrets: [] as string[],
-          ...optionalInputs,
-        } as Inputs);
-        mockSecretsGetByIdResponse({
-          success: true,
-          data: {
-            data: [],
-          },
-        });
-        setDebugMock.mockReturnValue(isDebugEnabled);
-
-        await main.run();
-
-        expect(setFailedMock).not.toHaveBeenCalled();
-        expect(errorMock).not.toHaveBeenCalled();
-        expect(setSecretMock).not.toHaveBeenCalled();
-        expect(bitwardenClientMock).toHaveBeenCalledTimes(1);
-        expect(bitwardenClientMock).toHaveBeenCalledWith([
-          {
-            deviceType: DeviceType.SDK,
-            userAgent: "bitwarden/sm-action",
-            ...expectedClientSettings,
-          } as ClientSettings,
-          isDebugEnabled ? LogLevel.Debug : LogLevel.Info,
-        ]);
-      },
-    );
+        LogLevel.Info,
+      ]);
+    });
   });
 
   describe("sets secrets", () => {

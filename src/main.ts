@@ -93,9 +93,7 @@ async function getBitwardenClient(inputs: Inputs): Promise<BitwardenClient> {
     deviceType: DeviceType.SDK,
   };
 
-  const logLevel = core.isDebug() ? LogLevel.Debug : LogLevel.Info;
-
-  const client = new BitwardenClient(settings, logLevel);
+  const client = new BitwardenClient(settings, LogLevel.Info);
   const result = await client.loginWithAccessToken(inputs.accessToken);
   if (!result.success) {
     throw Error(`Authentication with Bitwarden failed.\nError: ${result.errorMessage}`);

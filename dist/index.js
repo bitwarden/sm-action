@@ -25025,8 +25025,7 @@ async function getBitwardenClient(inputs) {
         userAgent: "bitwarden/sm-action",
         deviceType: sdk_napi_1.DeviceType.SDK,
     };
-    const logLevel = core.isDebug() ? 1 /* LogLevel.Debug */ : 2 /* LogLevel.Info */;
-    const client = new sdk_napi_1.BitwardenClient(settings, logLevel);
+    const client = new sdk_napi_1.BitwardenClient(settings, 2 /* LogLevel.Info */);
     const result = await client.loginWithAccessToken(inputs.accessToken);
     if (!result.success) {
         throw Error(`Authentication with Bitwarden failed.\nError: ${result.errorMessage}`);
