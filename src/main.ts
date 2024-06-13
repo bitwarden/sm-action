@@ -26,17 +26,30 @@ export async function run(): Promise<void> {
       identityUrl = baseUrl + "/identity";
       apiUrl = baseUrl + "/api";
     } else {
-      if (!identityUrl && !apiUrl) {
-        let cloudBaseUrl;
-        if (cloudRegion === "us") {
-          cloudBaseUrl = "bitwarden.com";
-        } else if (cloudRegion === "eu") {
-          cloudBaseUrl = "bitwarden.eu";
-        } else {
-          throw TypeError("input provided for cloud_region not in expected format");
+      //If IdentityUrl or ApiUrl does not have a URL defined, we need to create one based off the cloudRegion
+      if (!identityUrl || !apiUrl) {
+        let cloudBaseUrl: string;
+
+        switch (cloudRegion) {
+          case "us":
+            cloudBaseUrl = "bitwarden.com";
+            break;
+          case "eu":
+            cloudBaseUrl = "bitwarden.eu";
+            break;
+          default:
+            throw new TypeError("Input provided for cloud_region is not in the expected format");
         }
-        identityUrl = "https://identity." + cloudBaseUrl;
-        apiUrl = "https://api." + cloudBaseUrl;
+
+        //If identityUrl doesn't have a default, set it using the cloudBaseUrl
+        if (!identityUrl) {
+          identityUrl = `https://identity.${cloudBaseUrl}`;
+        }
+
+        //If apiUrl doesn't have a default, set it using the cloudBaseUrl
+        if (!apiUrl) {
+          apiUrl = `https://api.${cloudBaseUrl}`;
+        }
       }
     }
 
