@@ -19,38 +19,48 @@ export async function run(): Promise<void> {
     let apiUrl: string = core.getInput("api_url");
 
     core.info("Validating bitwarden/sm-action inputs...");
-    if (baseUrl) {
-      if (!isValidUrl(baseUrl)) {
-        throw TypeError("input provided for base_url not in expected format");
-      }
-      identityUrl = baseUrl + "/identity";
-      apiUrl = baseUrl + "/api";
-    } else {
-      //If IdentityUrl or ApiUrl does not have a URL defined, we need to create one based off the cloudRegion
+
+    let customUrls;
+    //Check if only identityUrl is set and not apiUrl: if so throw an error, otherwise mark this as the user is using customUrls
+    if (identityUrl || apiUrl) {
+      //If either are set, make sure both are.
       if (!identityUrl || !apiUrl) {
-        let cloudBaseUrl: string;
-
-        switch (cloudRegion) {
-          case "us":
-            cloudBaseUrl = "bitwarden.com";
-            break;
-          case "eu":
-            cloudBaseUrl = "bitwarden.eu";
-            break;
-          default:
-            throw new TypeError("Input provided for cloud_region is not in the expected format");
-        }
-
-        //If identityUrl doesn't have a default, set it using the cloudBaseUrl
-        if (!identityUrl) {
-          identityUrl = `https://identity.${cloudBaseUrl}`;
-        }
-
-        //If apiUrl doesn't have a default, set it using the cloudBaseUrl
-        if (!apiUrl) {
-          apiUrl = `https://api.${cloudBaseUrl}`;
-        }
+        throw TypeError("If using custom Urls, Both identityUrl and apiUrl need to be set.");
       }
+      customUrls = true;
+    }
+    const selfHosted = baseUrl || customUrls;
+    if (selfHosted) {
+      //If self-hosted cloudBaseUrl will have no impact, but customUrls (apiUrl and IdentityUrl) will have an impact.
+      if (baseUrl && customUrls) {
+        core.warning(
+          "both base_url and api_url/identity_url are set, " +
+            "but only one of the two options should be set. In this case, base_url is used.",
+        );
+      }
+      if (baseUrl) {
+        if (!isValidUrl(baseUrl)) {
+          throw TypeError("input provided for base_url not in expected format");
+        }
+        identityUrl = baseUrl + "/identity";
+        apiUrl = baseUrl + "/api";
+      }
+    } else {
+      //Bw hosted, allows users to set cloudRegion, by default this value is "us"
+      let cloudBaseUrl: string;
+      switch (cloudRegion) {
+        case "us":
+          cloudBaseUrl = "bitwarden.com";
+          break;
+        case "eu":
+          cloudBaseUrl = "bitwarden.eu";
+          break;
+        default:
+          throw new TypeError("Input provided for cloud_region is not in the expected format");
+      }
+
+      identityUrl = `https://identity.${cloudBaseUrl}`;
+      apiUrl = `https://api.${cloudBaseUrl}`;
     }
 
     if (!isValidUrl(identityUrl)) {
