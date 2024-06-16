@@ -25,13 +25,12 @@ export async function run(): Promise<void> {
     if (identityUrl || apiUrl) {
       //If either are set, make sure both are.
       if (!identityUrl || !apiUrl) {
-        throw TypeError("If using custom Urls, Both identityUrl and apiUrl need to be set.");
+        throw TypeError("If using custom Urls, both identity_url and api_url need to be set.");
       }
       customUrls = true;
     }
     const selfHosted = baseUrl || customUrls;
     if (selfHosted) {
-      //If self-hosted cloudBaseUrl will have no impact, but customUrls (apiUrl and IdentityUrl) will have an impact.
       if (baseUrl && customUrls) {
         core.warning(
           "both base_url and api_url/identity_url are set, " +
