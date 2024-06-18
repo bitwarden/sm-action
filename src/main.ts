@@ -20,7 +20,7 @@ export async function run(): Promise<void> {
 
     core.info("Validating bitwarden/sm-action inputs...");
 
-    let customUrls;
+    let customUrls = false;
     //Check if only identityUrl is set and not apiUrl: if so throw an error, otherwise mark this as the user is using customUrls
     if (identityUrl || apiUrl) {
       //If either are set, make sure both are.
