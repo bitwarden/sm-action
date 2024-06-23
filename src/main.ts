@@ -69,7 +69,7 @@ function readInputs(): Inputs {
   if (identityUrl || apiUrl) {
     //If either are set, make sure both are.
     if (!identityUrl || !apiUrl) {
-      throw TypeError("If using custom Urls, both identity_url and api_url need to be set.");
+      throw TypeError("if using custom Urls, both identity_url and api_url need to be set.");
     }
     customUrls = true;
   }
@@ -99,7 +99,7 @@ function readInputs(): Inputs {
         cloudBaseUrl = "bitwarden.eu";
         break;
       default:
-        throw new TypeError("Input provided for cloud_region is not in the expected format");
+        throw new TypeError("input provided for cloud_region is not in the expected format");
     }
 
     identityUrl = `https://identity.${cloudBaseUrl}`;
