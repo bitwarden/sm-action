@@ -24956,59 +24956,16 @@ const validators_1 = __nccwpck_require__(9783);
  */
 async function run() {
     try {
-        const accessToken = core.getInput("access_token");
-        const secrets = core.getMultilineInput("secrets", {
-            required: true,
-        });
-        const cloudRegion = core.getInput("cloud_region");
-        const baseUrl = core.getInput("base_url");
-        let identityUrl = core.getInput("identity_url");
-        let apiUrl = core.getInput("api_url");
         core.info("Validating bitwarden/sm-action inputs...");
-        if (baseUrl) {
-            if (!(0, validators_1.isValidUrl)(baseUrl)) {
-                throw TypeError("input provided for base_url not in expected format");
-            }
-            identityUrl = baseUrl + "/identity";
-            apiUrl = baseUrl + "/api";
-        } else if (cloudRegion) {
-            let cloudBaseUrl
-            if (cloudRegion === "us") {
-                cloudBaseUrl = "bitwarden.com";
-            }
-            else if (cloudRegion === "eu") {
-                cloudBaseUrl = "bitwarden.eu";
-            }
-            else { 
-                throw TypeError("input provided for cloud_region not in expected format");
-            }
-            identityUrl = "https://identity." + cloudBaseUrl;
-            apiUrl = "https://api." + cloudBaseUrl;
-        }
-        if (!(0, validators_1.isValidUrl)(identityUrl)) {
-            throw TypeError("input provided for identity_url not in expected format");
-        }
-        if (!(0, validators_1.isValidUrl)(apiUrl)) {
-            throw TypeError("input provided for api_url not in expected format");
-        }
+        const inputs = readInputs();
         core.info("Parsing secrets input");
-        const secretInputs = (0, parser_1.parseSecretInput)(secrets);
+        const secretInputs = (0, parser_1.parseSecretInput)(inputs.secrets);
         core.info("Authenticating to Bitwarden");
-        const settings = {
-            apiUrl: apiUrl,
-            identityUrl: identityUrl,
-            userAgent: "bitwarden/sm-action",
-            deviceType: sdk_napi_1.DeviceType.SDK,
-        };
-        const client = new sdk_napi_1.BitwardenClient(settings, 2 /* LogLevel.Info */);
-        const result = await client.loginWithAccessToken(accessToken);
-        if (!result.success) {
-            throw Error("Authentication with Bitwarden failed");
-        }
+        const client = await getBitwardenClient(inputs);
         core.info("Setting Secrets");
         const secretIds = secretInputs.map((secretInput) => secretInput.id);
         const secretResponse = await client.secrets().getByIds(secretIds);
-        if (secretResponse.data) {
+        if (secretResponse.success && secretResponse.data) {
             const secrets = secretResponse.data.data;
             secrets.forEach((secret) => {
                 const secretInput = secretInputs.find((secretInput) => secretInput.id === secret.id);
@@ -25020,11 +24977,7 @@ async function run() {
             });
         }
         else {
-            let errorMessage = "The secrets provided could not be found. Please check the machine account has access to the secret UUIDs provided.";
-            if (secretResponse.errorMessage) {
-                errorMessage = errorMessage + `\n\n` + secretResponse.errorMessage;
-            }
-            throw Error(errorMessage);
+            throw Error(`The secrets provided could not be found. Please check the machine account has access to the secret UUIDs provided.\nError: ${secretResponse.errorMessage}`);
         }
         core.info("Completed setting secrets as environment variables.");
     }
@@ -25035,6 +24988,87 @@ async function run() {
     }
 }
 exports.run = run;
+function readInputs() {
+    const accessToken = core.getInput("access_token", {
+        required: true,
+    });
+    const secrets = core.getMultilineInput("secrets", {
+        required: true,
+    });
+    const baseUrl = core.getInput("base_url");
+    let identityUrl = core.getInput("identity_url");
+    let apiUrl = core.getInput("api_url");
+  
+    let customUrls = false;
+    //Check if only identityUrl is set and not apiUrl: if so throw an error, otherwise mark this as the user is using customUrls
+    if (identityUrl || apiUrl) {
+      //If either are set, make sure both are.
+      if (!identityUrl || !apiUrl) {
+        throw TypeError("If using custom Urls, both identity_url and api_url need to be set.");
+      }
+      customUrls = true;
+    }
+    const selfHosted = baseUrl || customUrls;
+    if (selfHosted) {
+      if (baseUrl && customUrls) {
+        core.warning(
+          "both base_url and api_url/identity_url are set, " +
+            "but only one of the two options should be set. In this case, base_url is used.",
+        );
+      }
+      if (baseUrl) {
+        if (!isValidUrl(baseUrl)) {
+          throw TypeError("input provided for base_url not in expected format");
+        }
+        identityUrl = baseUrl + "/identity";
+        apiUrl = baseUrl + "/api";
+      }
+    } else {
+      //Bw hosted, allows users to set cloudRegion, by default this value is "us"
+      let cloudBaseUrl: string;
+      switch (cloudRegion) {
+        case "us":
+          cloudBaseUrl = "bitwarden.com";
+          break;
+        case "eu":
+          cloudBaseUrl = "bitwarden.eu";
+          break;
+        default:
+          throw new TypeError("Input provided for cloud_region is not in the expected format");
+      }
+
+      identityUrl = `https://identity.${cloudBaseUrl}`;
+      apiUrl = `https://api.${cloudBaseUrl}`;
+    }
+
+    if (!isValidUrl(identityUrl)) {
+      throw TypeError("input provided for identity_url not in expected format");
+    }
+    if (!isValidUrl(apiUrl)) {
+      throw TypeError("input provided for api_url not in expected format");
+    }
+
+    return {
+        accessToken,
+        secrets,
+        identityUrl,
+        apiUrl,
+    };
+}
+async function getBitwardenClient(inputs) {
+    const settings = {
+        apiUrl: inputs.apiUrl,
+        identityUrl: inputs.identityUrl,
+        userAgent: "bitwarden/sm-action",
+        deviceType: sdk_napi_1.DeviceType.SDK,
+    };
+    const client = new sdk_napi_1.BitwardenClient(settings, 2 /* LogLevel.Info */);
+    const result = await client.loginWithAccessToken(inputs.accessToken);
+    if (!result.success) {
+        throw Error(`Authentication with Bitwarden failed.\nError: ${result.errorMessage}`);
+    }
+    return client;
+}
 
 
 /***/ }),
@@ -25056,21 +25090,34 @@ class SecretInput {
     }
 }
 exports.SecretInput = SecretInput;
+class ParsingError extends Error {
+    constructor(message) {
+        super(message);
+    }
+}
 function parseSecretInput(secrets) {
     const results = secrets.map((secret) => {
         try {
+            if (secret.indexOf(">") === -1) {
+                throw new ParsingError(`Expected format: <secretGuid> > <environmentVariableName>`);
+            }
             let [id, envName] = secret.split(">", 2);
             id = id.trim();
             envName = envName.trim();
-            if ((0, validators_1.isValidGuid)(id) && (0, validators_1.isValidEnvName)(envName)) {
-                return new SecretInput(id, envName);
+            if (!(0, validators_1.isValidGuid)(id)) {
+                throw new ParsingError(`Id is not a valid GUID`);
             }
-            else {
-                throw TypeError();
+            if (!(0, validators_1.isValidEnvName)(envName)) {
+                throw new ParsingError(`Environment variable name is not valid`);
             }
+            return new SecretInput(id, envName);
         }
-        catch {
-            throw TypeError(`Error occurred when attempting to parse ${secret}`);
+        catch (e) {
+            const message = `Error occurred when attempting to parse ${secret}`;
+            if (e instanceof ParsingError) {
+                throw TypeError(`${message}. ${e.message}`);
+            }
+            throw TypeError(message);
         }
     });
     if (!(0, validators_1.isUniqueEnvNames)(results)) {

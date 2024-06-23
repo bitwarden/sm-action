@@ -7,19 +7,37 @@ export class SecretInput {
   ) {}
 }
 
+class ParsingError extends Error {
+  constructor(message: string) {
+    super(message);
+  }
+}
+
 export function parseSecretInput(secrets: string[]): SecretInput[] {
   const results = secrets.map((secret) => {
     try {
+      if (secret.indexOf(">") === -1) {
+        throw new ParsingError(`Expected format: <secretGuid> > <environmentVariableName>`);
+      }
       let [id, envName] = secret.split(">", 2);
       id = id.trim();
       envName = envName.trim();
-      if (isValidGuid(id) && isValidEnvName(envName)) {
-        return new SecretInput(id, envName);
-      } else {
-        throw TypeError();
+
+      if (!isValidGuid(id)) {
+        throw new ParsingError(`Id is not a valid GUID`);
       }
-    } catch {
-      throw TypeError(`Error occurred when attempting to parse ${secret}`);
+
+      if (!isValidEnvName(envName)) {
+        throw new ParsingError(`Environment variable name is not valid`);
+      }
+
+      return new SecretInput(id, envName);
+    } catch (e: unknown) {
+      const message = `Error occurred when attempting to parse ${secret}`;
+      if (e instanceof ParsingError) {
+        throw TypeError(`${message}. ${e.message}`);
+      }
+      throw TypeError(message);
     }
   });
   if (!isUniqueEnvNames(results)) {
