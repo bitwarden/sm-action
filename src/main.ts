@@ -59,6 +59,7 @@ function readInputs(): Inputs {
   const secrets: string[] = core.getMultilineInput("secrets", {
     required: true,
   });
+  const cloudRegion: string = core.getInput("cloud_region");
   const baseUrl: string = core.getInput("base_url");
   let identityUrl: string = core.getInput("identity_url");
   let apiUrl: string = core.getInput("api_url");
