@@ -11,6 +11,7 @@ import {
 import { randomUUID } from "crypto";
 
 const INVALID_URL = "INVALID_URL";
+const INVALID_REGION = "INVALID_REGION";
 const TEST_ACCESS_TOKEN = randomUUID().toString();
 const TEST_SECRETS = [`\t${randomUUID().toString()} > TEST_VALUE`];
 const DEFAULT_BASE_URL = "";
@@ -69,13 +70,22 @@ describe("action", () => {
         "input provided for base_url not in expected format",
       ],
       [
-        "identity_url",
+        "identity_url_with_missing_api_url",
         {
           accessToken: TEST_ACCESS_TOKEN,
           secrets: TEST_SECRETS,
           identityUrl: INVALID_URL,
         } as Inputs,
-        "input provided for identity_url not in expected format",
+        "if using custom Urls, both identity_url and api_url need to be set.",
+      ],
+      [
+        "api_url_with_missing_identity_url",
+        {
+          accessToken: TEST_ACCESS_TOKEN,
+          secrets: TEST_SECRETS,
+          apiUrl: INVALID_URL,
+        } as Inputs,
+        "if using custom Urls, both identity_url and api_url need to be set.",
       ],
       [
         "api_url",
@@ -86,6 +96,25 @@ describe("action", () => {
           apiUrl: INVALID_URL,
         } as Inputs,
         "input provided for api_url not in expected format",
+      ],
+      [
+        "identity_url",
+        {
+          accessToken: TEST_ACCESS_TOKEN,
+          secrets: TEST_SECRETS,
+          identityUrl: INVALID_URL,
+          apiUrl: DEFAULT_API_URL,
+        } as Inputs,
+        "input provided for identity_url not in expected format",
+      ],
+      [
+        "cloud_region",
+        {
+          accessToken: TEST_ACCESS_TOKEN,
+          secrets: TEST_SECRETS,
+          cloudRegion: INVALID_REGION,
+        } as Inputs,
+        "input provided for cloud_region is not in the expected format",
       ],
     ])("readActionInputs: invalid input %s", async (_, inputs: Inputs, errorMessage) => {
       mockInputs(inputs);
