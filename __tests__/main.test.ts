@@ -11,7 +11,7 @@ import {
 import { randomUUID } from "crypto";
 
 const INVALID_URL = "INVALID_URL";
-const INVALID_REGION = "INVALID_REGION";
+const INVALID_CLOUD_REGION = "INVALID_CLOUD_REGION";
 const TEST_ACCESS_TOKEN = randomUUID().toString();
 const TEST_SECRETS = [`\t${randomUUID().toString()} > TEST_VALUE`];
 const DEFAULT_BASE_URL = "";
