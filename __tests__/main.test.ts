@@ -15,8 +15,9 @@ const INVALID_CLOUD_REGION = "INVALID_CLOUD_REGION";
 const TEST_ACCESS_TOKEN = randomUUID().toString();
 const TEST_SECRETS = [`\t${randomUUID().toString()} > TEST_VALUE`];
 const DEFAULT_BASE_URL = "";
-const DEFAULT_IDENTITY_URL = "https://identity.bitwarden.com";
-const DEFAULT_API_URL = "https://api.bitwarden.com";
+const DEFAULT_IDENTITY_URL = "";
+const DEFAULT_API_URL = "";
+const DEFAULT_CLOUD_REGION = "us";
 
 // Mock the GitHub Actions core library
 let errorMock: jest.SpyInstance;
@@ -66,7 +67,14 @@ describe("action", () => {
       ],
       [
         "base_url",
-        { accessToken: TEST_ACCESS_TOKEN, secrets: TEST_SECRETS, baseUrl: INVALID_URL } as Inputs,
+        {
+          accessToken: TEST_ACCESS_TOKEN,
+          secrets: TEST_SECRETS,
+          baseUrl: INVALID_URL,
+          identityUrl: DEFAULT_IDENTITY_URL,
+          apiUrl: DEFAULT_API_URL,
+          cloudRegion: DEFAULT_CLOUD_REGION,
+        } as Inputs,
         "input provided for base_url not in expected format",
       ],
       [
@@ -75,6 +83,7 @@ describe("action", () => {
           accessToken: TEST_ACCESS_TOKEN,
           secrets: TEST_SECRETS,
           identityUrl: INVALID_URL,
+          cloudRegion: DEFAULT_CLOUD_REGION,
         } as Inputs,
         "if using custom Urls, both identity_url and api_url need to be set.",
       ],
@@ -84,6 +93,7 @@ describe("action", () => {
           accessToken: TEST_ACCESS_TOKEN,
           secrets: TEST_SECRETS,
           apiUrl: INVALID_URL,
+          cloudRegion: DEFAULT_CLOUD_REGION,
         } as Inputs,
         "if using custom Urls, both identity_url and api_url need to be set.",
       ],
@@ -92,8 +102,9 @@ describe("action", () => {
         {
           accessToken: TEST_ACCESS_TOKEN,
           secrets: TEST_SECRETS,
-          identityUrl: DEFAULT_IDENTITY_URL,
+          identityUrl: "https://identity.example.com",
           apiUrl: INVALID_URL,
+          cloudRegion: DEFAULT_CLOUD_REGION,
         } as Inputs,
         "input provided for api_url not in expected format",
       ],
@@ -103,7 +114,8 @@ describe("action", () => {
           accessToken: TEST_ACCESS_TOKEN,
           secrets: TEST_SECRETS,
           identityUrl: INVALID_URL,
-          apiUrl: DEFAULT_API_URL,
+          apiUrl: "https://api.example.com",
+          cloudRegion: DEFAULT_CLOUD_REGION,
         } as Inputs,
         "input provided for identity_url not in expected format",
       ],
@@ -112,7 +124,9 @@ describe("action", () => {
         {
           accessToken: TEST_ACCESS_TOKEN,
           secrets: TEST_SECRETS,
-          cloudRegion: INVALID_REGION,
+          identityUrl: DEFAULT_IDENTITY_URL,
+          apiUrl: DEFAULT_API_URL,
+          cloudRegion: INVALID_CLOUD_REGION,
         } as Inputs,
         "input provided for cloud_region is not in the expected format",
       ],
@@ -130,6 +144,7 @@ describe("action", () => {
         secrets: ["UUID : ENV_VAR_NAME"],
         identityUrl: DEFAULT_IDENTITY_URL,
         apiUrl: DEFAULT_API_URL,
+        cloudRegion: DEFAULT_CLOUD_REGION,
       } as Inputs);
 
       await main.run();
@@ -145,6 +160,7 @@ describe("action", () => {
         secrets: TEST_SECRETS,
         identityUrl: DEFAULT_IDENTITY_URL,
         apiUrl: DEFAULT_API_URL,
+        cloudRegion: DEFAULT_CLOUD_REGION,
       } as Inputs);
       loginWithAccessToken.mockReturnValue(
         Promise.resolve(<ResponseForAPIKeyLoginResponse>{
@@ -164,6 +180,7 @@ describe("action", () => {
         secrets: TEST_SECRETS,
         identityUrl: DEFAULT_IDENTITY_URL,
         apiUrl: DEFAULT_API_URL,
+        cloudRegion: DEFAULT_CLOUD_REGION,
       } as Inputs);
       mockSecretsGetByIdResponse({
         success: false,
@@ -195,10 +212,11 @@ describe("action", () => {
           baseUrl: DEFAULT_BASE_URL,
           identityUrl: DEFAULT_IDENTITY_URL,
           apiUrl: DEFAULT_API_URL,
+          cloudRegion: DEFAULT_CLOUD_REGION,
         } as OptionalInputs,
         {
-          identityUrl: DEFAULT_IDENTITY_URL,
-          apiUrl: DEFAULT_API_URL,
+          identityUrl: "https://identity.bitwarden.com",
+          apiUrl: "https://api.bitwarden.com",
         } as ClientSettings,
       ],
       [
@@ -231,6 +249,7 @@ describe("action", () => {
           baseUrl: DEFAULT_BASE_URL,
           identityUrl: DEFAULT_IDENTITY_URL,
           apiUrl: "https://api.bitwarden.example.com",
+          cloudRegion: DEFAULT_CLOUD_REGION,
         } as OptionalInputs,
         {
           identityUrl: DEFAULT_IDENTITY_URL,
@@ -243,10 +262,24 @@ describe("action", () => {
           baseUrl: DEFAULT_BASE_URL,
           identityUrl: "https://identity.bitwarden.example.com",
           apiUrl: "https://api.bitwarden.example.com",
+          cloudRegion: DEFAULT_CLOUD_REGION,
         } as OptionalInputs,
         {
           identityUrl: "https://identity.bitwarden.example.com",
           apiUrl: "https://api.bitwarden.example.com",
+        } as ClientSettings,
+      ],
+      [
+        "cloud_region provided",
+        {
+          baseUrl: DEFAULT_BASE_URL,
+          identityUrl: DEFAULT_IDENTITY_URL,
+          apiUrl: DEFAULT_API_URL,
+          cloudRegion: "eu",
+        } as OptionalInputs,
+        {
+          identityUrl: "https://identity.bitwarden.eu",
+          apiUrl: "https://api.bitwarden.eu",
         } as ClientSettings,
       ],
     ])("%s", async (_, optionalInputs: OptionalInputs, expectedClientSettings: ClientSettings) => {
@@ -286,6 +319,7 @@ describe("action", () => {
         secrets: [] as string[],
         identityUrl: DEFAULT_IDENTITY_URL,
         apiUrl: DEFAULT_API_URL,
+        cloudRegion: DEFAULT_CLOUD_REGION,
       } as Inputs);
       mockSecretsGetByIdResponse({
         success: true,
@@ -325,6 +359,7 @@ describe("action", () => {
         ],
         identityUrl: DEFAULT_IDENTITY_URL,
         apiUrl: DEFAULT_API_URL,
+        cloudRegion: DEFAULT_CLOUD_REGION,
       } as Inputs);
       mockSecretsGetByIdResponse({
         success: true,
@@ -375,6 +410,7 @@ type OptionalInputs = {
   baseUrl?: string;
   identityUrl?: string;
   apiUrl?: string;
+  cloudRegion?: string;
 };
 
 type Inputs = {
@@ -383,7 +419,7 @@ type Inputs = {
 } & OptionalInputs;
 
 function mockInputs(inputs: Inputs) {
-  const { accessToken, secrets, baseUrl, identityUrl, apiUrl } = inputs;
+  const { accessToken, secrets, baseUrl, identityUrl, apiUrl, cloudRegion } = inputs;
 
   getInputMock.mockImplementation(
     (name: string, options?: { required?: boolean }): string | undefined => {
@@ -392,6 +428,7 @@ function mockInputs(inputs: Inputs) {
         base_url: baseUrl,
         identity_url: identityUrl,
         api_url: apiUrl,
+        cloud_region: cloudRegion,
       }[name];
 
       // Error from core.getInput is thrown if the input is required and not supplied
