@@ -18,6 +18,7 @@ inputs:
   base_url:
     description: "(Optional) For self-hosted bitwarden instances provide your https://your.domain.com"
     required: false
+    default: ""
   identity_url:
     description: "(Optional) For self-hosted bitwarden instances provide your https://your.domain.com/identity"
     required: false
