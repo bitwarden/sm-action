@@ -22,9 +22,11 @@ inputs:
   identity_url:
     description: "(Optional) For self-hosted bitwarden instances provide your https://your.domain.com/identity"
     required: false
+    default: ""
   api_url:
     description: "(Optional) For self-hosted bitwarden instances provide your https://your.domain.com/api"
     required: false
+    default: ""
 runs:
   using: "node20"
   main: "dist/index.js"
