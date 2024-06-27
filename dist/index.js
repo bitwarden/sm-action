@@ -24995,59 +24995,55 @@ function readInputs() {
     const secrets = core.getMultilineInput("secrets", {
         required: true,
     });
+    const cloudRegion = core.getInput("cloud_region");
     const baseUrl = core.getInput("base_url");
     let identityUrl = core.getInput("identity_url");
     let apiUrl = core.getInput("api_url");
-  
     let customUrls = false;
     //Check if only identityUrl is set and not apiUrl: if so throw an error, otherwise mark this as the user is using customUrls
     if (identityUrl || apiUrl) {
-      //If either are set, make sure both are.
-      if (!identityUrl || !apiUrl) {
-        throw TypeError("If using custom Urls, both identity_url and api_url need to be set.");
-      }
-      customUrls = true;
+        //If either are set, make sure both are.
+        if (!identityUrl || !apiUrl) {
+            throw TypeError("if using custom Urls, both identity_url and api_url need to be set.");
+        }
+        customUrls = true;
     }
     const selfHosted = baseUrl || customUrls;
     if (selfHosted) {
-      if (baseUrl && customUrls) {
-        core.warning(
-          "both base_url and api_url/identity_url are set, " +
-            "but only one of the two options should be set. In this case, base_url is used.",
-        );
-      }
-      if (baseUrl) {
-        if (!isValidUrl(baseUrl)) {
-          throw TypeError("input provided for base_url not in expected format");
+        if (baseUrl && customUrls) {
+            core.warning("both base_url and api_url/identity_url are set, " +
+                "but only one of the two options should be set. In this case, base_url is used.");
         }
-        identityUrl = baseUrl + "/identity";
-        apiUrl = baseUrl + "/api";
-      }
-    } else {
-      //Bw hosted, allows users to set cloudRegion, by default this value is "us"
-      let cloudBaseUrl: string;
-      switch (cloudRegion) {
-        case "us":
-          cloudBaseUrl = "bitwarden.com";
-          break;
-        case "eu":
-          cloudBaseUrl = "bitwarden.eu";
-          break;
-        default:
-          throw new TypeError("Input provided for cloud_region is not in the expected format");
-      }
-
-      identityUrl = `https://identity.${cloudBaseUrl}`;
-      apiUrl = `https://api.${cloudBaseUrl}`;
+        if (baseUrl) {
+            if (!(0, validators_1.isValidUrl)(baseUrl)) {
+                throw TypeError("input provided for base_url not in expected format");
+            }
+            identityUrl = baseUrl + "/identity";
+            apiUrl = baseUrl + "/api";
+        }
     }
-
-    if (!isValidUrl(identityUrl)) {
-      throw TypeError("input provided for identity_url not in expected format");
+    else {
+        //Bw hosted, allows users to set cloudRegion, by default this value is "us"
+        let cloudBaseUrl;
+        switch (cloudRegion) {
+            case "us":
+                cloudBaseUrl = "bitwarden.com";
+                break;
+            case "eu":
+                cloudBaseUrl = "bitwarden.eu";
+                break;
+            default:
+                throw new TypeError("input provided for cloud_region is not in the expected format");
+        }
+        identityUrl = `https://identity.${cloudBaseUrl}`;
+        apiUrl = `https://api.${cloudBaseUrl}`;
     }
-    if (!isValidUrl(apiUrl)) {
-      throw TypeError("input provided for api_url not in expected format");
+    if (!(0, validators_1.isValidUrl)(identityUrl)) {
+        throw TypeError("input provided for identity_url not in expected format");
     }
-
+    if (!(0, validators_1.isValidUrl)(apiUrl)) {
+        throw TypeError("input provided for api_url not in expected format");
+    }
     return {
         accessToken,
         secrets,
