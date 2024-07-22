@@ -24945,7 +24945,7 @@ var __importStar = (this && this.__importStar) || function (mod) {
     return result;
 };
 Object.defineProperty(exports, "__esModule", ({ value: true }));
-exports.run = void 0;
+exports.run = run;
 const core = __importStar(__nccwpck_require__(2186));
 const sdk_napi_1 = __nccwpck_require__(9862);
 const parser_1 = __nccwpck_require__(8412);
@@ -24987,7 +24987,6 @@ async function run() {
         }
     }
 }
-exports.run = run;
 function readInputs() {
     const accessToken = core.getInput("access_token", {
         required: true,
@@ -25042,7 +25041,8 @@ async function getBitwardenClient(inputs) {
 "use strict";
 
 Object.defineProperty(exports, "__esModule", ({ value: true }));
-exports.parseSecretInput = exports.SecretInput = void 0;
+exports.SecretInput = void 0;
+exports.parseSecretInput = parseSecretInput;
 const validators_1 = __nccwpck_require__(9783);
 class SecretInput {
     id;
@@ -25088,7 +25088,6 @@ function parseSecretInput(secrets) {
     }
     return results;
 }
-exports.parseSecretInput = parseSecretInput;
 
 
 /***/ }),
@@ -25099,7 +25098,10 @@ exports.parseSecretInput = parseSecretInput;
 "use strict";
 
 Object.defineProperty(exports, "__esModule", ({ value: true }));
-exports.isUniqueEnvNames = exports.isValidGuid = exports.isValidEnvName = exports.isValidUrl = void 0;
+exports.isValidUrl = isValidUrl;
+exports.isValidEnvName = isValidEnvName;
+exports.isValidGuid = isValidGuid;
+exports.isUniqueEnvNames = isUniqueEnvNames;
 const ENV_NAME_REGEX = /^[a-zA-Z_]+[a-zA-Z0-9_]*$/;
 const GUID_REGEX = /^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$/;
 function isValidUrl(url) {
@@ -25114,20 +25116,16 @@ function isValidUrl(url) {
     }
     return false;
 }
-exports.isValidUrl = isValidUrl;
 function isValidEnvName(name) {
     return ENV_NAME_REGEX.test(name);
 }
-exports.isValidEnvName = isValidEnvName;
 function isValidGuid(value) {
     return GUID_REGEX.test(value);
 }
-exports.isValidGuid = isValidGuid;
 function isUniqueEnvNames(secretInputs) {
     const envNames = [...new Set(secretInputs.map((s) => s.outputEnvName))];
     return envNames.length === secretInputs.length;
 }
-exports.isUniqueEnvNames = isUniqueEnvNames;
 
 
 /***/ }),
