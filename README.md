@@ -49,6 +49,14 @@ To use the action, add a step to your GitHub workflow using the following syntax
           00000000-0000-0000-0000-000000000000 > TEST_EXAMPLE
   ```
 
+- `cloud_region`
+
+  (Optional) For usage with the cloud-hosted services on either https://vault.bitwarden.com or https://vault.bitwarden.eu
+
+  The default value will use `us`, which is the region for https://vault.bitwarden.com
+
+  To use https://vault.bitwarden.eu, set the value to `eu`
+
 - `base_url`
 
   (Optional) For self-hosted bitwarden instances provide your https://your.domain.com
@@ -61,13 +69,13 @@ To use the action, add a step to your GitHub workflow using the following syntax
 
   (Optional) For self-hosted bitwarden instances provide your https://your.domain.com/identity
 
-  The default value will use https://identity.bitwarden.com
+  Depending on the `cloud_region` setting, the default value will use https://identity.bitwarden.com for `us` (default) or https://identity.bitwarden.eu for `eu`.
 
 - `api_url`
 
   (Optional) For self-hosted bitwarden instances provide your https://your.domain.com/api
 
-  The default value will use https://api.bitwarden.com
+  Depending on the `cloud_region` setting, the default value will use https://api.bitwarden.com for `us` (default) or https://api.bitwarden.eu for `eu`.
 
 ## Examples
 
@@ -95,6 +103,7 @@ TEST_EXAMPLE_2: SECRET_VALUE_FOR_bdbb16bc-0b9b-472e-99fa-af4101309076
   uses: bitwarden/sm-action@v1
   with:
     access_token: ${{ secrets.ACCESS_TOKEN }}
+    cloud_region: eu
     secrets: |
       00000000-0000-0000-0000-000000000000 > TEST_EXAMPLE
 - name: Use Secret

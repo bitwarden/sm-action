@@ -11,6 +11,10 @@ inputs:
   secrets:
     description: "One or more secret Ids to retrieve and the corresponding GitHub environment variable name to set"
     required: true
+  cloud_region:
+    description: "(Optional) The Bitwarden server region to use if cloud-hosted service is used. Either 'us' or 'eu'"
+    required: false
+    default: "us"
   base_url:
     description: "(Optional) For self-hosted bitwarden instances provide your https://your.domain.com"
     required: false
@@ -18,11 +22,11 @@ inputs:
   identity_url:
     description: "(Optional) For self-hosted bitwarden instances provide your https://your.domain.com/identity"
     required: false
-    default: "https://identity.bitwarden.com"
+    default: ""
   api_url:
     description: "(Optional) For self-hosted bitwarden instances provide your https://your.domain.com/api"
     required: false
-    default: "https://api.bitwarden.com"
+    default: ""
 runs:
   using: "node20"
   main: "dist/index.js"
