@@ -1,6 +1,1857 @@
 /******/ (() => { // webpackBootstrap
 /******/ 	var __webpack_modules__ = ({
 
+/***/ 8546:
+/***/ ((module) => {
+
+function webpackEmptyContext(req) {
+	var e = new Error("Cannot find module '" + req + "'");
+	e.code = 'MODULE_NOT_FOUND';
+	throw e;
+}
+webpackEmptyContext.keys = () => ([]);
+webpackEmptyContext.resolve = webpackEmptyContext;
+webpackEmptyContext.id = 8546;
+module.exports = webpackEmptyContext;
+
+/***/ }),
+
+/***/ 1340:
+/***/ (function(__unused_webpack_module, exports, __nccwpck_require__) {
+
+"use strict";
+
+var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, generator) {
+    function adopt(value) { return value instanceof P ? value : new P(function (resolve) { resolve(value); }); }
+    return new (P || (P = Promise))(function (resolve, reject) {
+        function fulfilled(value) { try { step(generator.next(value)); } catch (e) { reject(e); } }
+        function rejected(value) { try { step(generator["throw"](value)); } catch (e) { reject(e); } }
+        function step(result) { result.done ? resolve(result.value) : adopt(result.value).then(fulfilled, rejected); }
+        step((generator = generator.apply(thisArg, _arguments || [])).next());
+    });
+};
+var __generator = (this && this.__generator) || function (thisArg, body) {
+    var _ = { label: 0, sent: function() { if (t[0] & 1) throw t[1]; return t[1]; }, trys: [], ops: [] }, f, y, t, g;
+    return g = { next: verb(0), "throw": verb(1), "return": verb(2) }, typeof Symbol === "function" && (g[Symbol.iterator] = function() { return this; }), g;
+    function verb(n) { return function (v) { return step([n, v]); }; }
+    function step(op) {
+        if (f) throw new TypeError("Generator is already executing.");
+        while (g && (g = 0, op[0] && (_ = 0)), _) try {
+            if (f = 1, y && (t = op[0] & 2 ? y["return"] : op[0] ? y["throw"] || ((t = y["return"]) && t.call(y), 0) : y.next) && !(t = t.call(y, op[1])).done) return t;
+            if (y = 0, t) op = [op[0] & 2, t.value];
+            switch (op[0]) {
+                case 0: case 1: t = op; break;
+                case 4: _.label++; return { value: op[1], done: false };
+                case 5: _.label++; y = op[1]; op = [0]; continue;
+                case 7: op = _.ops.pop(); _.trys.pop(); continue;
+                default:
+                    if (!(t = _.trys, t = t.length > 0 && t[t.length - 1]) && (op[0] === 6 || op[0] === 2)) { _ = 0; continue; }
+                    if (op[0] === 3 && (!t || (op[1] > t[0] && op[1] < t[3]))) { _.label = op[1]; break; }
+                    if (op[0] === 6 && _.label < t[1]) { _.label = t[1]; t = op; break; }
+                    if (t && _.label < t[2]) { _.label = t[2]; _.ops.push(op); break; }
+                    if (t[2]) _.ops.pop();
+                    _.trys.pop(); continue;
+            }
+            op = body.call(thisArg, _);
+        } catch (e) { op = [6, e]; y = 0; } finally { f = t = 0; }
+        if (op[0] & 5) throw op[1]; return { value: op[0] ? op[1] : void 0, done: true };
+    }
+};
+Object.defineProperty(exports, "__esModule", ({ value: true }));
+exports.ProjectsClient = exports.SecretsClient = exports.BitwardenClient = void 0;
+var schemas_1 = __nccwpck_require__(6840);
+function handleResponse(response) {
+    if (!response.success) {
+        throw new Error(response.errorMessage);
+    }
+    return response.data;
+}
+var BitwardenClient = /** @class */ (function () {
+    function BitwardenClient(client) {
+        this.client = client;
+    }
+    BitwardenClient.prototype.accessTokenLogin = function (accessToken) {
+        return __awaiter(this, void 0, void 0, function () {
+            var response;
+            return __generator(this, function (_a) {
+                switch (_a.label) {
+                    case 0: return [4 /*yield*/, this.client.run_command(schemas_1.Convert.commandToJson({
+                            accessTokenLogin: {
+                                accessToken: accessToken,
+                            },
+                        }))];
+                    case 1:
+                        response = _a.sent();
+                        handleResponse(schemas_1.Convert.toResponseForAccessTokenLoginResponse(response));
+                        return [2 /*return*/];
+                }
+            });
+        });
+    };
+    BitwardenClient.prototype.secrets = function () {
+        return new SecretsClient(this.client);
+    };
+    BitwardenClient.prototype.projects = function () {
+        return new ProjectsClient(this.client);
+    };
+    return BitwardenClient;
+}());
+exports.BitwardenClient = BitwardenClient;
+var SecretsClient = /** @class */ (function () {
+    function SecretsClient(client) {
+        this.client = client;
+    }
+    SecretsClient.prototype.get = function (id) {
+        return __awaiter(this, void 0, void 0, function () {
+            var response;
+            return __generator(this, function (_a) {
+                switch (_a.label) {
+                    case 0: return [4 /*yield*/, this.client.run_command(schemas_1.Convert.commandToJson({
+                            secrets: {
+                                get: { id: id },
+                            },
+                        }))];
+                    case 1:
+                        response = _a.sent();
+                        return [2 /*return*/, handleResponse(schemas_1.Convert.toResponseForSecretResponse(response))];
+                }
+            });
+        });
+    };
+    SecretsClient.prototype.getByIds = function (ids) {
+        return __awaiter(this, void 0, void 0, function () {
+            var response;
+            return __generator(this, function (_a) {
+                switch (_a.label) {
+                    case 0: return [4 /*yield*/, this.client.run_command(schemas_1.Convert.commandToJson({
+                            secrets: {
+                                getByIds: { ids: ids },
+                            },
+                        }))];
+                    case 1:
+                        response = _a.sent();
+                        return [2 /*return*/, handleResponse(schemas_1.Convert.toResponseForSecretsResponse(response))];
+                }
+            });
+        });
+    };
+    SecretsClient.prototype.create = function (key, value, note, projectIds, organizationId) {
+        return __awaiter(this, void 0, void 0, function () {
+            var response;
+            return __generator(this, function (_a) {
+                switch (_a.label) {
+                    case 0: return [4 /*yield*/, this.client.run_command(schemas_1.Convert.commandToJson({
+                            secrets: {
+                                create: { key: key, value: value, note: note, projectIds: projectIds, organizationId: organizationId },
+                            },
+                        }))];
+                    case 1:
+                        response = _a.sent();
+                        return [2 /*return*/, handleResponse(schemas_1.Convert.toResponseForSecretResponse(response))];
+                }
+            });
+        });
+    };
+    SecretsClient.prototype.list = function (organizationId) {
+        return __awaiter(this, void 0, void 0, function () {
+            var response;
+            return __generator(this, function (_a) {
+                switch (_a.label) {
+                    case 0: return [4 /*yield*/, this.client.run_command(schemas_1.Convert.commandToJson({
+                            secrets: {
+                                list: { organizationId: organizationId },
+                            },
+                        }))];
+                    case 1:
+                        response = _a.sent();
+                        return [2 /*return*/, handleResponse(schemas_1.Convert.toResponseForSecretIdentifiersResponse(response))];
+                }
+            });
+        });
+    };
+    SecretsClient.prototype.update = function (id, key, value, note, projectIds, organizationId) {
+        return __awaiter(this, void 0, void 0, function () {
+            var response;
+            return __generator(this, function (_a) {
+                switch (_a.label) {
+                    case 0: return [4 /*yield*/, this.client.run_command(schemas_1.Convert.commandToJson({
+                            secrets: {
+                                update: { id: id, key: key, value: value, note: note, projectIds: projectIds, organizationId: organizationId },
+                            },
+                        }))];
+                    case 1:
+                        response = _a.sent();
+                        return [2 /*return*/, handleResponse(schemas_1.Convert.toResponseForSecretResponse(response))];
+                }
+            });
+        });
+    };
+    SecretsClient.prototype.delete = function (ids) {
+        return __awaiter(this, void 0, void 0, function () {
+            var response;
+            return __generator(this, function (_a) {
+                switch (_a.label) {
+                    case 0: return [4 /*yield*/, this.client.run_command(schemas_1.Convert.commandToJson({
+                            secrets: {
+                                delete: { ids: ids },
+                            },
+                        }))];
+                    case 1:
+                        response = _a.sent();
+                        return [2 /*return*/, handleResponse(schemas_1.Convert.toResponseForSecretsDeleteResponse(response))];
+                }
+            });
+        });
+    };
+    return SecretsClient;
+}());
+exports.SecretsClient = SecretsClient;
+var ProjectsClient = /** @class */ (function () {
+    function ProjectsClient(client) {
+        this.client = client;
+    }
+    ProjectsClient.prototype.get = function (id) {
+        return __awaiter(this, void 0, void 0, function () {
+            var response;
+            return __generator(this, function (_a) {
+                switch (_a.label) {
+                    case 0: return [4 /*yield*/, this.client.run_command(schemas_1.Convert.commandToJson({
+                            projects: {
+                                get: { id: id },
+                            },
+                        }))];
+                    case 1:
+                        response = _a.sent();
+                        return [2 /*return*/, handleResponse(schemas_1.Convert.toResponseForProjectResponse(response))];
+                }
+            });
+        });
+    };
+    ProjectsClient.prototype.create = function (name, organizationId) {
+        return __awaiter(this, void 0, void 0, function () {
+            var response;
+            return __generator(this, function (_a) {
+                switch (_a.label) {
+                    case 0: return [4 /*yield*/, this.client.run_command(schemas_1.Convert.commandToJson({
+                            projects: {
+                                create: { name: name, organizationId: organizationId },
+                            },
+                        }))];
+                    case 1:
+                        response = _a.sent();
+                        return [2 /*return*/, handleResponse(schemas_1.Convert.toResponseForProjectResponse(response))];
+                }
+            });
+        });
+    };
+    ProjectsClient.prototype.list = function (organizationId) {
+        return __awaiter(this, void 0, void 0, function () {
+            var response;
+            return __generator(this, function (_a) {
+                switch (_a.label) {
+                    case 0: return [4 /*yield*/, this.client.run_command(schemas_1.Convert.commandToJson({
+                            projects: {
+                                list: { organizationId: organizationId },
+                            },
+                        }))];
+                    case 1:
+                        response = _a.sent();
+                        return [2 /*return*/, handleResponse(schemas_1.Convert.toResponseForProjectsResponse(response))];
+                }
+            });
+        });
+    };
+    ProjectsClient.prototype.update = function (id, name, organizationId) {
+        return __awaiter(this, void 0, void 0, function () {
+            var response;
+            return __generator(this, function (_a) {
+                switch (_a.label) {
+                    case 0: return [4 /*yield*/, this.client.run_command(schemas_1.Convert.commandToJson({
+                            projects: {
+                                update: { id: id, name: name, organizationId: organizationId },
+                            },
+                        }))];
+                    case 1:
+                        response = _a.sent();
+                        return [2 /*return*/, handleResponse(schemas_1.Convert.toResponseForProjectResponse(response))];
+                }
+            });
+        });
+    };
+    ProjectsClient.prototype.delete = function (ids) {
+        return __awaiter(this, void 0, void 0, function () {
+            var response;
+            return __generator(this, function (_a) {
+                switch (_a.label) {
+                    case 0: return [4 /*yield*/, this.client.run_command(schemas_1.Convert.commandToJson({
+                            projects: {
+                                delete: { ids: ids },
+                            },
+                        }))];
+                    case 1:
+                        response = _a.sent();
+                        return [2 /*return*/, handleResponse(schemas_1.Convert.toResponseForProjectsDeleteResponse(response))];
+                }
+            });
+        });
+    };
+    return ProjectsClient;
+}());
+exports.ProjectsClient = ProjectsClient;
+//# sourceMappingURL=client.js.map
+
+/***/ }),
+
+/***/ 9489:
+/***/ (function(__unused_webpack_module, exports, __nccwpck_require__) {
+
+"use strict";
+
+var __createBinding = (this && this.__createBinding) || (Object.create ? (function(o, m, k, k2) {
+    if (k2 === undefined) k2 = k;
+    var desc = Object.getOwnPropertyDescriptor(m, k);
+    if (!desc || ("get" in desc ? !m.__esModule : desc.writable || desc.configurable)) {
+      desc = { enumerable: true, get: function() { return m[k]; } };
+    }
+    Object.defineProperty(o, k2, desc);
+}) : (function(o, m, k, k2) {
+    if (k2 === undefined) k2 = k;
+    o[k2] = m[k];
+}));
+var __exportStar = (this && this.__exportStar) || function(m, exports) {
+    for (var p in m) if (p !== "default" && !Object.prototype.hasOwnProperty.call(exports, p)) __createBinding(exports, m, p);
+};
+Object.defineProperty(exports, "__esModule", ({ value: true }));
+__exportStar(__nccwpck_require__(1340), exports);
+__exportStar(__nccwpck_require__(6840), exports);
+//# sourceMappingURL=lib.js.map
+
+/***/ }),
+
+/***/ 6840:
+/***/ ((__unused_webpack_module, exports) => {
+
+"use strict";
+
+// To parse this data:
+//
+//   import { Convert, ClientSettings, DeviceType, Command, PasswordLoginRequest, TwoFactorRequest, TwoFactorProvider, Kdf, APIKeyLoginRequest, AccessTokenLoginRequest, SecretVerificationRequest, FingerprintRequest, SyncRequest, SecretsCommand, SecretGetRequest, SecretsGetRequest, SecretCreateRequest, SecretIdentifiersRequest, SecretPutRequest, SecretsDeleteRequest, SecretsSyncRequest, ProjectsCommand, ProjectGetRequest, ProjectCreateRequest, ProjectsListRequest, ProjectPutRequest, ProjectsDeleteRequest, ResponseForAPIKeyLoginResponse, APIKeyLoginResponse, TwoFactorProviders, Authenticator, Email, Duo, YubiKey, Remember, WebAuthn, ResponseForPasswordLoginResponse, PasswordLoginResponse, CAPTCHAResponse, ResponseForAccessTokenLoginResponse, AccessTokenLoginResponse, ResponseForSecretIdentifiersResponse, SecretIdentifiersResponse, SecretIdentifierResponse, ResponseForSecretResponse, SecretResponse, ResponseForSecretsResponse, SecretsResponse, ResponseForSecretsDeleteResponse, SecretsDeleteResponse, SecretDeleteResponse, ResponseForSecretsSyncResponse, SecretsSyncResponse, ResponseForProjectResponse, ProjectResponse, ResponseForProjectsResponse, ProjectsResponse, ResponseForProjectsDeleteResponse, ProjectsDeleteResponse, ProjectDeleteResponse, ResponseForFingerprintResponse, FingerprintResponse, ResponseForSyncResponse, SyncResponse, ProfileResponse, ProfileOrganizationResponse, Folder, Collection, Cipher, CipherType, Login, LoginURI, URIMatchType, Fido2Credential, Identity, Card, SecureNote, SecureNoteType, CipherRepromptType, LocalData, Attachment, Field, FieldType, LinkedIDType, LoginLinkedIDType, CardLinkedIDType, IdentityLinkedIDType, PasswordHistory, DomainResponse, GlobalDomains, ResponseForUserAPIKeyResponse, UserAPIKeyResponse } from "./file";
+//
+//   const clientSettings = Convert.toClientSettings(json);
+//   const deviceType = Convert.toDeviceType(json);
+//   const command = Convert.toCommand(json);
+//   const passwordLoginRequest = Convert.toPasswordLoginRequest(json);
+//   const twoFactorRequest = Convert.toTwoFactorRequest(json);
+//   const twoFactorProvider = Convert.toTwoFactorProvider(json);
+//   const kdf = Convert.toKdf(json);
+//   const aPIKeyLoginRequest = Convert.toAPIKeyLoginRequest(json);
+//   const accessTokenLoginRequest = Convert.toAccessTokenLoginRequest(json);
+//   const secretVerificationRequest = Convert.toSecretVerificationRequest(json);
+//   const fingerprintRequest = Convert.toFingerprintRequest(json);
+//   const syncRequest = Convert.toSyncRequest(json);
+//   const secretsCommand = Convert.toSecretsCommand(json);
+//   const secretGetRequest = Convert.toSecretGetRequest(json);
+//   const secretsGetRequest = Convert.toSecretsGetRequest(json);
+//   const secretCreateRequest = Convert.toSecretCreateRequest(json);
+//   const secretIdentifiersRequest = Convert.toSecretIdentifiersRequest(json);
+//   const secretPutRequest = Convert.toSecretPutRequest(json);
+//   const secretsDeleteRequest = Convert.toSecretsDeleteRequest(json);
+//   const secretsSyncRequest = Convert.toSecretsSyncRequest(json);
+//   const projectsCommand = Convert.toProjectsCommand(json);
+//   const projectGetRequest = Convert.toProjectGetRequest(json);
+//   const projectCreateRequest = Convert.toProjectCreateRequest(json);
+//   const projectsListRequest = Convert.toProjectsListRequest(json);
+//   const projectPutRequest = Convert.toProjectPutRequest(json);
+//   const projectsDeleteRequest = Convert.toProjectsDeleteRequest(json);
+//   const responseForAPIKeyLoginResponse = Convert.toResponseForAPIKeyLoginResponse(json);
+//   const aPIKeyLoginResponse = Convert.toAPIKeyLoginResponse(json);
+//   const twoFactorProviders = Convert.toTwoFactorProviders(json);
+//   const authenticator = Convert.toAuthenticator(json);
+//   const email = Convert.toEmail(json);
+//   const duo = Convert.toDuo(json);
+//   const yubiKey = Convert.toYubiKey(json);
+//   const remember = Convert.toRemember(json);
+//   const webAuthn = Convert.toWebAuthn(json);
+//   const responseForPasswordLoginResponse = Convert.toResponseForPasswordLoginResponse(json);
+//   const passwordLoginResponse = Convert.toPasswordLoginResponse(json);
+//   const cAPTCHAResponse = Convert.toCAPTCHAResponse(json);
+//   const responseForAccessTokenLoginResponse = Convert.toResponseForAccessTokenLoginResponse(json);
+//   const accessTokenLoginResponse = Convert.toAccessTokenLoginResponse(json);
+//   const responseForSecretIdentifiersResponse = Convert.toResponseForSecretIdentifiersResponse(json);
+//   const secretIdentifiersResponse = Convert.toSecretIdentifiersResponse(json);
+//   const secretIdentifierResponse = Convert.toSecretIdentifierResponse(json);
+//   const responseForSecretResponse = Convert.toResponseForSecretResponse(json);
+//   const secretResponse = Convert.toSecretResponse(json);
+//   const responseForSecretsResponse = Convert.toResponseForSecretsResponse(json);
+//   const secretsResponse = Convert.toSecretsResponse(json);
+//   const responseForSecretsDeleteResponse = Convert.toResponseForSecretsDeleteResponse(json);
+//   const secretsDeleteResponse = Convert.toSecretsDeleteResponse(json);
+//   const secretDeleteResponse = Convert.toSecretDeleteResponse(json);
+//   const responseForSecretsSyncResponse = Convert.toResponseForSecretsSyncResponse(json);
+//   const secretsSyncResponse = Convert.toSecretsSyncResponse(json);
+//   const responseForProjectResponse = Convert.toResponseForProjectResponse(json);
+//   const projectResponse = Convert.toProjectResponse(json);
+//   const responseForProjectsResponse = Convert.toResponseForProjectsResponse(json);
+//   const projectsResponse = Convert.toProjectsResponse(json);
+//   const responseForProjectsDeleteResponse = Convert.toResponseForProjectsDeleteResponse(json);
+//   const projectsDeleteResponse = Convert.toProjectsDeleteResponse(json);
+//   const projectDeleteResponse = Convert.toProjectDeleteResponse(json);
+//   const responseForFingerprintResponse = Convert.toResponseForFingerprintResponse(json);
+//   const fingerprintResponse = Convert.toFingerprintResponse(json);
+//   const responseForSyncResponse = Convert.toResponseForSyncResponse(json);
+//   const syncResponse = Convert.toSyncResponse(json);
+//   const profileResponse = Convert.toProfileResponse(json);
+//   const profileOrganizationResponse = Convert.toProfileOrganizationResponse(json);
+//   const folder = Convert.toFolder(json);
+//   const encString = Convert.toEncString(json);
+//   const collection = Convert.toCollection(json);
+//   const cipher = Convert.toCipher(json);
+//   const cipherType = Convert.toCipherType(json);
+//   const login = Convert.toLogin(json);
+//   const loginURI = Convert.toLoginURI(json);
+//   const uRIMatchType = Convert.toURIMatchType(json);
+//   const fido2Credential = Convert.toFido2Credential(json);
+//   const identity = Convert.toIdentity(json);
+//   const card = Convert.toCard(json);
+//   const secureNote = Convert.toSecureNote(json);
+//   const secureNoteType = Convert.toSecureNoteType(json);
+//   const cipherRepromptType = Convert.toCipherRepromptType(json);
+//   const localData = Convert.toLocalData(json);
+//   const attachment = Convert.toAttachment(json);
+//   const field = Convert.toField(json);
+//   const fieldType = Convert.toFieldType(json);
+//   const linkedIDType = Convert.toLinkedIDType(json);
+//   const loginLinkedIDType = Convert.toLoginLinkedIDType(json);
+//   const cardLinkedIDType = Convert.toCardLinkedIDType(json);
+//   const identityLinkedIDType = Convert.toIdentityLinkedIDType(json);
+//   const passwordHistory = Convert.toPasswordHistory(json);
+//   const domainResponse = Convert.toDomainResponse(json);
+//   const globalDomains = Convert.toGlobalDomains(json);
+//   const responseForUserAPIKeyResponse = Convert.toResponseForUserAPIKeyResponse(json);
+//   const userAPIKeyResponse = Convert.toUserAPIKeyResponse(json);
+//
+// These functions will throw an error if the JSON doesn't
+// match the expected interface, even if the JSON is valid.
+Object.defineProperty(exports, "__esModule", ({ value: true }));
+exports.Convert = exports.IdentityLinkedIDType = exports.CardLinkedIDType = exports.LoginLinkedIDType = exports.CipherType = exports.SecureNoteType = exports.CipherRepromptType = exports.URIMatchType = exports.FieldType = exports.LinkedIDType = exports.TwoFactorProvider = exports.DeviceType = void 0;
+/**
+ * Device type to send to Bitwarden. Defaults to SDK
+ */
+var DeviceType;
+(function (DeviceType) {
+    DeviceType["Android"] = "Android";
+    DeviceType["AndroidAmazon"] = "AndroidAmazon";
+    DeviceType["ChromeBrowser"] = "ChromeBrowser";
+    DeviceType["ChromeExtension"] = "ChromeExtension";
+    DeviceType["EdgeBrowser"] = "EdgeBrowser";
+    DeviceType["EdgeExtension"] = "EdgeExtension";
+    DeviceType["FirefoxBrowser"] = "FirefoxBrowser";
+    DeviceType["FirefoxExtension"] = "FirefoxExtension";
+    DeviceType["IEBrowser"] = "IEBrowser";
+    DeviceType["IOS"] = "iOS";
+    DeviceType["LinuxDesktop"] = "LinuxDesktop";
+    DeviceType["MACOSDesktop"] = "MacOsDesktop";
+    DeviceType["OperaBrowser"] = "OperaBrowser";
+    DeviceType["OperaExtension"] = "OperaExtension";
+    DeviceType["SDK"] = "SDK";
+    DeviceType["SafariBrowser"] = "SafariBrowser";
+    DeviceType["SafariExtension"] = "SafariExtension";
+    DeviceType["UWP"] = "UWP";
+    DeviceType["UnknownBrowser"] = "UnknownBrowser";
+    DeviceType["VivaldiBrowser"] = "VivaldiBrowser";
+    DeviceType["VivaldiExtension"] = "VivaldiExtension";
+    DeviceType["WindowsDesktop"] = "WindowsDesktop";
+})(DeviceType || (exports.DeviceType = DeviceType = {}));
+/**
+ * Two-factor provider
+ */
+var TwoFactorProvider;
+(function (TwoFactorProvider) {
+    TwoFactorProvider["Authenticator"] = "Authenticator";
+    TwoFactorProvider["Duo"] = "Duo";
+    TwoFactorProvider["Email"] = "Email";
+    TwoFactorProvider["OrganizationDuo"] = "OrganizationDuo";
+    TwoFactorProvider["Remember"] = "Remember";
+    TwoFactorProvider["U2F"] = "U2f";
+    TwoFactorProvider["WebAuthn"] = "WebAuthn";
+    TwoFactorProvider["Yubikey"] = "Yubikey";
+})(TwoFactorProvider || (exports.TwoFactorProvider = TwoFactorProvider = {}));
+var LinkedIDType;
+(function (LinkedIDType) {
+    LinkedIDType["Address1"] = "Address1";
+    LinkedIDType["Address2"] = "Address2";
+    LinkedIDType["Address3"] = "Address3";
+    LinkedIDType["Brand"] = "Brand";
+    LinkedIDType["CardholderName"] = "CardholderName";
+    LinkedIDType["City"] = "City";
+    LinkedIDType["Code"] = "Code";
+    LinkedIDType["Company"] = "Company";
+    LinkedIDType["Country"] = "Country";
+    LinkedIDType["Email"] = "Email";
+    LinkedIDType["ExpMonth"] = "ExpMonth";
+    LinkedIDType["ExpYear"] = "ExpYear";
+    LinkedIDType["FirstName"] = "FirstName";
+    LinkedIDType["FullName"] = "FullName";
+    LinkedIDType["LastName"] = "LastName";
+    LinkedIDType["LicenseNumber"] = "LicenseNumber";
+    LinkedIDType["MiddleName"] = "MiddleName";
+    LinkedIDType["Number"] = "Number";
+    LinkedIDType["PassportNumber"] = "PassportNumber";
+    LinkedIDType["Password"] = "Password";
+    LinkedIDType["Phone"] = "Phone";
+    LinkedIDType["PostalCode"] = "PostalCode";
+    LinkedIDType["Ssn"] = "Ssn";
+    LinkedIDType["State"] = "State";
+    LinkedIDType["Title"] = "Title";
+    LinkedIDType["Username"] = "Username";
+})(LinkedIDType || (exports.LinkedIDType = LinkedIDType = {}));
+var FieldType;
+(function (FieldType) {
+    FieldType["Boolean"] = "Boolean";
+    FieldType["Hidden"] = "Hidden";
+    FieldType["Linked"] = "Linked";
+    FieldType["Text"] = "Text";
+})(FieldType || (exports.FieldType = FieldType = {}));
+var URIMatchType;
+(function (URIMatchType) {
+    URIMatchType["Domain"] = "domain";
+    URIMatchType["Exact"] = "exact";
+    URIMatchType["Host"] = "host";
+    URIMatchType["Never"] = "never";
+    URIMatchType["RegularExpression"] = "regularExpression";
+    URIMatchType["StartsWith"] = "startsWith";
+})(URIMatchType || (exports.URIMatchType = URIMatchType = {}));
+var CipherRepromptType;
+(function (CipherRepromptType) {
+    CipherRepromptType["None"] = "None";
+    CipherRepromptType["Password"] = "Password";
+})(CipherRepromptType || (exports.CipherRepromptType = CipherRepromptType = {}));
+var SecureNoteType;
+(function (SecureNoteType) {
+    SecureNoteType["Generic"] = "Generic";
+})(SecureNoteType || (exports.SecureNoteType = SecureNoteType = {}));
+var CipherType;
+(function (CipherType) {
+    CipherType["Card"] = "Card";
+    CipherType["Identity"] = "Identity";
+    CipherType["Login"] = "Login";
+    CipherType["SecureNote"] = "SecureNote";
+})(CipherType || (exports.CipherType = CipherType = {}));
+var LoginLinkedIDType;
+(function (LoginLinkedIDType) {
+    LoginLinkedIDType["Password"] = "Password";
+    LoginLinkedIDType["Username"] = "Username";
+})(LoginLinkedIDType || (exports.LoginLinkedIDType = LoginLinkedIDType = {}));
+var CardLinkedIDType;
+(function (CardLinkedIDType) {
+    CardLinkedIDType["Brand"] = "Brand";
+    CardLinkedIDType["CardholderName"] = "CardholderName";
+    CardLinkedIDType["Code"] = "Code";
+    CardLinkedIDType["ExpMonth"] = "ExpMonth";
+    CardLinkedIDType["ExpYear"] = "ExpYear";
+    CardLinkedIDType["Number"] = "Number";
+})(CardLinkedIDType || (exports.CardLinkedIDType = CardLinkedIDType = {}));
+var IdentityLinkedIDType;
+(function (IdentityLinkedIDType) {
+    IdentityLinkedIDType["Address1"] = "Address1";
+    IdentityLinkedIDType["Address2"] = "Address2";
+    IdentityLinkedIDType["Address3"] = "Address3";
+    IdentityLinkedIDType["City"] = "City";
+    IdentityLinkedIDType["Company"] = "Company";
+    IdentityLinkedIDType["Country"] = "Country";
+    IdentityLinkedIDType["Email"] = "Email";
+    IdentityLinkedIDType["FirstName"] = "FirstName";
+    IdentityLinkedIDType["FullName"] = "FullName";
+    IdentityLinkedIDType["LastName"] = "LastName";
+    IdentityLinkedIDType["LicenseNumber"] = "LicenseNumber";
+    IdentityLinkedIDType["MiddleName"] = "MiddleName";
+    IdentityLinkedIDType["PassportNumber"] = "PassportNumber";
+    IdentityLinkedIDType["Phone"] = "Phone";
+    IdentityLinkedIDType["PostalCode"] = "PostalCode";
+    IdentityLinkedIDType["Ssn"] = "Ssn";
+    IdentityLinkedIDType["State"] = "State";
+    IdentityLinkedIDType["Title"] = "Title";
+    IdentityLinkedIDType["Username"] = "Username";
+})(IdentityLinkedIDType || (exports.IdentityLinkedIDType = IdentityLinkedIDType = {}));
+// Converts JSON strings to/from your types
+// and asserts the results of JSON.parse at runtime
+var Convert = /** @class */ (function () {
+    function Convert() {
+    }
+    Convert.toClientSettings = function (json) {
+        return cast(JSON.parse(json), r("ClientSettings"));
+    };
+    Convert.clientSettingsToJson = function (value) {
+        return JSON.stringify(uncast(value, r("ClientSettings")), null, 2);
+    };
+    Convert.toDeviceType = function (json) {
+        return cast(JSON.parse(json), r("DeviceType"));
+    };
+    Convert.deviceTypeToJson = function (value) {
+        return JSON.stringify(uncast(value, r("DeviceType")), null, 2);
+    };
+    Convert.toCommand = function (json) {
+        return cast(JSON.parse(json), r("Command"));
+    };
+    Convert.commandToJson = function (value) {
+        return JSON.stringify(uncast(value, r("Command")), null, 2);
+    };
+    Convert.toPasswordLoginRequest = function (json) {
+        return cast(JSON.parse(json), r("PasswordLoginRequest"));
+    };
+    Convert.passwordLoginRequestToJson = function (value) {
+        return JSON.stringify(uncast(value, r("PasswordLoginRequest")), null, 2);
+    };
+    Convert.toTwoFactorRequest = function (json) {
+        return cast(JSON.parse(json), r("TwoFactorRequest"));
+    };
+    Convert.twoFactorRequestToJson = function (value) {
+        return JSON.stringify(uncast(value, r("TwoFactorRequest")), null, 2);
+    };
+    Convert.toTwoFactorProvider = function (json) {
+        return cast(JSON.parse(json), r("TwoFactorProvider"));
+    };
+    Convert.twoFactorProviderToJson = function (value) {
+        return JSON.stringify(uncast(value, r("TwoFactorProvider")), null, 2);
+    };
+    Convert.toKdf = function (json) {
+        return cast(JSON.parse(json), r("Kdf"));
+    };
+    Convert.kdfToJson = function (value) {
+        return JSON.stringify(uncast(value, r("Kdf")), null, 2);
+    };
+    Convert.toAPIKeyLoginRequest = function (json) {
+        return cast(JSON.parse(json), r("APIKeyLoginRequest"));
+    };
+    Convert.aPIKeyLoginRequestToJson = function (value) {
+        return JSON.stringify(uncast(value, r("APIKeyLoginRequest")), null, 2);
+    };
+    Convert.toAccessTokenLoginRequest = function (json) {
+        return cast(JSON.parse(json), r("AccessTokenLoginRequest"));
+    };
+    Convert.accessTokenLoginRequestToJson = function (value) {
+        return JSON.stringify(uncast(value, r("AccessTokenLoginRequest")), null, 2);
+    };
+    Convert.toSecretVerificationRequest = function (json) {
+        return cast(JSON.parse(json), r("SecretVerificationRequest"));
+    };
+    Convert.secretVerificationRequestToJson = function (value) {
+        return JSON.stringify(uncast(value, r("SecretVerificationRequest")), null, 2);
+    };
+    Convert.toFingerprintRequest = function (json) {
+        return cast(JSON.parse(json), r("FingerprintRequest"));
+    };
+    Convert.fingerprintRequestToJson = function (value) {
+        return JSON.stringify(uncast(value, r("FingerprintRequest")), null, 2);
+    };
+    Convert.toSyncRequest = function (json) {
+        return cast(JSON.parse(json), r("SyncRequest"));
+    };
+    Convert.syncRequestToJson = function (value) {
+        return JSON.stringify(uncast(value, r("SyncRequest")), null, 2);
+    };
+    Convert.toSecretsCommand = function (json) {
+        return cast(JSON.parse(json), r("SecretsCommand"));
+    };
+    Convert.secretsCommandToJson = function (value) {
+        return JSON.stringify(uncast(value, r("SecretsCommand")), null, 2);
+    };
+    Convert.toSecretGetRequest = function (json) {
+        return cast(JSON.parse(json), r("SecretGetRequest"));
+    };
+    Convert.secretGetRequestToJson = function (value) {
+        return JSON.stringify(uncast(value, r("SecretGetRequest")), null, 2);
+    };
+    Convert.toSecretsGetRequest = function (json) {
+        return cast(JSON.parse(json), r("SecretsGetRequest"));
+    };
+    Convert.secretsGetRequestToJson = function (value) {
+        return JSON.stringify(uncast(value, r("SecretsGetRequest")), null, 2);
+    };
+    Convert.toSecretCreateRequest = function (json) {
+        return cast(JSON.parse(json), r("SecretCreateRequest"));
+    };
+    Convert.secretCreateRequestToJson = function (value) {
+        return JSON.stringify(uncast(value, r("SecretCreateRequest")), null, 2);
+    };
+    Convert.toSecretIdentifiersRequest = function (json) {
+        return cast(JSON.parse(json), r("SecretIdentifiersRequest"));
+    };
+    Convert.secretIdentifiersRequestToJson = function (value) {
+        return JSON.stringify(uncast(value, r("SecretIdentifiersRequest")), null, 2);
+    };
+    Convert.toSecretPutRequest = function (json) {
+        return cast(JSON.parse(json), r("SecretPutRequest"));
+    };
+    Convert.secretPutRequestToJson = function (value) {
+        return JSON.stringify(uncast(value, r("SecretPutRequest")), null, 2);
+    };
+    Convert.toSecretsDeleteRequest = function (json) {
+        return cast(JSON.parse(json), r("SecretsDeleteRequest"));
+    };
+    Convert.secretsDeleteRequestToJson = function (value) {
+        return JSON.stringify(uncast(value, r("SecretsDeleteRequest")), null, 2);
+    };
+    Convert.toSecretsSyncRequest = function (json) {
+        return cast(JSON.parse(json), r("SecretsSyncRequest"));
+    };
+    Convert.secretsSyncRequestToJson = function (value) {
+        return JSON.stringify(uncast(value, r("SecretsSyncRequest")), null, 2);
+    };
+    Convert.toProjectsCommand = function (json) {
+        return cast(JSON.parse(json), r("ProjectsCommand"));
+    };
+    Convert.projectsCommandToJson = function (value) {
+        return JSON.stringify(uncast(value, r("ProjectsCommand")), null, 2);
+    };
+    Convert.toProjectGetRequest = function (json) {
+        return cast(JSON.parse(json), r("ProjectGetRequest"));
+    };
+    Convert.projectGetRequestToJson = function (value) {
+        return JSON.stringify(uncast(value, r("ProjectGetRequest")), null, 2);
+    };
+    Convert.toProjectCreateRequest = function (json) {
+        return cast(JSON.parse(json), r("ProjectCreateRequest"));
+    };
+    Convert.projectCreateRequestToJson = function (value) {
+        return JSON.stringify(uncast(value, r("ProjectCreateRequest")), null, 2);
+    };
+    Convert.toProjectsListRequest = function (json) {
+        return cast(JSON.parse(json), r("ProjectsListRequest"));
+    };
+    Convert.projectsListRequestToJson = function (value) {
+        return JSON.stringify(uncast(value, r("ProjectsListRequest")), null, 2);
+    };
+    Convert.toProjectPutRequest = function (json) {
+        return cast(JSON.parse(json), r("ProjectPutRequest"));
+    };
+    Convert.projectPutRequestToJson = function (value) {
+        return JSON.stringify(uncast(value, r("ProjectPutRequest")), null, 2);
+    };
+    Convert.toProjectsDeleteRequest = function (json) {
+        return cast(JSON.parse(json), r("ProjectsDeleteRequest"));
+    };
+    Convert.projectsDeleteRequestToJson = function (value) {
+        return JSON.stringify(uncast(value, r("ProjectsDeleteRequest")), null, 2);
+    };
+    Convert.toResponseForAPIKeyLoginResponse = function (json) {
+        return cast(JSON.parse(json), r("ResponseForAPIKeyLoginResponse"));
+    };
+    Convert.responseForAPIKeyLoginResponseToJson = function (value) {
+        return JSON.stringify(uncast(value, r("ResponseForAPIKeyLoginResponse")), null, 2);
+    };
+    Convert.toAPIKeyLoginResponse = function (json) {
+        return cast(JSON.parse(json), r("APIKeyLoginResponse"));
+    };
+    Convert.aPIKeyLoginResponseToJson = function (value) {
+        return JSON.stringify(uncast(value, r("APIKeyLoginResponse")), null, 2);
+    };
+    Convert.toTwoFactorProviders = function (json) {
+        return cast(JSON.parse(json), r("TwoFactorProviders"));
+    };
+    Convert.twoFactorProvidersToJson = function (value) {
+        return JSON.stringify(uncast(value, r("TwoFactorProviders")), null, 2);
+    };
+    Convert.toAuthenticator = function (json) {
+        return cast(JSON.parse(json), r("Authenticator"));
+    };
+    Convert.authenticatorToJson = function (value) {
+        return JSON.stringify(uncast(value, r("Authenticator")), null, 2);
+    };
+    Convert.toEmail = function (json) {
+        return cast(JSON.parse(json), r("Email"));
+    };
+    Convert.emailToJson = function (value) {
+        return JSON.stringify(uncast(value, r("Email")), null, 2);
+    };
+    Convert.toDuo = function (json) {
+        return cast(JSON.parse(json), r("Duo"));
+    };
+    Convert.duoToJson = function (value) {
+        return JSON.stringify(uncast(value, r("Duo")), null, 2);
+    };
+    Convert.toYubiKey = function (json) {
+        return cast(JSON.parse(json), r("YubiKey"));
+    };
+    Convert.yubiKeyToJson = function (value) {
+        return JSON.stringify(uncast(value, r("YubiKey")), null, 2);
+    };
+    Convert.toRemember = function (json) {
+        return cast(JSON.parse(json), r("Remember"));
+    };
+    Convert.rememberToJson = function (value) {
+        return JSON.stringify(uncast(value, r("Remember")), null, 2);
+    };
+    Convert.toWebAuthn = function (json) {
+        return cast(JSON.parse(json), r("WebAuthn"));
+    };
+    Convert.webAuthnToJson = function (value) {
+        return JSON.stringify(uncast(value, r("WebAuthn")), null, 2);
+    };
+    Convert.toResponseForPasswordLoginResponse = function (json) {
+        return cast(JSON.parse(json), r("ResponseForPasswordLoginResponse"));
+    };
+    Convert.responseForPasswordLoginResponseToJson = function (value) {
+        return JSON.stringify(uncast(value, r("ResponseForPasswordLoginResponse")), null, 2);
+    };
+    Convert.toPasswordLoginResponse = function (json) {
+        return cast(JSON.parse(json), r("PasswordLoginResponse"));
+    };
+    Convert.passwordLoginResponseToJson = function (value) {
+        return JSON.stringify(uncast(value, r("PasswordLoginResponse")), null, 2);
+    };
+    Convert.toCAPTCHAResponse = function (json) {
+        return cast(JSON.parse(json), r("CAPTCHAResponse"));
+    };
+    Convert.cAPTCHAResponseToJson = function (value) {
+        return JSON.stringify(uncast(value, r("CAPTCHAResponse")), null, 2);
+    };
+    Convert.toResponseForAccessTokenLoginResponse = function (json) {
+        return cast(JSON.parse(json), r("ResponseForAccessTokenLoginResponse"));
+    };
+    Convert.responseForAccessTokenLoginResponseToJson = function (value) {
+        return JSON.stringify(uncast(value, r("ResponseForAccessTokenLoginResponse")), null, 2);
+    };
+    Convert.toAccessTokenLoginResponse = function (json) {
+        return cast(JSON.parse(json), r("AccessTokenLoginResponse"));
+    };
+    Convert.accessTokenLoginResponseToJson = function (value) {
+        return JSON.stringify(uncast(value, r("AccessTokenLoginResponse")), null, 2);
+    };
+    Convert.toResponseForSecretIdentifiersResponse = function (json) {
+        return cast(JSON.parse(json), r("ResponseForSecretIdentifiersResponse"));
+    };
+    Convert.responseForSecretIdentifiersResponseToJson = function (value) {
+        return JSON.stringify(uncast(value, r("ResponseForSecretIdentifiersResponse")), null, 2);
+    };
+    Convert.toSecretIdentifiersResponse = function (json) {
+        return cast(JSON.parse(json), r("SecretIdentifiersResponse"));
+    };
+    Convert.secretIdentifiersResponseToJson = function (value) {
+        return JSON.stringify(uncast(value, r("SecretIdentifiersResponse")), null, 2);
+    };
+    Convert.toSecretIdentifierResponse = function (json) {
+        return cast(JSON.parse(json), r("SecretIdentifierResponse"));
+    };
+    Convert.secretIdentifierResponseToJson = function (value) {
+        return JSON.stringify(uncast(value, r("SecretIdentifierResponse")), null, 2);
+    };
+    Convert.toResponseForSecretResponse = function (json) {
+        return cast(JSON.parse(json), r("ResponseForSecretResponse"));
+    };
+    Convert.responseForSecretResponseToJson = function (value) {
+        return JSON.stringify(uncast(value, r("ResponseForSecretResponse")), null, 2);
+    };
+    Convert.toSecretResponse = function (json) {
+        return cast(JSON.parse(json), r("SecretResponse"));
+    };
+    Convert.secretResponseToJson = function (value) {
+        return JSON.stringify(uncast(value, r("SecretResponse")), null, 2);
+    };
+    Convert.toResponseForSecretsResponse = function (json) {
+        return cast(JSON.parse(json), r("ResponseForSecretsResponse"));
+    };
+    Convert.responseForSecretsResponseToJson = function (value) {
+        return JSON.stringify(uncast(value, r("ResponseForSecretsResponse")), null, 2);
+    };
+    Convert.toSecretsResponse = function (json) {
+        return cast(JSON.parse(json), r("SecretsResponse"));
+    };
+    Convert.secretsResponseToJson = function (value) {
+        return JSON.stringify(uncast(value, r("SecretsResponse")), null, 2);
+    };
+    Convert.toResponseForSecretsDeleteResponse = function (json) {
+        return cast(JSON.parse(json), r("ResponseForSecretsDeleteResponse"));
+    };
+    Convert.responseForSecretsDeleteResponseToJson = function (value) {
+        return JSON.stringify(uncast(value, r("ResponseForSecretsDeleteResponse")), null, 2);
+    };
+    Convert.toSecretsDeleteResponse = function (json) {
+        return cast(JSON.parse(json), r("SecretsDeleteResponse"));
+    };
+    Convert.secretsDeleteResponseToJson = function (value) {
+        return JSON.stringify(uncast(value, r("SecretsDeleteResponse")), null, 2);
+    };
+    Convert.toSecretDeleteResponse = function (json) {
+        return cast(JSON.parse(json), r("SecretDeleteResponse"));
+    };
+    Convert.secretDeleteResponseToJson = function (value) {
+        return JSON.stringify(uncast(value, r("SecretDeleteResponse")), null, 2);
+    };
+    Convert.toResponseForSecretsSyncResponse = function (json) {
+        return cast(JSON.parse(json), r("ResponseForSecretsSyncResponse"));
+    };
+    Convert.responseForSecretsSyncResponseToJson = function (value) {
+        return JSON.stringify(uncast(value, r("ResponseForSecretsSyncResponse")), null, 2);
+    };
+    Convert.toSecretsSyncResponse = function (json) {
+        return cast(JSON.parse(json), r("SecretsSyncResponse"));
+    };
+    Convert.secretsSyncResponseToJson = function (value) {
+        return JSON.stringify(uncast(value, r("SecretsSyncResponse")), null, 2);
+    };
+    Convert.toResponseForProjectResponse = function (json) {
+        return cast(JSON.parse(json), r("ResponseForProjectResponse"));
+    };
+    Convert.responseForProjectResponseToJson = function (value) {
+        return JSON.stringify(uncast(value, r("ResponseForProjectResponse")), null, 2);
+    };
+    Convert.toProjectResponse = function (json) {
+        return cast(JSON.parse(json), r("ProjectResponse"));
+    };
+    Convert.projectResponseToJson = function (value) {
+        return JSON.stringify(uncast(value, r("ProjectResponse")), null, 2);
+    };
+    Convert.toResponseForProjectsResponse = function (json) {
+        return cast(JSON.parse(json), r("ResponseForProjectsResponse"));
+    };
+    Convert.responseForProjectsResponseToJson = function (value) {
+        return JSON.stringify(uncast(value, r("ResponseForProjectsResponse")), null, 2);
+    };
+    Convert.toProjectsResponse = function (json) {
+        return cast(JSON.parse(json), r("ProjectsResponse"));
+    };
+    Convert.projectsResponseToJson = function (value) {
+        return JSON.stringify(uncast(value, r("ProjectsResponse")), null, 2);
+    };
+    Convert.toResponseForProjectsDeleteResponse = function (json) {
+        return cast(JSON.parse(json), r("ResponseForProjectsDeleteResponse"));
+    };
+    Convert.responseForProjectsDeleteResponseToJson = function (value) {
+        return JSON.stringify(uncast(value, r("ResponseForProjectsDeleteResponse")), null, 2);
+    };
+    Convert.toProjectsDeleteResponse = function (json) {
+        return cast(JSON.parse(json), r("ProjectsDeleteResponse"));
+    };
+    Convert.projectsDeleteResponseToJson = function (value) {
+        return JSON.stringify(uncast(value, r("ProjectsDeleteResponse")), null, 2);
+    };
+    Convert.toProjectDeleteResponse = function (json) {
+        return cast(JSON.parse(json), r("ProjectDeleteResponse"));
+    };
+    Convert.projectDeleteResponseToJson = function (value) {
+        return JSON.stringify(uncast(value, r("ProjectDeleteResponse")), null, 2);
+    };
+    Convert.toResponseForFingerprintResponse = function (json) {
+        return cast(JSON.parse(json), r("ResponseForFingerprintResponse"));
+    };
+    Convert.responseForFingerprintResponseToJson = function (value) {
+        return JSON.stringify(uncast(value, r("ResponseForFingerprintResponse")), null, 2);
+    };
+    Convert.toFingerprintResponse = function (json) {
+        return cast(JSON.parse(json), r("FingerprintResponse"));
+    };
+    Convert.fingerprintResponseToJson = function (value) {
+        return JSON.stringify(uncast(value, r("FingerprintResponse")), null, 2);
+    };
+    Convert.toResponseForSyncResponse = function (json) {
+        return cast(JSON.parse(json), r("ResponseForSyncResponse"));
+    };
+    Convert.responseForSyncResponseToJson = function (value) {
+        return JSON.stringify(uncast(value, r("ResponseForSyncResponse")), null, 2);
+    };
+    Convert.toSyncResponse = function (json) {
+        return cast(JSON.parse(json), r("SyncResponse"));
+    };
+    Convert.syncResponseToJson = function (value) {
+        return JSON.stringify(uncast(value, r("SyncResponse")), null, 2);
+    };
+    Convert.toProfileResponse = function (json) {
+        return cast(JSON.parse(json), r("ProfileResponse"));
+    };
+    Convert.profileResponseToJson = function (value) {
+        return JSON.stringify(uncast(value, r("ProfileResponse")), null, 2);
+    };
+    Convert.toProfileOrganizationResponse = function (json) {
+        return cast(JSON.parse(json), r("ProfileOrganizationResponse"));
+    };
+    Convert.profileOrganizationResponseToJson = function (value) {
+        return JSON.stringify(uncast(value, r("ProfileOrganizationResponse")), null, 2);
+    };
+    Convert.toFolder = function (json) {
+        return cast(JSON.parse(json), r("Folder"));
+    };
+    Convert.folderToJson = function (value) {
+        return JSON.stringify(uncast(value, r("Folder")), null, 2);
+    };
+    Convert.toEncString = function (json) {
+        return cast(JSON.parse(json), "");
+    };
+    Convert.encStringToJson = function (value) {
+        return JSON.stringify(uncast(value, ""), null, 2);
+    };
+    Convert.toCollection = function (json) {
+        return cast(JSON.parse(json), r("Collection"));
+    };
+    Convert.collectionToJson = function (value) {
+        return JSON.stringify(uncast(value, r("Collection")), null, 2);
+    };
+    Convert.toCipher = function (json) {
+        return cast(JSON.parse(json), r("Cipher"));
+    };
+    Convert.cipherToJson = function (value) {
+        return JSON.stringify(uncast(value, r("Cipher")), null, 2);
+    };
+    Convert.toCipherType = function (json) {
+        return cast(JSON.parse(json), r("CipherType"));
+    };
+    Convert.cipherTypeToJson = function (value) {
+        return JSON.stringify(uncast(value, r("CipherType")), null, 2);
+    };
+    Convert.toLogin = function (json) {
+        return cast(JSON.parse(json), r("Login"));
+    };
+    Convert.loginToJson = function (value) {
+        return JSON.stringify(uncast(value, r("Login")), null, 2);
+    };
+    Convert.toLoginURI = function (json) {
+        return cast(JSON.parse(json), r("LoginURI"));
+    };
+    Convert.loginURIToJson = function (value) {
+        return JSON.stringify(uncast(value, r("LoginURI")), null, 2);
+    };
+    Convert.toURIMatchType = function (json) {
+        return cast(JSON.parse(json), r("URIMatchType"));
+    };
+    Convert.uRIMatchTypeToJson = function (value) {
+        return JSON.stringify(uncast(value, r("URIMatchType")), null, 2);
+    };
+    Convert.toFido2Credential = function (json) {
+        return cast(JSON.parse(json), r("Fido2Credential"));
+    };
+    Convert.fido2CredentialToJson = function (value) {
+        return JSON.stringify(uncast(value, r("Fido2Credential")), null, 2);
+    };
+    Convert.toIdentity = function (json) {
+        return cast(JSON.parse(json), r("Identity"));
+    };
+    Convert.identityToJson = function (value) {
+        return JSON.stringify(uncast(value, r("Identity")), null, 2);
+    };
+    Convert.toCard = function (json) {
+        return cast(JSON.parse(json), r("Card"));
+    };
+    Convert.cardToJson = function (value) {
+        return JSON.stringify(uncast(value, r("Card")), null, 2);
+    };
+    Convert.toSecureNote = function (json) {
+        return cast(JSON.parse(json), r("SecureNote"));
+    };
+    Convert.secureNoteToJson = function (value) {
+        return JSON.stringify(uncast(value, r("SecureNote")), null, 2);
+    };
+    Convert.toSecureNoteType = function (json) {
+        return cast(JSON.parse(json), r("SecureNoteType"));
+    };
+    Convert.secureNoteTypeToJson = function (value) {
+        return JSON.stringify(uncast(value, r("SecureNoteType")), null, 2);
+    };
+    Convert.toCipherRepromptType = function (json) {
+        return cast(JSON.parse(json), r("CipherRepromptType"));
+    };
+    Convert.cipherRepromptTypeToJson = function (value) {
+        return JSON.stringify(uncast(value, r("CipherRepromptType")), null, 2);
+    };
+    Convert.toLocalData = function (json) {
+        return cast(JSON.parse(json), r("LocalData"));
+    };
+    Convert.localDataToJson = function (value) {
+        return JSON.stringify(uncast(value, r("LocalData")), null, 2);
+    };
+    Convert.toAttachment = function (json) {
+        return cast(JSON.parse(json), r("Attachment"));
+    };
+    Convert.attachmentToJson = function (value) {
+        return JSON.stringify(uncast(value, r("Attachment")), null, 2);
+    };
+    Convert.toField = function (json) {
+        return cast(JSON.parse(json), r("Field"));
+    };
+    Convert.fieldToJson = function (value) {
+        return JSON.stringify(uncast(value, r("Field")), null, 2);
+    };
+    Convert.toFieldType = function (json) {
+        return cast(JSON.parse(json), r("FieldType"));
+    };
+    Convert.fieldTypeToJson = function (value) {
+        return JSON.stringify(uncast(value, r("FieldType")), null, 2);
+    };
+    Convert.toLinkedIDType = function (json) {
+        return cast(JSON.parse(json), r("LinkedIDType"));
+    };
+    Convert.linkedIDTypeToJson = function (value) {
+        return JSON.stringify(uncast(value, r("LinkedIDType")), null, 2);
+    };
+    Convert.toLoginLinkedIDType = function (json) {
+        return cast(JSON.parse(json), r("LoginLinkedIDType"));
+    };
+    Convert.loginLinkedIDTypeToJson = function (value) {
+        return JSON.stringify(uncast(value, r("LoginLinkedIDType")), null, 2);
+    };
+    Convert.toCardLinkedIDType = function (json) {
+        return cast(JSON.parse(json), r("CardLinkedIDType"));
+    };
+    Convert.cardLinkedIDTypeToJson = function (value) {
+        return JSON.stringify(uncast(value, r("CardLinkedIDType")), null, 2);
+    };
+    Convert.toIdentityLinkedIDType = function (json) {
+        return cast(JSON.parse(json), r("IdentityLinkedIDType"));
+    };
+    Convert.identityLinkedIDTypeToJson = function (value) {
+        return JSON.stringify(uncast(value, r("IdentityLinkedIDType")), null, 2);
+    };
+    Convert.toPasswordHistory = function (json) {
+        return cast(JSON.parse(json), r("PasswordHistory"));
+    };
+    Convert.passwordHistoryToJson = function (value) {
+        return JSON.stringify(uncast(value, r("PasswordHistory")), null, 2);
+    };
+    Convert.toDomainResponse = function (json) {
+        return cast(JSON.parse(json), r("DomainResponse"));
+    };
+    Convert.domainResponseToJson = function (value) {
+        return JSON.stringify(uncast(value, r("DomainResponse")), null, 2);
+    };
+    Convert.toGlobalDomains = function (json) {
+        return cast(JSON.parse(json), r("GlobalDomains"));
+    };
+    Convert.globalDomainsToJson = function (value) {
+        return JSON.stringify(uncast(value, r("GlobalDomains")), null, 2);
+    };
+    Convert.toResponseForUserAPIKeyResponse = function (json) {
+        return cast(JSON.parse(json), r("ResponseForUserAPIKeyResponse"));
+    };
+    Convert.responseForUserAPIKeyResponseToJson = function (value) {
+        return JSON.stringify(uncast(value, r("ResponseForUserAPIKeyResponse")), null, 2);
+    };
+    Convert.toUserAPIKeyResponse = function (json) {
+        return cast(JSON.parse(json), r("UserAPIKeyResponse"));
+    };
+    Convert.userAPIKeyResponseToJson = function (value) {
+        return JSON.stringify(uncast(value, r("UserAPIKeyResponse")), null, 2);
+    };
+    return Convert;
+}());
+exports.Convert = Convert;
+function invalidValue(typ, val, key, parent) {
+    if (parent === void 0) { parent = ''; }
+    var prettyTyp = prettyTypeName(typ);
+    var parentText = parent ? " on ".concat(parent) : '';
+    var keyText = key ? " for key \"".concat(key, "\"") : '';
+    throw Error("Invalid value".concat(keyText).concat(parentText, ". Expected ").concat(prettyTyp, " but got ").concat(JSON.stringify(val)));
+}
+function prettyTypeName(typ) {
+    if (Array.isArray(typ)) {
+        if (typ.length === 2 && typ[0] === undefined) {
+            return "an optional ".concat(prettyTypeName(typ[1]));
+        }
+        else {
+            return "one of [".concat(typ.map(function (a) { return prettyTypeName(a); }).join(", "), "]");
+        }
+    }
+    else if (typeof typ === "object" && typ.literal !== undefined) {
+        return typ.literal;
+    }
+    else {
+        return typeof typ;
+    }
+}
+function jsonToJSProps(typ) {
+    if (typ.jsonToJS === undefined) {
+        var map_1 = {};
+        typ.props.forEach(function (p) { return map_1[p.json] = { key: p.js, typ: p.typ }; });
+        typ.jsonToJS = map_1;
+    }
+    return typ.jsonToJS;
+}
+function jsToJSONProps(typ) {
+    if (typ.jsToJSON === undefined) {
+        var map_2 = {};
+        typ.props.forEach(function (p) { return map_2[p.js] = { key: p.json, typ: p.typ }; });
+        typ.jsToJSON = map_2;
+    }
+    return typ.jsToJSON;
+}
+function transform(val, typ, getProps, key, parent) {
+    if (key === void 0) { key = ''; }
+    if (parent === void 0) { parent = ''; }
+    function transformPrimitive(typ, val) {
+        if (typeof typ === typeof val)
+            return val;
+        return invalidValue(typ, val, key, parent);
+    }
+    function transformUnion(typs, val) {
+        // val must validate against one typ in typs
+        var l = typs.length;
+        for (var i = 0; i < l; i++) {
+            var typ_1 = typs[i];
+            try {
+                return transform(val, typ_1, getProps);
+            }
+            catch (_) { }
+        }
+        return invalidValue(typs, val, key, parent);
+    }
+    function transformEnum(cases, val) {
+        if (cases.indexOf(val) !== -1)
+            return val;
+        return invalidValue(cases.map(function (a) { return l(a); }), val, key, parent);
+    }
+    function transformArray(typ, val) {
+        // val must be an array with no invalid elements
+        if (!Array.isArray(val))
+            return invalidValue(l("array"), val, key, parent);
+        return val.map(function (el) { return transform(el, typ, getProps); });
+    }
+    function transformDate(val) {
+        if (val === null) {
+            return null;
+        }
+        var d = new Date(val);
+        if (isNaN(d.valueOf())) {
+            return invalidValue(l("Date"), val, key, parent);
+        }
+        return d;
+    }
+    function transformObject(props, additional, val) {
+        if (val === null || typeof val !== "object" || Array.isArray(val)) {
+            return invalidValue(l(ref || "object"), val, key, parent);
+        }
+        var result = {};
+        Object.getOwnPropertyNames(props).forEach(function (key) {
+            var prop = props[key];
+            var v = Object.prototype.hasOwnProperty.call(val, key) ? val[key] : undefined;
+            result[prop.key] = transform(v, prop.typ, getProps, key, ref);
+        });
+        Object.getOwnPropertyNames(val).forEach(function (key) {
+            if (!Object.prototype.hasOwnProperty.call(props, key)) {
+                result[key] = transform(val[key], additional, getProps, key, ref);
+            }
+        });
+        return result;
+    }
+    if (typ === "any")
+        return val;
+    if (typ === null) {
+        if (val === null)
+            return val;
+        return invalidValue(typ, val, key, parent);
+    }
+    if (typ === false)
+        return invalidValue(typ, val, key, parent);
+    var ref = undefined;
+    while (typeof typ === "object" && typ.ref !== undefined) {
+        ref = typ.ref;
+        typ = typeMap[typ.ref];
+    }
+    if (Array.isArray(typ))
+        return transformEnum(typ, val);
+    if (typeof typ === "object") {
+        return typ.hasOwnProperty("unionMembers") ? transformUnion(typ.unionMembers, val)
+            : typ.hasOwnProperty("arrayItems") ? transformArray(typ.arrayItems, val)
+                : typ.hasOwnProperty("props") ? transformObject(getProps(typ), typ.additional, val)
+                    : invalidValue(typ, val, key, parent);
+    }
+    // Numbers can be parsed by Date but shouldn't be.
+    if (typ === Date && typeof val !== "number")
+        return transformDate(val);
+    return transformPrimitive(typ, val);
+}
+function cast(val, typ) {
+    return transform(val, typ, jsonToJSProps);
+}
+function uncast(val, typ) {
+    return transform(val, typ, jsToJSONProps);
+}
+function l(typ) {
+    return { literal: typ };
+}
+function a(typ) {
+    return { arrayItems: typ };
+}
+function u() {
+    var typs = [];
+    for (var _i = 0; _i < arguments.length; _i++) {
+        typs[_i] = arguments[_i];
+    }
+    return { unionMembers: typs };
+}
+function o(props, additional) {
+    return { props: props, additional: additional };
+}
+function m(additional) {
+    return { props: [], additional: additional };
+}
+function r(name) {
+    return { ref: name };
+}
+var typeMap = {
+    "ClientSettings": o([
+        { json: "apiUrl", js: "apiUrl", typ: u(undefined, "") },
+        { json: "deviceType", js: "deviceType", typ: u(undefined, r("DeviceType")) },
+        { json: "identityUrl", js: "identityUrl", typ: u(undefined, "") },
+        { json: "userAgent", js: "userAgent", typ: u(undefined, "") },
+    ], false),
+    "Command": o([
+        { json: "passwordLogin", js: "passwordLogin", typ: u(undefined, r("PasswordLoginRequest")) },
+        { json: "apiKeyLogin", js: "apiKeyLogin", typ: u(undefined, r("APIKeyLoginRequest")) },
+        { json: "accessTokenLogin", js: "accessTokenLogin", typ: u(undefined, r("AccessTokenLoginRequest")) },
+        { json: "getUserApiKey", js: "getUserApiKey", typ: u(undefined, r("SecretVerificationRequest")) },
+        { json: "fingerprint", js: "fingerprint", typ: u(undefined, r("FingerprintRequest")) },
+        { json: "sync", js: "sync", typ: u(undefined, r("SyncRequest")) },
+        { json: "secrets", js: "secrets", typ: u(undefined, r("SecretsCommand")) },
+        { json: "projects", js: "projects", typ: u(undefined, r("ProjectsCommand")) },
+    ], false),
+    "AccessTokenLoginRequest": o([
+        { json: "accessToken", js: "accessToken", typ: "" },
+        { json: "stateFile", js: "stateFile", typ: u(undefined, u(null, "")) },
+    ], false),
+    "APIKeyLoginRequest": o([
+        { json: "clientId", js: "clientId", typ: "" },
+        { json: "clientSecret", js: "clientSecret", typ: "" },
+        { json: "password", js: "password", typ: "" },
+    ], false),
+    "FingerprintRequest": o([
+        { json: "fingerprintMaterial", js: "fingerprintMaterial", typ: "" },
+        { json: "publicKey", js: "publicKey", typ: "" },
+    ], false),
+    "SecretVerificationRequest": o([
+        { json: "masterPassword", js: "masterPassword", typ: u(undefined, u(null, "")) },
+        { json: "otp", js: "otp", typ: u(undefined, u(null, "")) },
+    ], false),
+    "PasswordLoginRequest": o([
+        { json: "email", js: "email", typ: "" },
+        { json: "kdf", js: "kdf", typ: r("Kdf") },
+        { json: "password", js: "password", typ: "" },
+        { json: "twoFactor", js: "twoFactor", typ: u(undefined, u(r("TwoFactorRequest"), null)) },
+    ], false),
+    "Kdf": o([
+        { json: "pBKDF2", js: "pBKDF2", typ: u(undefined, r("PBKDF2")) },
+        { json: "argon2id", js: "argon2id", typ: u(undefined, r("Argon2ID")) },
+    ], false),
+    "Argon2ID": o([
+        { json: "iterations", js: "iterations", typ: 0 },
+        { json: "memory", js: "memory", typ: 0 },
+        { json: "parallelism", js: "parallelism", typ: 0 },
+    ], false),
+    "PBKDF2": o([
+        { json: "iterations", js: "iterations", typ: 0 },
+    ], false),
+    "TwoFactorRequest": o([
+        { json: "provider", js: "provider", typ: r("TwoFactorProvider") },
+        { json: "remember", js: "remember", typ: true },
+        { json: "token", js: "token", typ: "" },
+    ], false),
+    "ProjectsCommand": o([
+        { json: "get", js: "get", typ: u(undefined, r("ProjectGetRequest")) },
+        { json: "create", js: "create", typ: u(undefined, r("ProjectCreateRequest")) },
+        { json: "list", js: "list", typ: u(undefined, r("ProjectsListRequest")) },
+        { json: "update", js: "update", typ: u(undefined, r("ProjectPutRequest")) },
+        { json: "delete", js: "delete", typ: u(undefined, r("ProjectsDeleteRequest")) },
+    ], false),
+    "ProjectCreateRequest": o([
+        { json: "name", js: "name", typ: "" },
+        { json: "organizationId", js: "organizationId", typ: "" },
+    ], false),
+    "ProjectsDeleteRequest": o([
+        { json: "ids", js: "ids", typ: a("") },
+    ], false),
+    "ProjectGetRequest": o([
+        { json: "id", js: "id", typ: "" },
+    ], false),
+    "ProjectsListRequest": o([
+        { json: "organizationId", js: "organizationId", typ: "" },
+    ], false),
+    "ProjectPutRequest": o([
+        { json: "id", js: "id", typ: "" },
+        { json: "name", js: "name", typ: "" },
+        { json: "organizationId", js: "organizationId", typ: "" },
+    ], false),
+    "SecretsCommand": o([
+        { json: "get", js: "get", typ: u(undefined, r("SecretGetRequest")) },
+        { json: "getByIds", js: "getByIds", typ: u(undefined, r("SecretsGetRequest")) },
+        { json: "create", js: "create", typ: u(undefined, r("SecretCreateRequest")) },
+        { json: "list", js: "list", typ: u(undefined, r("SecretIdentifiersRequest")) },
+        { json: "update", js: "update", typ: u(undefined, r("SecretPutRequest")) },
+        { json: "delete", js: "delete", typ: u(undefined, r("SecretsDeleteRequest")) },
+        { json: "sync", js: "sync", typ: u(undefined, r("SecretsSyncRequest")) },
+    ], false),
+    "SecretCreateRequest": o([
+        { json: "key", js: "key", typ: "" },
+        { json: "note", js: "note", typ: "" },
+        { json: "organizationId", js: "organizationId", typ: "" },
+        { json: "projectIds", js: "projectIds", typ: u(undefined, u(a(""), null)) },
+        { json: "value", js: "value", typ: "" },
+    ], false),
+    "SecretsDeleteRequest": o([
+        { json: "ids", js: "ids", typ: a("") },
+    ], false),
+    "SecretGetRequest": o([
+        { json: "id", js: "id", typ: "" },
+    ], false),
+    "SecretsGetRequest": o([
+        { json: "ids", js: "ids", typ: a("") },
+    ], false),
+    "SecretIdentifiersRequest": o([
+        { json: "organizationId", js: "organizationId", typ: "" },
+    ], false),
+    "SecretsSyncRequest": o([
+        { json: "lastSyncedDate", js: "lastSyncedDate", typ: u(undefined, u(Date, null)) },
+        { json: "organizationId", js: "organizationId", typ: "" },
+    ], false),
+    "SecretPutRequest": o([
+        { json: "id", js: "id", typ: "" },
+        { json: "key", js: "key", typ: "" },
+        { json: "note", js: "note", typ: "" },
+        { json: "organizationId", js: "organizationId", typ: "" },
+        { json: "projectIds", js: "projectIds", typ: u(undefined, u(a(""), null)) },
+        { json: "value", js: "value", typ: "" },
+    ], false),
+    "SyncRequest": o([
+        { json: "excludeSubdomains", js: "excludeSubdomains", typ: u(undefined, u(true, null)) },
+    ], false),
+    "ResponseForAPIKeyLoginResponse": o([
+        { json: "data", js: "data", typ: u(undefined, u(r("APIKeyLoginResponse"), null)) },
+        { json: "errorMessage", js: "errorMessage", typ: u(undefined, u(null, "")) },
+        { json: "success", js: "success", typ: true },
+    ], false),
+    "APIKeyLoginResponse": o([
+        { json: "authenticated", js: "authenticated", typ: true },
+        { json: "forcePasswordReset", js: "forcePasswordReset", typ: true },
+        { json: "resetMasterPassword", js: "resetMasterPassword", typ: true },
+        { json: "twoFactor", js: "twoFactor", typ: u(undefined, u(r("TwoFactorProviders"), null)) },
+    ], false),
+    "TwoFactorProviders": o([
+        { json: "authenticator", js: "authenticator", typ: u(undefined, u(r("Authenticator"), null)) },
+        { json: "duo", js: "duo", typ: u(undefined, u(r("Duo"), null)) },
+        { json: "email", js: "email", typ: u(undefined, u(r("Email"), null)) },
+        { json: "organizationDuo", js: "organizationDuo", typ: u(undefined, u(r("Duo"), null)) },
+        { json: "remember", js: "remember", typ: u(undefined, u(r("Remember"), null)) },
+        { json: "webAuthn", js: "webAuthn", typ: u(undefined, u(r("WebAuthn"), null)) },
+        { json: "yubiKey", js: "yubiKey", typ: u(undefined, u(r("YubiKey"), null)) },
+    ], false),
+    "Authenticator": o([], false),
+    "Duo": o([
+        { json: "host", js: "host", typ: "" },
+        { json: "signature", js: "signature", typ: "" },
+    ], false),
+    "Email": o([
+        { json: "email", js: "email", typ: "" },
+    ], false),
+    "Remember": o([], false),
+    "WebAuthn": o([], false),
+    "YubiKey": o([
+        { json: "nfc", js: "nfc", typ: true },
+    ], false),
+    "ResponseForPasswordLoginResponse": o([
+        { json: "data", js: "data", typ: u(undefined, u(r("PasswordLoginResponse"), null)) },
+        { json: "errorMessage", js: "errorMessage", typ: u(undefined, u(null, "")) },
+        { json: "success", js: "success", typ: true },
+    ], false),
+    "PasswordLoginResponse": o([
+        { json: "authenticated", js: "authenticated", typ: true },
+        { json: "captcha", js: "captcha", typ: u(undefined, u(r("CAPTCHAResponse"), null)) },
+        { json: "forcePasswordReset", js: "forcePasswordReset", typ: true },
+        { json: "resetMasterPassword", js: "resetMasterPassword", typ: true },
+        { json: "twoFactor", js: "twoFactor", typ: u(undefined, u(r("TwoFactorProviders"), null)) },
+    ], false),
+    "CAPTCHAResponse": o([
+        { json: "siteKey", js: "siteKey", typ: "" },
+    ], false),
+    "ResponseForAccessTokenLoginResponse": o([
+        { json: "data", js: "data", typ: u(undefined, u(r("AccessTokenLoginResponse"), null)) },
+        { json: "errorMessage", js: "errorMessage", typ: u(undefined, u(null, "")) },
+        { json: "success", js: "success", typ: true },
+    ], false),
+    "AccessTokenLoginResponse": o([
+        { json: "authenticated", js: "authenticated", typ: true },
+        { json: "forcePasswordReset", js: "forcePasswordReset", typ: true },
+        { json: "resetMasterPassword", js: "resetMasterPassword", typ: true },
+        { json: "twoFactor", js: "twoFactor", typ: u(undefined, u(r("TwoFactorProviders"), null)) },
+    ], false),
+    "ResponseForSecretIdentifiersResponse": o([
+        { json: "data", js: "data", typ: u(undefined, u(r("SecretIdentifiersResponse"), null)) },
+        { json: "errorMessage", js: "errorMessage", typ: u(undefined, u(null, "")) },
+        { json: "success", js: "success", typ: true },
+    ], false),
+    "SecretIdentifiersResponse": o([
+        { json: "data", js: "data", typ: a(r("SecretIdentifierResponse")) },
+    ], false),
+    "SecretIdentifierResponse": o([
+        { json: "id", js: "id", typ: "" },
+        { json: "key", js: "key", typ: "" },
+        { json: "organizationId", js: "organizationId", typ: "" },
+    ], false),
+    "ResponseForSecretResponse": o([
+        { json: "data", js: "data", typ: u(undefined, u(r("SecretResponse"), null)) },
+        { json: "errorMessage", js: "errorMessage", typ: u(undefined, u(null, "")) },
+        { json: "success", js: "success", typ: true },
+    ], false),
+    "SecretResponse": o([
+        { json: "creationDate", js: "creationDate", typ: Date },
+        { json: "id", js: "id", typ: "" },
+        { json: "key", js: "key", typ: "" },
+        { json: "note", js: "note", typ: "" },
+        { json: "organizationId", js: "organizationId", typ: "" },
+        { json: "projectId", js: "projectId", typ: u(undefined, u(null, "")) },
+        { json: "revisionDate", js: "revisionDate", typ: Date },
+        { json: "value", js: "value", typ: "" },
+    ], false),
+    "ResponseForSecretsResponse": o([
+        { json: "data", js: "data", typ: u(undefined, u(r("SecretsResponse"), null)) },
+        { json: "errorMessage", js: "errorMessage", typ: u(undefined, u(null, "")) },
+        { json: "success", js: "success", typ: true },
+    ], false),
+    "SecretsResponse": o([
+        { json: "data", js: "data", typ: a(r("SecretResponse")) },
+    ], false),
+    "ResponseForSecretsDeleteResponse": o([
+        { json: "data", js: "data", typ: u(undefined, u(r("SecretsDeleteResponse"), null)) },
+        { json: "errorMessage", js: "errorMessage", typ: u(undefined, u(null, "")) },
+        { json: "success", js: "success", typ: true },
+    ], false),
+    "SecretsDeleteResponse": o([
+        { json: "data", js: "data", typ: a(r("SecretDeleteResponse")) },
+    ], false),
+    "SecretDeleteResponse": o([
+        { json: "error", js: "error", typ: u(undefined, u(null, "")) },
+        { json: "id", js: "id", typ: "" },
+    ], false),
+    "ResponseForSecretsSyncResponse": o([
+        { json: "data", js: "data", typ: u(undefined, u(r("SecretsSyncResponse"), null)) },
+        { json: "errorMessage", js: "errorMessage", typ: u(undefined, u(null, "")) },
+        { json: "success", js: "success", typ: true },
+    ], false),
+    "SecretsSyncResponse": o([
+        { json: "hasChanges", js: "hasChanges", typ: true },
+        { json: "secrets", js: "secrets", typ: u(undefined, u(a(r("SecretResponse")), null)) },
+    ], false),
+    "ResponseForProjectResponse": o([
+        { json: "data", js: "data", typ: u(undefined, u(r("ProjectResponse"), null)) },
+        { json: "errorMessage", js: "errorMessage", typ: u(undefined, u(null, "")) },
+        { json: "success", js: "success", typ: true },
+    ], false),
+    "ProjectResponse": o([
+        { json: "creationDate", js: "creationDate", typ: Date },
+        { json: "id", js: "id", typ: "" },
+        { json: "name", js: "name", typ: "" },
+        { json: "organizationId", js: "organizationId", typ: "" },
+        { json: "revisionDate", js: "revisionDate", typ: Date },
+    ], false),
+    "ResponseForProjectsResponse": o([
+        { json: "data", js: "data", typ: u(undefined, u(r("ProjectsResponse"), null)) },
+        { json: "errorMessage", js: "errorMessage", typ: u(undefined, u(null, "")) },
+        { json: "success", js: "success", typ: true },
+    ], false),
+    "ProjectsResponse": o([
+        { json: "data", js: "data", typ: a(r("ProjectResponse")) },
+    ], false),
+    "ResponseForProjectsDeleteResponse": o([
+        { json: "data", js: "data", typ: u(undefined, u(r("ProjectsDeleteResponse"), null)) },
+        { json: "errorMessage", js: "errorMessage", typ: u(undefined, u(null, "")) },
+        { json: "success", js: "success", typ: true },
+    ], false),
+    "ProjectsDeleteResponse": o([
+        { json: "data", js: "data", typ: a(r("ProjectDeleteResponse")) },
+    ], false),
+    "ProjectDeleteResponse": o([
+        { json: "error", js: "error", typ: u(undefined, u(null, "")) },
+        { json: "id", js: "id", typ: "" },
+    ], false),
+    "ResponseForFingerprintResponse": o([
+        { json: "data", js: "data", typ: u(undefined, u(r("FingerprintResponse"), null)) },
+        { json: "errorMessage", js: "errorMessage", typ: u(undefined, u(null, "")) },
+        { json: "success", js: "success", typ: true },
+    ], false),
+    "FingerprintResponse": o([
+        { json: "fingerprint", js: "fingerprint", typ: "" },
+    ], false),
+    "ResponseForSyncResponse": o([
+        { json: "data", js: "data", typ: u(undefined, u(r("SyncResponse"), null)) },
+        { json: "errorMessage", js: "errorMessage", typ: u(undefined, u(null, "")) },
+        { json: "success", js: "success", typ: true },
+    ], false),
+    "SyncResponse": o([
+        { json: "ciphers", js: "ciphers", typ: a(r("Cipher")) },
+        { json: "collections", js: "collections", typ: a(r("Collection")) },
+        { json: "domains", js: "domains", typ: u(undefined, u(r("DomainResponse"), null)) },
+        { json: "folders", js: "folders", typ: a(r("Folder")) },
+        { json: "profile", js: "profile", typ: r("ProfileResponse") },
+    ], false),
+    "Cipher": o([
+        { json: "attachments", js: "attachments", typ: u(undefined, u(a(r("Attachment")), null)) },
+        { json: "card", js: "card", typ: u(undefined, u(r("Card"), null)) },
+        { json: "collectionIds", js: "collectionIds", typ: a("") },
+        { json: "creationDate", js: "creationDate", typ: Date },
+        { json: "deletedDate", js: "deletedDate", typ: u(undefined, u(Date, null)) },
+        { json: "edit", js: "edit", typ: true },
+        { json: "favorite", js: "favorite", typ: true },
+        { json: "fields", js: "fields", typ: u(undefined, u(a(r("Field")), null)) },
+        { json: "folderId", js: "folderId", typ: u(undefined, u(null, "")) },
+        { json: "id", js: "id", typ: u(undefined, u(null, "")) },
+        { json: "identity", js: "identity", typ: u(undefined, u(r("Identity"), null)) },
+        { json: "key", js: "key", typ: u(undefined, u(null, "")) },
+        { json: "localData", js: "localData", typ: u(undefined, u(r("LocalData"), null)) },
+        { json: "login", js: "login", typ: u(undefined, u(r("Login"), null)) },
+        { json: "name", js: "name", typ: "" },
+        { json: "notes", js: "notes", typ: u(undefined, u(null, "")) },
+        { json: "organizationId", js: "organizationId", typ: u(undefined, u(null, "")) },
+        { json: "organizationUseTotp", js: "organizationUseTotp", typ: true },
+        { json: "passwordHistory", js: "passwordHistory", typ: u(undefined, u(a(r("PasswordHistory")), null)) },
+        { json: "reprompt", js: "reprompt", typ: r("CipherRepromptType") },
+        { json: "revisionDate", js: "revisionDate", typ: Date },
+        { json: "secureNote", js: "secureNote", typ: u(undefined, u(r("SecureNote"), null)) },
+        { json: "type", js: "type", typ: r("CipherType") },
+        { json: "viewPassword", js: "viewPassword", typ: true },
+    ], false),
+    "Attachment": o([
+        { json: "fileName", js: "fileName", typ: u(undefined, u(null, "")) },
+        { json: "id", js: "id", typ: u(undefined, u(null, "")) },
+        { json: "key", js: "key", typ: u(undefined, u(null, "")) },
+        { json: "size", js: "size", typ: u(undefined, u(null, "")) },
+        { json: "sizeName", js: "sizeName", typ: u(undefined, u(null, "")) },
+        { json: "url", js: "url", typ: u(undefined, u(null, "")) },
+    ], false),
+    "Card": o([
+        { json: "brand", js: "brand", typ: u(undefined, u(null, "")) },
+        { json: "cardholderName", js: "cardholderName", typ: u(undefined, u(null, "")) },
+        { json: "code", js: "code", typ: u(undefined, u(null, "")) },
+        { json: "expMonth", js: "expMonth", typ: u(undefined, u(null, "")) },
+        { json: "expYear", js: "expYear", typ: u(undefined, u(null, "")) },
+        { json: "number", js: "number", typ: u(undefined, u(null, "")) },
+    ], false),
+    "Field": o([
+        { json: "linkedId", js: "linkedId", typ: u(undefined, u(r("LinkedIDType"), null)) },
+        { json: "name", js: "name", typ: u(undefined, u(null, "")) },
+        { json: "type", js: "type", typ: r("FieldType") },
+        { json: "value", js: "value", typ: u(undefined, u(null, "")) },
+    ], false),
+    "Identity": o([
+        { json: "address1", js: "address1", typ: u(undefined, u(null, "")) },
+        { json: "address2", js: "address2", typ: u(undefined, u(null, "")) },
+        { json: "address3", js: "address3", typ: u(undefined, u(null, "")) },
+        { json: "city", js: "city", typ: u(undefined, u(null, "")) },
+        { json: "company", js: "company", typ: u(undefined, u(null, "")) },
+        { json: "country", js: "country", typ: u(undefined, u(null, "")) },
+        { json: "email", js: "email", typ: u(undefined, u(null, "")) },
+        { json: "firstName", js: "firstName", typ: u(undefined, u(null, "")) },
+        { json: "lastName", js: "lastName", typ: u(undefined, u(null, "")) },
+        { json: "licenseNumber", js: "licenseNumber", typ: u(undefined, u(null, "")) },
+        { json: "middleName", js: "middleName", typ: u(undefined, u(null, "")) },
+        { json: "passportNumber", js: "passportNumber", typ: u(undefined, u(null, "")) },
+        { json: "phone", js: "phone", typ: u(undefined, u(null, "")) },
+        { json: "postalCode", js: "postalCode", typ: u(undefined, u(null, "")) },
+        { json: "ssn", js: "ssn", typ: u(undefined, u(null, "")) },
+        { json: "state", js: "state", typ: u(undefined, u(null, "")) },
+        { json: "title", js: "title", typ: u(undefined, u(null, "")) },
+        { json: "username", js: "username", typ: u(undefined, u(null, "")) },
+    ], false),
+    "LocalData": o([
+        { json: "lastLaunched", js: "lastLaunched", typ: u(undefined, u(0, null)) },
+        { json: "lastUsedDate", js: "lastUsedDate", typ: u(undefined, u(0, null)) },
+    ], false),
+    "Login": o([
+        { json: "autofillOnPageLoad", js: "autofillOnPageLoad", typ: u(undefined, u(true, null)) },
+        { json: "fido2Credentials", js: "fido2Credentials", typ: u(undefined, u(a(r("Fido2Credential")), null)) },
+        { json: "password", js: "password", typ: u(undefined, u(null, "")) },
+        { json: "passwordRevisionDate", js: "passwordRevisionDate", typ: u(undefined, u(Date, null)) },
+        { json: "totp", js: "totp", typ: u(undefined, u(null, "")) },
+        { json: "uris", js: "uris", typ: u(undefined, u(a(r("LoginURI")), null)) },
+        { json: "username", js: "username", typ: u(undefined, u(null, "")) },
+    ], false),
+    "Fido2Credential": o([
+        { json: "counter", js: "counter", typ: "" },
+        { json: "creationDate", js: "creationDate", typ: Date },
+        { json: "credentialId", js: "credentialId", typ: "" },
+        { json: "discoverable", js: "discoverable", typ: "" },
+        { json: "keyAlgorithm", js: "keyAlgorithm", typ: "" },
+        { json: "keyCurve", js: "keyCurve", typ: "" },
+        { json: "keyType", js: "keyType", typ: "" },
+        { json: "keyValue", js: "keyValue", typ: "" },
+        { json: "rpId", js: "rpId", typ: "" },
+        { json: "rpName", js: "rpName", typ: u(undefined, u(null, "")) },
+        { json: "userDisplayName", js: "userDisplayName", typ: u(undefined, u(null, "")) },
+        { json: "userHandle", js: "userHandle", typ: u(undefined, u(null, "")) },
+        { json: "userName", js: "userName", typ: u(undefined, u(null, "")) },
+    ], false),
+    "LoginURI": o([
+        { json: "match", js: "match", typ: u(undefined, u(r("URIMatchType"), null)) },
+        { json: "uri", js: "uri", typ: u(undefined, u(null, "")) },
+        { json: "uriChecksum", js: "uriChecksum", typ: u(undefined, u(null, "")) },
+    ], false),
+    "PasswordHistory": o([
+        { json: "lastUsedDate", js: "lastUsedDate", typ: Date },
+        { json: "password", js: "password", typ: "" },
+    ], false),
+    "SecureNote": o([
+        { json: "type", js: "type", typ: r("SecureNoteType") },
+    ], false),
+    "Collection": o([
+        { json: "externalId", js: "externalId", typ: u(undefined, u(null, "")) },
+        { json: "hidePasswords", js: "hidePasswords", typ: true },
+        { json: "id", js: "id", typ: u(undefined, u(null, "")) },
+        { json: "name", js: "name", typ: "" },
+        { json: "organizationId", js: "organizationId", typ: "" },
+        { json: "readOnly", js: "readOnly", typ: true },
+    ], false),
+    "DomainResponse": o([
+        { json: "equivalentDomains", js: "equivalentDomains", typ: a(a("")) },
+        { json: "globalEquivalentDomains", js: "globalEquivalentDomains", typ: a(r("GlobalDomains")) },
+    ], false),
+    "GlobalDomains": o([
+        { json: "domains", js: "domains", typ: a("") },
+        { json: "excluded", js: "excluded", typ: true },
+        { json: "type", js: "type", typ: 0 },
+    ], "any"),
+    "Folder": o([
+        { json: "id", js: "id", typ: u(undefined, u(null, "")) },
+        { json: "name", js: "name", typ: "" },
+        { json: "revisionDate", js: "revisionDate", typ: Date },
+    ], "any"),
+    "ProfileResponse": o([
+        { json: "email", js: "email", typ: "" },
+        { json: "id", js: "id", typ: "" },
+        { json: "name", js: "name", typ: "" },
+        { json: "organizations", js: "organizations", typ: a(r("ProfileOrganizationResponse")) },
+    ], false),
+    "ProfileOrganizationResponse": o([
+        { json: "id", js: "id", typ: "" },
+    ], false),
+    "ResponseForUserAPIKeyResponse": o([
+        { json: "data", js: "data", typ: u(undefined, u(r("UserAPIKeyResponse"), null)) },
+        { json: "errorMessage", js: "errorMessage", typ: u(undefined, u(null, "")) },
+        { json: "success", js: "success", typ: true },
+    ], false),
+    "UserAPIKeyResponse": o([
+        { json: "apiKey", js: "apiKey", typ: "" },
+    ], false),
+    "DeviceType": [
+        "Android",
+        "AndroidAmazon",
+        "ChromeBrowser",
+        "ChromeExtension",
+        "EdgeBrowser",
+        "EdgeExtension",
+        "FirefoxBrowser",
+        "FirefoxExtension",
+        "IEBrowser",
+        "iOS",
+        "LinuxDesktop",
+        "MacOsDesktop",
+        "OperaBrowser",
+        "OperaExtension",
+        "SDK",
+        "SafariBrowser",
+        "SafariExtension",
+        "UWP",
+        "UnknownBrowser",
+        "VivaldiBrowser",
+        "VivaldiExtension",
+        "WindowsDesktop",
+    ],
+    "TwoFactorProvider": [
+        "Authenticator",
+        "Duo",
+        "Email",
+        "OrganizationDuo",
+        "Remember",
+        "U2f",
+        "WebAuthn",
+        "Yubikey",
+    ],
+    "LinkedIDType": [
+        "Address1",
+        "Address2",
+        "Address3",
+        "Brand",
+        "CardholderName",
+        "City",
+        "Code",
+        "Company",
+        "Country",
+        "Email",
+        "ExpMonth",
+        "ExpYear",
+        "FirstName",
+        "FullName",
+        "LastName",
+        "LicenseNumber",
+        "MiddleName",
+        "Number",
+        "PassportNumber",
+        "Password",
+        "Phone",
+        "PostalCode",
+        "Ssn",
+        "State",
+        "Title",
+        "Username",
+    ],
+    "FieldType": [
+        "Boolean",
+        "Hidden",
+        "Linked",
+        "Text",
+    ],
+    "URIMatchType": [
+        "domain",
+        "exact",
+        "host",
+        "never",
+        "regularExpression",
+        "startsWith",
+    ],
+    "CipherRepromptType": [
+        "None",
+        "Password",
+    ],
+    "SecureNoteType": [
+        "Generic",
+    ],
+    "CipherType": [
+        "Card",
+        "Identity",
+        "Login",
+        "SecureNote",
+    ],
+    "LoginLinkedIDType": [
+        "Password",
+        "Username",
+    ],
+    "CardLinkedIDType": [
+        "Brand",
+        "CardholderName",
+        "Code",
+        "ExpMonth",
+        "ExpYear",
+        "Number",
+    ],
+    "IdentityLinkedIDType": [
+        "Address1",
+        "Address2",
+        "Address3",
+        "City",
+        "Company",
+        "Country",
+        "Email",
+        "FirstName",
+        "FullName",
+        "LastName",
+        "LicenseNumber",
+        "MiddleName",
+        "PassportNumber",
+        "Phone",
+        "PostalCode",
+        "Ssn",
+        "State",
+        "Title",
+        "Username",
+    ],
+};
+//# sourceMappingURL=schemas.js.map
+
+/***/ }),
+
 /***/ 7351:
 /***/ (function(__unused_webpack_module, exports, __nccwpck_require__) {
 
@@ -1827,6 +3678,780 @@ function isLoopbackAddress(host) {
         hostLower.startsWith('[0:0:0:0:0:0:0:1]'));
 }
 //# sourceMappingURL=proxy.js.map
+
+/***/ }),
+
+/***/ 9597:
+/***/ ((module, __unused_webpack_exports, __nccwpck_require__) => {
+
+let imports = {};
+imports['__wbindgen_placeholder__'] = module.exports;
+let wasm;
+const { TextDecoder, TextEncoder } = __nccwpck_require__(3837);
+
+const heap = new Array(128).fill(undefined);
+
+heap.push(undefined, null, true, false);
+
+function getObject(idx) { return heap[idx]; }
+
+let heap_next = heap.length;
+
+function dropObject(idx) {
+    if (idx < 132) return;
+    heap[idx] = heap_next;
+    heap_next = idx;
+}
+
+function takeObject(idx) {
+    const ret = getObject(idx);
+    dropObject(idx);
+    return ret;
+}
+
+let cachedTextDecoder = new TextDecoder('utf-8', { ignoreBOM: true, fatal: true });
+
+cachedTextDecoder.decode();
+
+let cachedUint8Memory0 = null;
+
+function getUint8Memory0() {
+    if (cachedUint8Memory0 === null || cachedUint8Memory0.byteLength === 0) {
+        cachedUint8Memory0 = new Uint8Array(wasm.memory.buffer);
+    }
+    return cachedUint8Memory0;
+}
+
+function getStringFromWasm0(ptr, len) {
+    ptr = ptr >>> 0;
+    return cachedTextDecoder.decode(getUint8Memory0().subarray(ptr, ptr + len));
+}
+
+function addHeapObject(obj) {
+    if (heap_next === heap.length) heap.push(heap.length + 1);
+    const idx = heap_next;
+    heap_next = heap[idx];
+
+    heap[idx] = obj;
+    return idx;
+}
+
+let WASM_VECTOR_LEN = 0;
+
+let cachedTextEncoder = new TextEncoder('utf-8');
+
+const encodeString = (typeof cachedTextEncoder.encodeInto === 'function'
+    ? function (arg, view) {
+    return cachedTextEncoder.encodeInto(arg, view);
+}
+    : function (arg, view) {
+    const buf = cachedTextEncoder.encode(arg);
+    view.set(buf);
+    return {
+        read: arg.length,
+        written: buf.length
+    };
+});
+
+function passStringToWasm0(arg, malloc, realloc) {
+
+    if (realloc === undefined) {
+        const buf = cachedTextEncoder.encode(arg);
+        const ptr = malloc(buf.length, 1) >>> 0;
+        getUint8Memory0().subarray(ptr, ptr + buf.length).set(buf);
+        WASM_VECTOR_LEN = buf.length;
+        return ptr;
+    }
+
+    let len = arg.length;
+    let ptr = malloc(len, 1) >>> 0;
+
+    const mem = getUint8Memory0();
+
+    let offset = 0;
+
+    for (; offset < len; offset++) {
+        const code = arg.charCodeAt(offset);
+        if (code > 0x7F) break;
+        mem[ptr + offset] = code;
+    }
+
+    if (offset !== len) {
+        if (offset !== 0) {
+            arg = arg.slice(offset);
+        }
+        ptr = realloc(ptr, len, len = offset + arg.length * 3, 1) >>> 0;
+        const view = getUint8Memory0().subarray(ptr + offset, ptr + len);
+        const ret = encodeString(arg, view);
+
+        offset += ret.written;
+        ptr = realloc(ptr, len, offset, 1) >>> 0;
+    }
+
+    WASM_VECTOR_LEN = offset;
+    return ptr;
+}
+
+function isLikeNone(x) {
+    return x === undefined || x === null;
+}
+
+let cachedInt32Memory0 = null;
+
+function getInt32Memory0() {
+    if (cachedInt32Memory0 === null || cachedInt32Memory0.byteLength === 0) {
+        cachedInt32Memory0 = new Int32Array(wasm.memory.buffer);
+    }
+    return cachedInt32Memory0;
+}
+
+function debugString(val) {
+    // primitive types
+    const type = typeof val;
+    if (type == 'number' || type == 'boolean' || val == null) {
+        return  `${val}`;
+    }
+    if (type == 'string') {
+        return `"${val}"`;
+    }
+    if (type == 'symbol') {
+        const description = val.description;
+        if (description == null) {
+            return 'Symbol';
+        } else {
+            return `Symbol(${description})`;
+        }
+    }
+    if (type == 'function') {
+        const name = val.name;
+        if (typeof name == 'string' && name.length > 0) {
+            return `Function(${name})`;
+        } else {
+            return 'Function';
+        }
+    }
+    // objects
+    if (Array.isArray(val)) {
+        const length = val.length;
+        let debug = '[';
+        if (length > 0) {
+            debug += debugString(val[0]);
+        }
+        for(let i = 1; i < length; i++) {
+            debug += ', ' + debugString(val[i]);
+        }
+        debug += ']';
+        return debug;
+    }
+    // Test for built-in
+    const builtInMatches = /\[object ([^\]]+)\]/.exec(toString.call(val));
+    let className;
+    if (builtInMatches.length > 1) {
+        className = builtInMatches[1];
+    } else {
+        // Failed to match the standard '[object ClassName]'
+        return toString.call(val);
+    }
+    if (className == 'Object') {
+        // we're a user defined class or Object
+        // JSON.stringify avoids problems with cycles, and is generally much
+        // easier than looping through ownProperties of `val`.
+        try {
+            return 'Object(' + JSON.stringify(val) + ')';
+        } catch (_) {
+            return 'Object';
+        }
+    }
+    // errors
+    if (val instanceof Error) {
+        return `${val.name}: ${val.message}\n${val.stack}`;
+    }
+    // TODO we could test for more things here, like `Set`s and `Map`s.
+    return className;
+}
+
+const CLOSURE_DTORS = (typeof FinalizationRegistry === 'undefined')
+    ? { register: () => {}, unregister: () => {} }
+    : new FinalizationRegistry(state => {
+    wasm.__wbindgen_export_2.get(state.dtor)(state.a, state.b)
+});
+
+function makeMutClosure(arg0, arg1, dtor, f) {
+    const state = { a: arg0, b: arg1, cnt: 1, dtor };
+    const real = (...args) => {
+        // First up with a closure we increment the internal reference
+        // count. This ensures that the Rust closure environment won't
+        // be deallocated while we're invoking it.
+        state.cnt++;
+        const a = state.a;
+        state.a = 0;
+        try {
+            return f(a, state.b, ...args);
+        } finally {
+            if (--state.cnt === 0) {
+                wasm.__wbindgen_export_2.get(state.dtor)(a, state.b);
+                CLOSURE_DTORS.unregister(state);
+            } else {
+                state.a = a;
+            }
+        }
+    };
+    real.original = state;
+    CLOSURE_DTORS.register(real, state, state);
+    return real;
+}
+function __wbg_adapter_28(arg0, arg1, arg2) {
+    wasm.wasm_bindgen__convert__closures__invoke1_mut__h6f87ad35b6a4a5f5(arg0, arg1, addHeapObject(arg2));
+}
+
+function passArray8ToWasm0(arg, malloc) {
+    const ptr = malloc(arg.length * 1, 1) >>> 0;
+    getUint8Memory0().set(arg, ptr / 1);
+    WASM_VECTOR_LEN = arg.length;
+    return ptr;
+}
+
+function getArrayU8FromWasm0(ptr, len) {
+    ptr = ptr >>> 0;
+    return getUint8Memory0().subarray(ptr / 1, ptr / 1 + len);
+}
+/**
+* @param {Uint8Array} password
+* @param {Uint8Array} salt
+* @param {number} iterations
+* @param {number} memory
+* @param {number} parallelism
+* @returns {Uint8Array}
+*/
+module.exports.argon2 = function(password, salt, iterations, memory, parallelism) {
+    try {
+        const retptr = wasm.__wbindgen_add_to_stack_pointer(-16);
+        const ptr0 = passArray8ToWasm0(password, wasm.__wbindgen_malloc);
+        const len0 = WASM_VECTOR_LEN;
+        const ptr1 = passArray8ToWasm0(salt, wasm.__wbindgen_malloc);
+        const len1 = WASM_VECTOR_LEN;
+        wasm.argon2(retptr, ptr0, len0, ptr1, len1, iterations, memory, parallelism);
+        var r0 = getInt32Memory0()[retptr / 4 + 0];
+        var r1 = getInt32Memory0()[retptr / 4 + 1];
+        var r2 = getInt32Memory0()[retptr / 4 + 2];
+        var r3 = getInt32Memory0()[retptr / 4 + 3];
+        if (r3) {
+            throw takeObject(r2);
+        }
+        var v3 = getArrayU8FromWasm0(r0, r1).slice();
+        wasm.__wbindgen_free(r0, r1 * 1, 1);
+        return v3;
+    } finally {
+        wasm.__wbindgen_add_to_stack_pointer(16);
+    }
+};
+
+function handleError(f, args) {
+    try {
+        return f.apply(this, args);
+    } catch (e) {
+        wasm.__wbindgen_exn_store(addHeapObject(e));
+    }
+}
+function __wbg_adapter_92(arg0, arg1, arg2, arg3) {
+    wasm.wasm_bindgen__convert__closures__invoke2_mut__hcde955e4568845c8(arg0, arg1, addHeapObject(arg2), addHeapObject(arg3));
+}
+
+/**
+*/
+module.exports.LogLevel = Object.freeze({ Trace:0,"0":"Trace",Debug:1,"1":"Debug",Info:2,"2":"Info",Warn:3,"3":"Warn",Error:4,"4":"Error", });
+
+const BitwardenClientFinalization = (typeof FinalizationRegistry === 'undefined')
+    ? { register: () => {}, unregister: () => {} }
+    : new FinalizationRegistry(ptr => wasm.__wbg_bitwardenclient_free(ptr >>> 0));
+/**
+*/
+class BitwardenClient {
+
+    __destroy_into_raw() {
+        const ptr = this.__wbg_ptr;
+        this.__wbg_ptr = 0;
+        BitwardenClientFinalization.unregister(this);
+        return ptr;
+    }
+
+    free() {
+        const ptr = this.__destroy_into_raw();
+        wasm.__wbg_bitwardenclient_free(ptr);
+    }
+    /**
+    * @param {string | undefined} [settings_input]
+    * @param {LogLevel | undefined} [log_level]
+    */
+    constructor(settings_input, log_level) {
+        var ptr0 = isLikeNone(settings_input) ? 0 : passStringToWasm0(settings_input, wasm.__wbindgen_malloc, wasm.__wbindgen_realloc);
+        var len0 = WASM_VECTOR_LEN;
+        const ret = wasm.bitwardenclient_new(ptr0, len0, isLikeNone(log_level) ? 5 : log_level);
+        this.__wbg_ptr = ret >>> 0;
+        return this;
+    }
+    /**
+    * @param {string} js_input
+    * @returns {Promise<any>}
+    */
+    run_command(js_input) {
+        const ptr0 = passStringToWasm0(js_input, wasm.__wbindgen_malloc, wasm.__wbindgen_realloc);
+        const len0 = WASM_VECTOR_LEN;
+        const ret = wasm.bitwardenclient_run_command(this.__wbg_ptr, ptr0, len0);
+        return takeObject(ret);
+    }
+}
+module.exports.BitwardenClient = BitwardenClient;
+
+module.exports.__wbg_new0_7d84e5b2cd9fdc73 = function() {
+    const ret = new Date();
+    return addHeapObject(ret);
+};
+
+module.exports.__wbindgen_object_drop_ref = function(arg0) {
+    takeObject(arg0);
+};
+
+module.exports.__wbg_abort_2aa7521d5690750e = function(arg0) {
+    getObject(arg0).abort();
+};
+
+module.exports.__wbindgen_string_new = function(arg0, arg1) {
+    const ret = getStringFromWasm0(arg0, arg1);
+    return addHeapObject(ret);
+};
+
+module.exports.__wbg_call_b3ca7c6051f9bec1 = function() { return handleError(function (arg0, arg1, arg2) {
+    const ret = getObject(arg0).call(getObject(arg1), getObject(arg2));
+    return addHeapObject(ret);
+}, arguments) };
+
+module.exports.__wbindgen_cb_drop = function(arg0) {
+    const obj = takeObject(arg0).original;
+    if (obj.cnt-- == 1) {
+        obj.a = 0;
+        return true;
+    }
+    const ret = false;
+    return ret;
+};
+
+module.exports.__wbindgen_error_new = function(arg0, arg1) {
+    const ret = new Error(getStringFromWasm0(arg0, arg1));
+    return addHeapObject(ret);
+};
+
+module.exports.__wbg_new_72fb9a18b5ae2624 = function() {
+    const ret = new Object();
+    return addHeapObject(ret);
+};
+
+module.exports.__wbg_new_ab6fd82b10560829 = function() { return handleError(function () {
+    const ret = new Headers();
+    return addHeapObject(ret);
+}, arguments) };
+
+module.exports.__wbg_signal_a61f78a3478fd9bc = function(arg0) {
+    const ret = getObject(arg0).signal;
+    return addHeapObject(ret);
+};
+
+module.exports.__wbg_newwithstrandinit_3fd6fba4083ff2d0 = function() { return handleError(function (arg0, arg1, arg2) {
+    const ret = new Request(getStringFromWasm0(arg0, arg1), getObject(arg2));
+    return addHeapObject(ret);
+}, arguments) };
+
+module.exports.__wbg_append_7bfcb4937d1d5e29 = function() { return handleError(function (arg0, arg1, arg2, arg3, arg4) {
+    getObject(arg0).append(getStringFromWasm0(arg1, arg2), getStringFromWasm0(arg3, arg4));
+}, arguments) };
+
+module.exports.__wbg_instanceof_Response_849eb93e75734b6e = function(arg0) {
+    let result;
+    try {
+        result = getObject(arg0) instanceof Response;
+    } catch (_) {
+        result = false;
+    }
+    const ret = result;
+    return ret;
+};
+
+module.exports.__wbg_status_61a01141acd3cf74 = function(arg0) {
+    const ret = getObject(arg0).status;
+    return ret;
+};
+
+module.exports.__wbg_url_5f6dc4009ac5f99d = function(arg0, arg1) {
+    const ret = getObject(arg1).url;
+    const ptr1 = passStringToWasm0(ret, wasm.__wbindgen_malloc, wasm.__wbindgen_realloc);
+    const len1 = WASM_VECTOR_LEN;
+    getInt32Memory0()[arg0 / 4 + 1] = len1;
+    getInt32Memory0()[arg0 / 4 + 0] = ptr1;
+};
+
+module.exports.__wbg_headers_9620bfada380764a = function(arg0) {
+    const ret = getObject(arg0).headers;
+    return addHeapObject(ret);
+};
+
+module.exports.__wbg_next_196c84450b364254 = function() { return handleError(function (arg0) {
+    const ret = getObject(arg0).next();
+    return addHeapObject(ret);
+}, arguments) };
+
+module.exports.__wbg_done_298b57d23c0fc80c = function(arg0) {
+    const ret = getObject(arg0).done;
+    return ret;
+};
+
+module.exports.__wbg_value_d93c65011f51a456 = function(arg0) {
+    const ret = getObject(arg0).value;
+    return addHeapObject(ret);
+};
+
+module.exports.__wbg_stringify_8887fe74e1c50d81 = function() { return handleError(function (arg0) {
+    const ret = JSON.stringify(getObject(arg0));
+    return addHeapObject(ret);
+}, arguments) };
+
+module.exports.__wbindgen_string_get = function(arg0, arg1) {
+    const obj = getObject(arg1);
+    const ret = typeof(obj) === 'string' ? obj : undefined;
+    var ptr1 = isLikeNone(ret) ? 0 : passStringToWasm0(ret, wasm.__wbindgen_malloc, wasm.__wbindgen_realloc);
+    var len1 = WASM_VECTOR_LEN;
+    getInt32Memory0()[arg0 / 4 + 1] = len1;
+    getInt32Memory0()[arg0 / 4 + 0] = ptr1;
+};
+
+module.exports.__wbg_text_450a059667fd91fd = function() { return handleError(function (arg0) {
+    const ret = getObject(arg0).text();
+    return addHeapObject(ret);
+}, arguments) };
+
+module.exports.__wbg_new_81740750da40724f = function(arg0, arg1) {
+    try {
+        var state0 = {a: arg0, b: arg1};
+        var cb0 = (arg0, arg1) => {
+            const a = state0.a;
+            state0.a = 0;
+            try {
+                return __wbg_adapter_92(a, state0.b, arg0, arg1);
+            } finally {
+                state0.a = a;
+            }
+        };
+        const ret = new Promise(cb0);
+        return addHeapObject(ret);
+    } finally {
+        state0.a = state0.b = 0;
+    }
+};
+
+module.exports.__wbg_getTime_2bc4375165f02d15 = function(arg0) {
+    const ret = getObject(arg0).getTime();
+    return ret;
+};
+
+module.exports.__wbg_new_abda76e883ba8a5f = function() {
+    const ret = new Error();
+    return addHeapObject(ret);
+};
+
+module.exports.__wbg_stack_658279fe44541cf6 = function(arg0, arg1) {
+    const ret = getObject(arg1).stack;
+    const ptr1 = passStringToWasm0(ret, wasm.__wbindgen_malloc, wasm.__wbindgen_realloc);
+    const len1 = WASM_VECTOR_LEN;
+    getInt32Memory0()[arg0 / 4 + 1] = len1;
+    getInt32Memory0()[arg0 / 4 + 0] = ptr1;
+};
+
+module.exports.__wbg_error_f851667af71bcfc6 = function(arg0, arg1) {
+    let deferred0_0;
+    let deferred0_1;
+    try {
+        deferred0_0 = arg0;
+        deferred0_1 = arg1;
+        console.error(getStringFromWasm0(arg0, arg1));
+    } finally {
+        wasm.__wbindgen_free(deferred0_0, deferred0_1, 1);
+    }
+};
+
+module.exports.__wbg_subarray_a1f73cd4b5b42fe1 = function(arg0, arg1, arg2) {
+    const ret = getObject(arg0).subarray(arg1 >>> 0, arg2 >>> 0);
+    return addHeapObject(ret);
+};
+
+module.exports.__wbg_getRandomValues_7e42b4fb8779dc6d = function() { return handleError(function (arg0, arg1) {
+    getObject(arg0).getRandomValues(getObject(arg1));
+}, arguments) };
+
+module.exports.__wbindgen_memory = function() {
+    const ret = wasm.memory;
+    return addHeapObject(ret);
+};
+
+module.exports.__wbg_buffer_12d079cc21e14bdb = function(arg0) {
+    const ret = getObject(arg0).buffer;
+    return addHeapObject(ret);
+};
+
+module.exports.__wbg_new_63b92bc8671ed464 = function(arg0) {
+    const ret = new Uint8Array(getObject(arg0));
+    return addHeapObject(ret);
+};
+
+module.exports.__wbg_set_a47bac70306a19a7 = function(arg0, arg1, arg2) {
+    getObject(arg0).set(getObject(arg1), arg2 >>> 0);
+};
+
+module.exports.__wbg_newwithbyteoffsetandlength_aa4a17c33a06e5cb = function(arg0, arg1, arg2) {
+    const ret = new Uint8Array(getObject(arg0), arg1 >>> 0, arg2 >>> 0);
+    return addHeapObject(ret);
+};
+
+module.exports.__wbg_randomFillSync_b70ccbdf4926a99d = function() { return handleError(function (arg0, arg1) {
+    getObject(arg0).randomFillSync(takeObject(arg1));
+}, arguments) };
+
+module.exports.__wbindgen_object_clone_ref = function(arg0) {
+    const ret = getObject(arg0);
+    return addHeapObject(ret);
+};
+
+module.exports.__wbg_crypto_d05b68a3572bb8ca = function(arg0) {
+    const ret = getObject(arg0).crypto;
+    return addHeapObject(ret);
+};
+
+module.exports.__wbindgen_is_object = function(arg0) {
+    const val = getObject(arg0);
+    const ret = typeof(val) === 'object' && val !== null;
+    return ret;
+};
+
+module.exports.__wbg_process_b02b3570280d0366 = function(arg0) {
+    const ret = getObject(arg0).process;
+    return addHeapObject(ret);
+};
+
+module.exports.__wbg_versions_c1cb42213cedf0f5 = function(arg0) {
+    const ret = getObject(arg0).versions;
+    return addHeapObject(ret);
+};
+
+module.exports.__wbg_node_43b1089f407e4ec2 = function(arg0) {
+    const ret = getObject(arg0).node;
+    return addHeapObject(ret);
+};
+
+module.exports.__wbindgen_is_string = function(arg0) {
+    const ret = typeof(getObject(arg0)) === 'string';
+    return ret;
+};
+
+module.exports.__wbg_msCrypto_10fc94afee92bd76 = function(arg0) {
+    const ret = getObject(arg0).msCrypto;
+    return addHeapObject(ret);
+};
+
+module.exports.__wbg_require_9a7e0f667ead4995 = function() { return handleError(function () {
+    const ret = undefined;
+    return addHeapObject(__nccwpck_require__(8546));
+}, arguments) };
+
+module.exports.__wbindgen_is_function = function(arg0) {
+    const ret = typeof(getObject(arg0)) === 'function';
+    return ret;
+};
+
+module.exports.__wbg_newwithlength_e9b4878cebadb3d3 = function(arg0) {
+    const ret = new Uint8Array(arg0 >>> 0);
+    return addHeapObject(ret);
+};
+
+module.exports.__wbg_iterator_2cee6dadfd956dfa = function() {
+    const ret = Symbol.iterator;
+    return addHeapObject(ret);
+};
+
+module.exports.__wbg_get_e3c254076557e348 = function() { return handleError(function (arg0, arg1) {
+    const ret = Reflect.get(getObject(arg0), getObject(arg1));
+    return addHeapObject(ret);
+}, arguments) };
+
+module.exports.__wbg_call_27c0f87801dedf93 = function() { return handleError(function (arg0, arg1) {
+    const ret = getObject(arg0).call(getObject(arg1));
+    return addHeapObject(ret);
+}, arguments) };
+
+module.exports.__wbg_next_40fc327bfc8770e6 = function(arg0) {
+    const ret = getObject(arg0).next;
+    return addHeapObject(ret);
+};
+
+module.exports.__wbg_new_16b304a2cfa7ff4a = function() {
+    const ret = new Array();
+    return addHeapObject(ret);
+};
+
+module.exports.__wbg_push_a5b05aedc7234f9f = function(arg0, arg1) {
+    const ret = getObject(arg0).push(getObject(arg1));
+    return ret;
+};
+
+module.exports.__wbg_new_28c511d9baebfa89 = function(arg0, arg1) {
+    const ret = new Error(getStringFromWasm0(arg0, arg1));
+    return addHeapObject(ret);
+};
+
+module.exports.__wbg_has_0af94d20077affa2 = function() { return handleError(function (arg0, arg1) {
+    const ret = Reflect.has(getObject(arg0), getObject(arg1));
+    return ret;
+}, arguments) };
+
+module.exports.__wbg_set_1f9b04f170055d33 = function() { return handleError(function (arg0, arg1, arg2) {
+    const ret = Reflect.set(getObject(arg0), getObject(arg1), getObject(arg2));
+    return ret;
+}, arguments) };
+
+module.exports.__wbg_resolve_b0083a7967828ec8 = function(arg0) {
+    const ret = Promise.resolve(getObject(arg0));
+    return addHeapObject(ret);
+};
+
+module.exports.__wbg_then_0c86a60e8fcfe9f6 = function(arg0, arg1) {
+    const ret = getObject(arg0).then(getObject(arg1));
+    return addHeapObject(ret);
+};
+
+module.exports.__wbg_then_a73caa9a87991566 = function(arg0, arg1, arg2) {
+    const ret = getObject(arg0).then(getObject(arg1), getObject(arg2));
+    return addHeapObject(ret);
+};
+
+module.exports.__wbg_self_ce0dbfc45cf2f5be = function() { return handleError(function () {
+    const ret = self.self;
+    return addHeapObject(ret);
+}, arguments) };
+
+module.exports.__wbg_window_c6fb939a7f436783 = function() { return handleError(function () {
+    const ret = window.window;
+    return addHeapObject(ret);
+}, arguments) };
+
+module.exports.__wbg_globalThis_d1e6af4856ba331b = function() { return handleError(function () {
+    const ret = globalThis.globalThis;
+    return addHeapObject(ret);
+}, arguments) };
+
+module.exports.__wbg_global_207b558942527489 = function() { return handleError(function () {
+    const ret = global.global;
+    return addHeapObject(ret);
+}, arguments) };
+
+module.exports.__wbindgen_is_undefined = function(arg0) {
+    const ret = getObject(arg0) === undefined;
+    return ret;
+};
+
+module.exports.__wbg_newnoargs_e258087cd0daa0ea = function(arg0, arg1) {
+    const ret = new Function(getStringFromWasm0(arg0, arg1));
+    return addHeapObject(ret);
+};
+
+module.exports.__wbg_new_d4ab7daa4cb33d5f = function() { return handleError(function () {
+    const ret = new FormData();
+    return addHeapObject(ret);
+}, arguments) };
+
+module.exports.__wbg_newwithu8arraysequenceandoptions_366f462e1b363808 = function() { return handleError(function (arg0, arg1) {
+    const ret = new Blob(getObject(arg0), getObject(arg1));
+    return addHeapObject(ret);
+}, arguments) };
+
+module.exports.__wbg_append_9fd018eae44ea54a = function() { return handleError(function (arg0, arg1, arg2, arg3, arg4, arg5) {
+    getObject(arg0).append(getStringFromWasm0(arg1, arg2), getObject(arg3), getStringFromWasm0(arg4, arg5));
+}, arguments) };
+
+module.exports.__wbg_append_056476f73715b602 = function() { return handleError(function (arg0, arg1, arg2, arg3) {
+    getObject(arg0).append(getStringFromWasm0(arg1, arg2), getObject(arg3));
+}, arguments) };
+
+module.exports.__wbg_append_9c9890ca2ce97dba = function() { return handleError(function (arg0, arg1, arg2, arg3, arg4) {
+    getObject(arg0).append(getStringFromWasm0(arg1, arg2), getStringFromWasm0(arg3, arg4));
+}, arguments) };
+
+module.exports.__wbg_fetch_921fad6ef9e883dd = function(arg0, arg1) {
+    const ret = getObject(arg0).fetch(getObject(arg1));
+    return addHeapObject(ret);
+};
+
+module.exports.__wbg_fetch_15a4c4e5b70a6671 = function(arg0) {
+    const ret = fetch(getObject(arg0));
+    return addHeapObject(ret);
+};
+
+module.exports.__wbg_new_0d76b0581eca6298 = function() { return handleError(function () {
+    const ret = new AbortController();
+    return addHeapObject(ret);
+}, arguments) };
+
+module.exports.__wbindgen_debug_string = function(arg0, arg1) {
+    const ret = debugString(getObject(arg1));
+    const ptr1 = passStringToWasm0(ret, wasm.__wbindgen_malloc, wasm.__wbindgen_realloc);
+    const len1 = WASM_VECTOR_LEN;
+    getInt32Memory0()[arg0 / 4 + 1] = len1;
+    getInt32Memory0()[arg0 / 4 + 0] = ptr1;
+};
+
+module.exports.__wbindgen_throw = function(arg0, arg1) {
+    throw new Error(getStringFromWasm0(arg0, arg1));
+};
+
+module.exports.__wbg_queueMicrotask_481971b0d87f3dd4 = function(arg0) {
+    queueMicrotask(getObject(arg0));
+};
+
+module.exports.__wbg_queueMicrotask_3cbae2ec6b6cd3d6 = function(arg0) {
+    const ret = getObject(arg0).queueMicrotask;
+    return addHeapObject(ret);
+};
+
+module.exports.__wbg_debug_7d879afce6cf56cb = function(arg0, arg1, arg2, arg3) {
+    console.debug(getObject(arg0), getObject(arg1), getObject(arg2), getObject(arg3));
+};
+
+module.exports.__wbg_error_696630710900ec44 = function(arg0, arg1, arg2, arg3) {
+    console.error(getObject(arg0), getObject(arg1), getObject(arg2), getObject(arg3));
+};
+
+module.exports.__wbg_info_80803d9a3f0aad16 = function(arg0, arg1, arg2, arg3) {
+    console.info(getObject(arg0), getObject(arg1), getObject(arg2), getObject(arg3));
+};
+
+module.exports.__wbg_log_151eb4333ef0fe39 = function(arg0, arg1, arg2, arg3) {
+    console.log(getObject(arg0), getObject(arg1), getObject(arg2), getObject(arg3));
+};
+
+module.exports.__wbg_warn_5d3f783b0bae8943 = function(arg0, arg1, arg2, arg3) {
+    console.warn(getObject(arg0), getObject(arg1), getObject(arg2), getObject(arg3));
+};
+
+module.exports.__wbindgen_closure_wrapper2268 = function(arg0, arg1, arg2) {
+    const ret = makeMutClosure(arg0, arg1, 654, __wbg_adapter_28);
+    return addHeapObject(ret);
+};
+
+const path = __nccwpck_require__.ab + "bitwarden_wasm_bg.wasm";
+const bytes = (__nccwpck_require__(7147).readFileSync)(__nccwpck_require__.ab + "bitwarden_wasm_bg.wasm");
+
+const wasmModule = new WebAssembly.Module(bytes);
+const wasmInstance = new WebAssembly.Instance(wasmModule, imports);
+wasm = wasmInstance.exports;
+module.exports.__wasm = wasm;
+
+
 
 /***/ }),
 
@@ -24947,15 +27572,17 @@ var __importStar = (this && this.__importStar) || function (mod) {
 Object.defineProperty(exports, "__esModule", ({ value: true }));
 exports.run = run;
 const core = __importStar(__nccwpck_require__(2186));
-const sdk_napi_1 = __nccwpck_require__(9862);
+const sdk_wasm_1 = __nccwpck_require__(9597);
 const parser_1 = __nccwpck_require__(8412);
 const validators_1 = __nccwpck_require__(9783);
+const sdk_client_1 = __nccwpck_require__(9489);
 /**
  * The main function for the action.
  * @returns {Promise<void>} Resolves when the action is complete.
  */
 async function run() {
     try {
+        core.info("Testing WASM SDK");
         core.info("Validating bitwarden/sm-action inputs...");
         const inputs = readInputs();
         core.info("Parsing secrets input");
@@ -24965,20 +27592,15 @@ async function run() {
         core.info("Setting Secrets");
         const secretIds = secretInputs.map((secretInput) => secretInput.id);
         const secretResponse = await client.secrets().getByIds(secretIds);
-        if (secretResponse.success && secretResponse.data) {
-            const secrets = secretResponse.data.data;
-            secrets.forEach((secret) => {
-                const secretInput = secretInputs.find((secretInput) => secretInput.id === secret.id);
-                if (secretInput) {
-                    core.setSecret(secret.value);
-                    core.exportVariable(secretInput.outputEnvName, secret.value);
-                    core.setOutput(secretInput.outputEnvName, secret.value);
-                }
-            });
-        }
-        else {
-            throw Error(`The secrets provided could not be found. Please check the machine account has access to the secret UUIDs provided.\nError: ${secretResponse.errorMessage}`);
-        }
+        const secrets = secretResponse.data;
+        secrets.forEach((secret) => {
+            const secretInput = secretInputs.find((secretInput) => secretInput.id === secret.id);
+            if (secretInput) {
+                core.setSecret(secret.value);
+                core.exportVariable(secretInput.outputEnvName, secret.value);
+                core.setOutput(secretInput.outputEnvName, secret.value);
+            }
+        });
         core.info("Completed setting secrets as environment variables.");
     }
     catch (error) {
@@ -25022,13 +27644,10 @@ async function getBitwardenClient(inputs) {
         apiUrl: inputs.apiUrl,
         identityUrl: inputs.identityUrl,
         userAgent: "bitwarden/sm-action",
-        deviceType: sdk_napi_1.DeviceType.SDK,
+        deviceType: sdk_client_1.DeviceType.SDK,
     };
-    const client = new sdk_napi_1.BitwardenClient(settings, 2 /* LogLevel.Info */);
-    const result = await client.loginWithAccessToken(inputs.accessToken);
-    if (!result.success) {
-        throw Error(`Authentication with Bitwarden failed.\nError: ${result.errorMessage}`);
-    }
+    const client = new sdk_client_1.BitwardenClient(new sdk_wasm_1.BitwardenClient(JSON.stringify(settings), sdk_wasm_1.LogLevel.Info));
+    await client.accessTokenLogin(inputs.accessToken);
     return client;
 }
 
@@ -25127,14 +27746,6 @@ function isUniqueEnvNames(secretInputs) {
     return envNames.length === secretInputs.length;
 }
 
-
-/***/ }),
-
-/***/ 9862:
-/***/ ((module) => {
-
-"use strict";
-module.exports = require("@bitwarden/sdk-napi");
 
 /***/ }),
 
@@ -27020,6 +29631,11 @@ module.exports = parseParams
 /******/ 	}
 /******/ 	
 /************************************************************************/
+/******/ 	/* webpack/runtime/hasOwnProperty shorthand */
+/******/ 	(() => {
+/******/ 		__nccwpck_require__.o = (obj, prop) => (Object.prototype.hasOwnProperty.call(obj, prop))
+/******/ 	})();
+/******/ 	
 /******/ 	/* webpack/runtime/compat */
 /******/ 	
 /******/ 	if (typeof __nccwpck_require__ !== 'undefined') __nccwpck_require__.ab = __dirname + "/";
