@@ -7,5 +7,9 @@
 # Default file owners
 * @bitwarden/team-secrets-manager-dev
 
-# BRE for release workflow changes
+# Shared workflow ownership
 .github/workflows/release.yml @bitwarden/dept-bre
+.github/workflows/build-test.yml @bitwarden/dept-bre
+
+.github/workflows/release.yml @bitwarden/team-secrets-manager-dev
+.github/workflows/build-test.yml @bitwarden/team-secrets-manager-dev
