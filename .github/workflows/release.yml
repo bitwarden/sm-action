@@ -1,4 +1,3 @@
----
 name: Release
 run-name: Release sm-action ${{ inputs.release_type }} ${{ inputs.version_number }}
 
