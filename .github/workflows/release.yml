@@ -91,7 +91,7 @@ jobs:
           token: ${{ secrets.GITHUB_TOKEN }}
           draft: true
 
-      - name: git tag
+      - name: Git tag
         env:
           VERSION: ${{ steps.version.outputs.major_version }}
         run: git tag -f $VERSION
