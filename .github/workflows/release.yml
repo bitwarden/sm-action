@@ -1,4 +1,3 @@
----
 name: Release
 run-name: Release sm-action ${{ inputs.release_type }} ${{ inputs.version_number }}
 
@@ -28,7 +27,7 @@ jobs:
     runs-on: ubuntu-22.04
     steps:
       - name: Checkout Branch
-        uses: actions/checkout@692973e3d937129bcbf40652eb9f2f61becf3332 # v4.1.7
+        uses: actions/checkout@d632683dd7b4114ad314bca15554477dd762a938 # v4.2.0
 
       - name: Branch check
         if: ${{ github.event.inputs.release_type != 'Dry Run' }}
@@ -81,7 +80,7 @@ jobs:
 
       - name: Create release
         if: ${{ github.event.inputs.release_type != 'Dry Run' }}
-        uses: ncipollo/release-action@2c591bcc8ecdcd2db72b97d6147f871fcd833ba5 # v1.14.0
+        uses: ncipollo/release-action@cdcc88a9acf3ca41c16c37bb7d21b9ad48560d87 # v1.15.0
         env:
           PKG_VERSION: ${{ github.event.inputs.version_number }}
         with:
@@ -92,7 +91,7 @@ jobs:
           token: ${{ secrets.GITHUB_TOKEN }}
           draft: true
 
-      - name: git tag
+      - name: Git tag
         env:
           VERSION: ${{ steps.version.outputs.major_version }}
         run: git tag -f $VERSION

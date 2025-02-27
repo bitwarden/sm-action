@@ -59,17 +59,53 @@ function readInputs(): Inputs {
   const secrets: string[] = core.getMultilineInput("secrets", {
     required: true,
   });
+  const cloudRegion: string = core.getInput("cloud_region");
   const baseUrl: string = core.getInput("base_url");
   let identityUrl: string = core.getInput("identity_url");
   let apiUrl: string = core.getInput("api_url");
 
-  if (baseUrl) {
-    if (!isValidUrl(baseUrl)) {
-      throw TypeError("input provided for base_url not in expected format");
+  let customUrls = false;
+  //Check if only identityUrl is set and not apiUrl: if so throw an error, otherwise mark this as the user is using customUrls
+  if (identityUrl || apiUrl) {
+    //If either are set, make sure both are.
+    if (!identityUrl || !apiUrl) {
+      throw TypeError("if using custom Urls, both identity_url and api_url need to be set.");
     }
-    identityUrl = baseUrl + "/identity";
-    apiUrl = baseUrl + "/api";
+    customUrls = true;
   }
+  const selfHosted = baseUrl || customUrls;
+  if (selfHosted) {
+    if (baseUrl && customUrls) {
+      core.warning(
+        "both base_url and api_url/identity_url are set, " +
+          "but only one of the two options should be set. In this case, base_url is used.",
+      );
+    }
+    if (baseUrl) {
+      if (!isValidUrl(baseUrl)) {
+        throw TypeError("input provided for base_url not in expected format");
+      }
+      identityUrl = baseUrl + "/identity";
+      apiUrl = baseUrl + "/api";
+    }
+  } else {
+    //Bw hosted, allows users to set cloudRegion, by default this value is "us"
+    let cloudBaseUrl: string;
+    switch (cloudRegion) {
+      case "us":
+        cloudBaseUrl = "bitwarden.com";
+        break;
+      case "eu":
+        cloudBaseUrl = "bitwarden.eu";
+        break;
+      default:
+        throw new TypeError("input provided for cloud_region is not in the expected format");
+    }
+
+    identityUrl = `https://identity.${cloudBaseUrl}`;
+    apiUrl = `https://api.${cloudBaseUrl}`;
+  }
+
   if (!isValidUrl(identityUrl)) {
     throw TypeError("input provided for identity_url not in expected format");
   }
