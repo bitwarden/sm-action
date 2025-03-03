@@ -7,6 +7,10 @@ export class SecretInput {
   ) {}
 }
 
+export class SecretInputParsed {
+  constructor(public id: string) {}
+}
+
 class ParsingError extends Error {
   constructor(message: string) {
     super(message);
@@ -44,4 +48,21 @@ export function parseSecretInput(secrets: string[]): SecretInput[] {
     throw TypeError("Environmental variable names provided are not unique, names must be unique");
   }
   return results;
+}
+
+export function parseSecretParsedInput(secrets: string[]): SecretInputParsed[] {
+  return secrets.map((id) => {
+    try {
+      if (!isValidGuid(id)) {
+        throw new ParsingError(`Id is not a valid GUID`);
+      }
+      return new SecretInputParsed(id);
+    } catch (e: unknown) {
+      const message = `Error occurred when attempting to parse ${id}`;
+      if (e instanceof ParsingError) {
+        throw TypeError(`${message}. ${e.message}`);
+      }
+      throw TypeError(message);
+    }
+  });
 }
