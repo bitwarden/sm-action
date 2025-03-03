@@ -77,14 +77,14 @@ jobs:
         id: bump-version-override
         env:
           VERSION: ${{ inputs.version_number_override }}
-        run: npm version $VERSION
+        run: npm version --no-commit-hooks --no-git-tag-version $VERSION
 
       - name: Bump Version - Automatic Calculation
         if: ${{ inputs.version_number_override == '' }}
         id: bump-version-automatic
         env:
           VERSION: ${{ steps.calculate-next-version.outputs.version }}
-        run: npm version $VERSION
+        run: npm version --no-commit-hooks --no-git-tag-version $VERSION
 
       - name: Set final version output
         id: set-final-version-output
