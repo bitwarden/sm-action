@@ -1,5 +1,5 @@
 name: Release
-run-name: Release sm-action ${{ inputs.release_type }} ${{ inputs.version_number }}
+run-name: Release sm-action ${{ inputs.release_type }}
 
 on:
   workflow_dispatch:
@@ -7,30 +7,22 @@ on:
       release_type:
         description: "Release Options"
         required: true
-        default: "Initial Release"
+        default: "Release"
         type: choice
         options:
-          - Initial Release
-          - Redeploy
+          - Release
           - Dry Run
-      version_number:
-        description: "New Version"
-        required: true
-
-defaults:
-  run:
-    shell: bash
 
 jobs:
   release:
-    name: "Release sm-action ${{ github.event.inputs.version_number }} Version"
-    runs-on: ubuntu-22.04
+    name: "Release sm-action"
+    runs-on: ubuntu-24.04
     steps:
       - name: Checkout Branch
         uses: actions/checkout@d632683dd7b4114ad314bca15554477dd762a938 # v4.2.0
 
       - name: Branch check
-        if: ${{ github.event.inputs.release_type != 'Dry Run' }}
+        if: ${{ inputs.release_type != 'Dry Run' }}
         run: |
           if [[ "$GITHUB_REF" != "refs/heads/main" ]]; then
             echo "==================================="
@@ -46,43 +38,42 @@ jobs:
           echo "Latest release version is $latest_version"
           echo "latest_version=$latest_version" >> $GITHUB_OUTPUT
 
-      - name: Check Release Version
-        id: version
+      - name: Get current action version
+        id: current-version
+        run: |
+          CURRENT_VERSION=$(cat package.json | jq -r '.version')
+          echo "version=$CURRENT_VERSION" >> $GITHUB_OUTPUT
+
+      - name: Verify input version
         env:
-          VERSION: ${{ github.event.inputs.version_number }}
+          CURRENT_VERSION: v${{ steps.current-version.outputs.version }}
           LATEST_VERSION: ${{ steps.get-latest-release.outputs.latest_version }}
         run: |
-          function version { printf "%03d%03d%03d" $(echo "$1" | tr 'v' ' ' | tr '.' ' '); }
-
-          VERSION="v"$VERSION
-
-          if [ $(version $VERSION) -le $(version $LATEST_VERSION) ]; then
-            echo "==================================="
-            echo "[!] Version provided $VERSION is not greater than latest release $LATEST_VERSION"
-            echo "==================================="
+          # Error if version has not changed.
+          if [[ "$LATEST_VERSION" == "$CURRENT_VERSION" ]]; then
+            echo "Version has not changed."
             exit 1
           fi
 
-          echo "version=$VERSION" >> $GITHUB_OUTPUT
+          # Check if version is newer.
+          printf '%s\n' "${CURRENT_VERSION}" "${LATEST_VERSION}" | sort -C -V
+          if [ $? -eq 0 ]; then
+            echo "Version check successful."
+          else
+            echo "Version check failed."
+            exit 1
+          fi
 
-          echo "Version is $VERSION"
-
-          MAJOR_VERSION=$(echo $VERSION | cut -d "." -f 1)
-
-          echo "Major version is $MAJOR_VERSION"
-
-          echo "major_version=$MAJOR_VERSION" >> $GITHUB_OUTPUT
-
-      - name: Setup git
+      - name: Configure Git
         run: |
-          git config --local user.email "106330231+bitwarden-devops-bot@users.noreply.github.com"
-          git config --local user.name "bitwarden-devops-bot"
+          git config --local user.email "actions@github.com"
+          git config --local user.name "Github Actions"
 
       - name: Create release
-        if: ${{ github.event.inputs.release_type != 'Dry Run' }}
+        if: ${{ inputs.release_type != 'Dry Run' }}
         uses: ncipollo/release-action@cdcc88a9acf3ca41c16c37bb7d21b9ad48560d87 # v1.15.0
         env:
-          PKG_VERSION: ${{ github.event.inputs.version_number }}
+          PKG_VERSION: ${{ steps.current-version.outputs.version }}
         with:
           commit: ${{ github.sha }}
           tag: v${{ env.PKG_VERSION }}
@@ -90,12 +81,3 @@ jobs:
           body: "<insert release notes here>"
           token: ${{ secrets.GITHUB_TOKEN }}
           draft: true
-
-      - name: Git tag
-        env:
-          VERSION: ${{ steps.version.outputs.major_version }}
-        run: git tag -f $VERSION
-
-      - name: Push tags
-        if: ${{ github.event.inputs.release_type != 'Dry Run' }}
-        run: git push -f --tags

@@ -1,0 +1,118 @@
+name: Version Bump
+
+on:
+  workflow_dispatch:
+    inputs:
+      version_number_override:
+        description: "New version override (leave blank for automatic calculation, example: '2025.3.0')"
+        required: false
+        type: string
+
+
+jobs:
+  bump_version:
+    name: Bump Version
+    runs-on: ubuntu-24.04
+    steps:
+      - name: Validate version input format
+        if: ${{ inputs.version_number_override != '' }}
+        uses: bitwarden/gh-actions/version-check@main
+        with:
+          version: ${{ inputs.version_number_override }}
+
+      - name: Generate GH App token
+        uses: actions/create-github-app-token@c1a285145b9d317df6ced56c09f525b5c2b6f755 # v1.11.1
+        id: app-token
+        with:
+          app-id: ${{ secrets.BW_GHAPP_ID }}
+          private-key: ${{ secrets.BW_GHAPP_KEY }}
+
+      - name: Check out branch
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+        with:
+          ref: main
+          token: ${{ steps.app-token.outputs.token }}
+
+      - name: Configure Git
+        run: |
+          git config --local user.email "actions@github.com"
+          git config --local user.name "Github Actions"
+
+      - name: Get current action version
+        id: current-version
+        run: |
+          CURRENT_VERSION=$(cat package.json | jq -r '.version')
+          echo "version=$CURRENT_VERSION" >> $GITHUB_OUTPUT
+
+      - name: Verify input version
+        if: ${{ inputs.version_number_override != '' }}
+        env:
+          CURRENT_VERSION: ${{ steps.current-version.outputs.version }}
+          NEW_VERSION: ${{ inputs.version_number_override }}
+        run: |
+          # Error if version has not changed.
+          if [[ "$NEW_VERSION" == "$CURRENT_VERSION" ]]; then
+            echo "Version has not changed."
+            exit 1
+          fi
+
+          # Check if version is newer.
+          printf '%s\n' "${CURRENT_VERSION}" "${NEW_VERSION}" | sort -C -V
+          if [ $? -eq 0 ]; then
+            echo "Version check successful."
+          else
+            echo "Version check failed."
+            exit 1
+          fi
+
+      - name: Calculate next release version
+        if: ${{ inputs.version_number_override == '' }}
+        id: calculate-next-version
+        uses: bitwarden/gh-actions/version-next@main
+        with:
+          version: ${{ steps.current-version.outputs.version }}
+
+      - name: Bump Version - Version Override
+        if: ${{ inputs.version_number_override != '' }}
+        id: bump-version-override
+        env:
+          VERSION: ${{ inputs.version_number_override }}
+        run: npm version --no-commit-hooks --no-git-tag-version $VERSION
+
+      - name: Bump Version - Automatic Calculation
+        if: ${{ inputs.version_number_override == '' }}
+        id: bump-version-automatic
+        env:
+          VERSION: ${{ steps.calculate-next-version.outputs.version }}
+        run: npm version --no-commit-hooks --no-git-tag-version $VERSION
+
+      - name: Set final version output
+        id: set-final-version-output
+        env:
+          VERSION: ${{ inputs.version_number_override }}
+        run: |
+          if [[ "${{ steps.bump-version-override.outcome }}" = "success" ]]; then
+            echo "version=$VERSION" >> $GITHUB_OUTPUT
+          elif [[ "${{ steps.bump-version-automatic.outcome }}" = "success" ]]; then
+            echo "version=${{ steps.calculate-next-version.outputs.version }}" >> $GITHUB_OUTPUT
+          fi
+
+      - name: Check if version changed
+        id: version-changed
+        run: |
+          if [ -n "$(git status --porcelain)" ]; then
+            echo "changes_to_commit=TRUE" >> $GITHUB_OUTPUT
+          else
+            echo "changes_to_commit=FALSE" >> $GITHUB_OUTPUT
+            echo "No changes to commit!";
+          fi
+
+      - name: Commit files
+        if: ${{ steps.version-changed.outputs.changes_to_commit == 'TRUE' }}
+        env:
+          VERSION: ${{ steps.set-final-version-output.outputs.version }}
+        run: git commit -m "Bumped sm-action version to $VERSION" -a
+
+      - name: Push changes
+        if: ${{ steps.version-changed.outputs.changes_to_commit == 'TRUE' }}
+        run: git push
