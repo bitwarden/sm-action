@@ -1,6 +1,6 @@
 {
   "name": "@bitwarden/sm-action",
-  "version": "0.1.0",
+  "version": "2.2.0",
   "private": true,
   "description": "The Bitwarden Secrets Manager GitHub Action",
   "keywords": [
