@@ -34,9 +34,9 @@ jobs:
       - name: Get latest release version
         id: get-latest-release
         run: |
-          latest_version=$(curl --silent "https://api.github.com/repos/${GITHUB_REPOSITORY}/releases/latest" | jq -r '.tag_name')
+          LATEST_RELEASE_VERSION=$(curl --silent "https://api.github.com/repos/${GITHUB_REPOSITORY}/releases/latest" | jq -r '.tag_name')
           echo "Latest release version is $latest_version"
-          echo "latest_version=$latest_version" >> $GITHUB_OUTPUT
+          echo "latest_version=${LATEST_RELEASE_VERSION#v}" >> $GITHUB_OUTPUT
 
       - name: Get current action version
         id: current-version
@@ -46,17 +46,17 @@ jobs:
 
       - name: Verify input version
         env:
-          CURRENT_VERSION: v${{ steps.current-version.outputs.version }}
-          LATEST_VERSION: ${{ steps.get-latest-release.outputs.latest_version }}
+          CURRENT_PKG_VERSION: ${{ steps.current-version.outputs.version }}
+          LATEST_RELEASE_VERSION: ${{ steps.get-latest-release.outputs.latest_version }}
         run: |
           # Error if version has not changed.
-          if [[ "$LATEST_VERSION" == "$CURRENT_VERSION" ]]; then
+          if [[ "$LATEST_RELEASE_VERSION" == "$CURRENT_PKG_VERSION" ]]; then
             echo "Version has not changed."
             exit 1
           fi
 
           # Check if version is newer.
-          printf '%s\n' "${CURRENT_VERSION}" "${LATEST_VERSION}" | sort -C -V
+          printf '%s\n' "${LATEST_RELEASE_VERSION}" "${CURRENT_PKG_VERSION}" | sort -C -V
           if [ $? -eq 0 ]; then
             echo "Version check successful."
           else
