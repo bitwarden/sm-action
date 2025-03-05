@@ -27,6 +27,15 @@ inputs:
     description: "(Optional) For self-hosted bitwarden instances provide your https://your.domain.com/api"
     required: false
     default: ""
+  parse_yaml:
+    description: "(Optional) Parse the secrets as a yaml structure."
+    required: false
+    default: ""
+  parse_json:
+    description: "(Optional) Parse the secrets as a json structure."
+    required: false
+    default: ""
+
 runs:
   using: "node20"
   main: "dist/index.js"
