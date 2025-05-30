@@ -50,7 +50,7 @@ jobs:
             --output-path . ${{ env.INCREMENTAL }}
 
       - name: Upload Checkmarx results to GitHub
-        uses: github/codeql-action/upload-sarif@662472033e021d55d94146f66f6058822b0b39fd # v3.27.0
+        uses: github/codeql-action/upload-sarif@ff0a06e83cb2de871e5a09832bc6a81e7276941f # v3.28.18
         with:
           sarif_file: cx_result.sarif
           sha: ${{ contains(github.event_name, 'pull_request') && github.event.pull_request.head.sha || github.sha }}
