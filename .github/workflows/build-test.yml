@@ -1,4 +1,3 @@
-
 name: Build & Test
 
 on:
@@ -11,44 +10,157 @@ defaults:
 permissions:
   contents: read
 
+env:
+  CARGO_TERM_COLOR: always
+
 jobs:
   build:
-    name: Building & testing @bitwarden/sm-action for - ${{ matrix.settings.os }}
-    runs-on: ${{ matrix.settings.os || 'ubuntu-24.04' }}
+    name: Building & testing @bitwarden/sm-action for - ${{ matrix.os }}
+    runs-on: ${{ matrix.os }}
     strategy:
       fail-fast: false
       matrix:
-        settings:
-          - os: macos-13
-            target: x86_64-apple-darwin
+        include:
+          - os: ubuntu-latest
+            targets:
+              # build statically linked MUSL bins so we
+              # don't have to worry about GLIBC versions
+              - x86_64-unknown-linux-musl
+              - aarch64-unknown-linux-musl
+            use_cross: true
             build: |
-              npm run dist
-              npm run test
+              cross build --target x86_64-unknown-linux-musl --release
+              cross build --target aarch64-unknown-linux-musl --release
 
-          - os: windows-2022
-            target: x86_64-pc-windows-msvc
+          - os: macos-latest
+            targets:
+              - x86_64-apple-darwin
+              - aarch64-apple-darwin
+            use_cross: false
             build: |
-              npm run dist
-              npm run test
+              cargo build --target x86_64-apple-darwin --release
+              cargo build --target aarch64-apple-darwin --release
 
-          - os: ubuntu-24.04
-            target: x86_64-unknown-linux-gnu
+          - os: windows-latest
+            targets:
+              - x86_64-pc-windows-msvc
+              - aarch64-pc-windows-msvc
+            use_cross: false
             build: |
-              npm run dist
-              npm run test
+              cargo build --target x86_64-pc-windows-msvc --release
+              cargo build --target aarch64-pc-windows-msvc --release
+
     steps:
       - name: Checkout repo
         uses: actions/checkout@d632683dd7b4114ad314bca15554477dd762a938 # v4.2.0
 
-      - name: Setup Node
-        uses: actions/setup-node@0a44ba7841725637a19e28fa30b79a866c81b0a6 # v4.0.4
+      - name: Install Rust
+        uses: dtolnay/rust-toolchain@stable
         with:
-          node-version: 20
-          cache-dependency-path: "**/package-lock.json"
-          cache: "npm"
+          toolchain: stable
+          targets: ${{ join(matrix.targets, ',') }}
 
-      - name: Install dependencies
-        run: npm ci
+      - name: Install cross (Linux only)
+        if: matrix.use_cross
+        run: cargo install cross --git https://github.com/cross-rs/cross
+
+      - name: Cache cargo registry
+        uses: actions/cache@5a3ec84eff668545956fd18022155c47e93e2684 # v4.2.3
+        with:
+          path: |
+            ~/.cargo/registry/index/
+            ~/.cargo/registry/cache/
+            ~/.cargo/git/db/
+          key: ${{ runner.os }}-cargo-${{ hashFiles('**/Cargo.lock') }}
+          restore-keys: |
+            ${{ runner.os }}-cargo-
+
+      - name: Cache target directory
+        uses: actions/cache@5a3ec84eff668545956fd18022155c47e93e2684 # v4.2.3
+        with:
+          path: target
+          key: ${{ runner.os }}-target-${{ hashFiles('**/Cargo.lock') }}
+          restore-keys: |
+            ${{ runner.os }}-target-
 
       - name: Build
-        run: ${{ matrix.settings.build }}
+        run: ${{ matrix.build }}
+
+      - name: Run tests
+        run: |
+          cargo test --release || { echo "Unit tests failed" >&2; exit 1; }
+
+          test_stdout="$(cargo run --quiet --release -- --test)"
+          exit_code=$?
+
+          if [ $exit_code -eq 0 && "$test_stdout" == *"success"* ]; then
+            echo "Binary execution tests passed"
+          else
+            echo "Binary execution tests failed with exit code $exit_code" >&2
+            echo "Test output: $test_stdout" >&2
+            exit $exit_code
+          fi
+
+      - name: Run the Action
+        id: rust-action
+        uses: ./
+        with:
+          access_token: ${{ secrets.SM_ACCESS_TOKEN }}
+          secrets: |
+            cdc0a886-6ad6-4136-bfd4-b04f01149173 > SECRET_ONE
+            2b0da64f-f40d-434a-ad94-afdb01269ea9 > COMPARE_FILE
+            3865c716-4e4f-4d19-9be5-b2d1015fb57c > FERRIS
+
+      - name: Print Output from Rust sm-action
+        run: |
+          echo the following secrets should be masked:
+          echo "SECRET_ONE=$SECRET_ONE"
+          echo "COMPARE_FILE=$COMPARE_FILE"
+          echo "FERRIS=$FERRIS"
+          echo
+
+          echo the following secrets should not be masked:
+          echo "$SECRET_ONE" | sed 's/./& /g'
+          echo "$COMPARE_FILE" | sed 's/./& /g'
+          echo "$FERRIS" | sed 's/./& /g'
+          echo
+
+      - name: Test existing sm-action
+        id: sm-action
+        uses: bitwarden/sm-action@v2.2.0
+        with:
+          access_token: ${{ secrets.SM_ACCESS_TOKEN }}
+          secrets: |
+            cdc0a886-6ad6-4136-bfd4-b04f01149173 > SECRET_ONE
+            2b0da64f-f40d-434a-ad94-afdb01269ea9 > COMPARE_FILE
+            3865c716-4e4f-4d19-9be5-b2d1015fb57c > FERRIS
+
+      - name: Print Output from existing sm-action
+        run: |
+          echo the following secrets should be masked:
+          echo "SECRET_ONE=$SECRET_ONE"
+          echo "COMPARE_FILE=$COMPARE_FILE"
+          echo "FERRIS=$FERRIS"
+          echo
+
+          echo the following secrets should not be masked:
+          echo "$SECRET_ONE" | sed 's/./& /g'
+          echo "$COMPARE_FILE" | sed 's/./& /g'
+          echo "$FERRIS" | sed 's/./& /g'
+          echo
+
+      - name: Compare outputs
+        run: |
+          if [ "${{ steps.rust-action.outputs.SECRET_ONE }}" != "${{ steps.sm-action.outputs.SECRET_ONE }}" ]; then
+            echo "SECRET_ONE does not match between sm-action and existing sm-action" >&2
+            exit 1
+          fi
+          if [ "${{ steps.rust-action.outputs.COMPARE_FILE }}" != "${{ steps.sm-action.outputs.COMPARE_FILE }}" ]; then
+            echo "COMPARE_FILE does not match between sm-action and existing sm-action" >&2
+            exit 1
+          fi
+          if [ "${{ steps.rust-action.outputs.FERRIS }}" != "${{ steps.sm-action.outputs.FERRIS }}" ]; then
+            echo "FERRIS does not match between sm-action and existing sm-action" >&2
+            exit 1
+          fi
+          echo "All outputs match successfully between sm-action and existing sm-action"
