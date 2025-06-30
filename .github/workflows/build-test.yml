@@ -85,6 +85,8 @@ jobs:
             ${{ runner.os }}-dist-
 
       - name: Build
+        env:
+          CARGO_TARGET_DIR: ./dist
         run: ${{ matrix.build }}
 
       - name: Run tests
