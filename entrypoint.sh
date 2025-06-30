@@ -35,12 +35,25 @@ os() {
 }
 
 build_from_source() {
-    echo "Attempting to build the binary..." >&2
+  echo "Attempting to build the binary..." >&2
 
-    if ! CARGO_TARGET_DIR=./dist cargo build --release --target "$target_triple"; then
-      echo "Failed to build sm-action for target: $target_triple" >&2
+  # It's easier to build for GNU than cross-compiling for MUSL
+  if echo "$target_triple" | grep -q "linux"; then
+    target_triple="$(arch)-unknown-linux-gnu"
+  fi
+
+  if ! rustup target list | grep installed | grep -q "$target_triple"; then
+    echo "Target $target_triple not found, adding it..."
+    if ! rustup target add "$target_triple"; then
+      echo "Failed to add target $target_triple" >&2
       exit 1
     fi
+  fi
+
+  if ! CARGO_TARGET_DIR=./dist cargo build --release --target "$target_triple"; then
+    echo "Failed to build sm-action for target: $target_triple" >&2
+    exit 1
+  fi
 }
 
 # Main execution
