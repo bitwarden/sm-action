@@ -4,6 +4,10 @@
 # a shim to select the correct binary to execute the sm-action #
 ################################################################
 
+if [ -n "$RUNNER_DEBUG" ] || [ -n "$ACTIONS_RUNNER_DEBUG" ]; then
+  set -x
+fi
+
 arch() {
   output="$(node -p process.arch)"
   if [ "$output" = "x64" ]; then
