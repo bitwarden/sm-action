@@ -1,9 +1,11 @@
 name: "Bitwarden Secrets Manager GitHub Action"
 description: "GitHub action for retrieving secrets from Bitwarden Secrets Manager"
 author: "Bitwarden"
+
 branding:
   icon: "unlock"
   color: "blue"
+
 inputs:
   access_token:
     description: "The machine account access token for retrieving secrets"
@@ -27,6 +29,23 @@ inputs:
     description: "(Optional) For self-hosted bitwarden instances provide your https://your.domain.com/api"
     required: false
     default: ""
+  set_env:
+    description: "(Optional) Set the secrets as environment variables. Defaults to true"
+    required: false
+    default: "true"
+
 runs:
-  using: "node20"
-  main: "dist/index.js"
+  using: "composite"
+  steps:
+    - name: Run Action
+      run: ./entrypoint.sh
+      shell: bash
+      working-directory: ${{ github.action_path }}
+      env:
+        SM_ACCESS_TOKEN: ${{ inputs.access_token }}
+        SM_CLOUD_REGION: ${{ inputs.cloud_region }}
+        SM_SECRETS: ${{ inputs.secrets }}
+        SM_BASE_URL: ${{ inputs.base_url }}
+        SM_IDENTITY_URL: ${{ inputs.identity_url }}
+        SM_API_URL: ${{ inputs.api_url }}
+        SM_SET_ENV: ${{ inputs.set_env }}

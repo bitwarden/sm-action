@@ -1,0 +1,21 @@
+[package]
+name = "sm-action"
+version = "0.1.0"
+edition = "2024"
+
+[dependencies]
+anyhow = "1.0.98"
+
+# TODO: switch to a stable release after a version newer than 1.0.0 is available
+bitwarden-sm = { git = "https://github.com/bitwarden/sdk-internal.git", branch = "sm-action-rs" }
+bitwarden-vault = { git = "https://github.com/bitwarden/sdk-internal.git", branch = "sm-action-rs" }
+bitwarden-core = { git = "https://github.com/bitwarden/sdk-internal.git", branch = "sm-action-rs", features = ["secrets"] }
+
+uuid = "1.17.0"
+tokio = { version = "1.45.1", features = ["macros", "rt-multi-thread"] }
+
+[profile.release]
+strip = true
+
+tokio = { version = "1.44.2", features = ["macros", "rt-multi-thread"] }
+uuid = "1.16.0"
