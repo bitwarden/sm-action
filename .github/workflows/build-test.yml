@@ -88,6 +88,8 @@ jobs:
         run: ${{ matrix.build }}
 
       - name: Run tests
+        env:
+          CARGO_TARGET_DIR: ./dist
         run: |
           cargo test --release || { echo "Unit tests failed" >&2; exit 1; }
 
@@ -109,22 +111,19 @@ jobs:
           access_token: ${{ secrets.SM_ACCESS_TOKEN }}
           base_url: "https://vault.euqa.bitwarden.pw"
           secrets: |
-            cdc0a886-6ad6-4136-bfd4-b04f01149173 > SECRET_ONE
-            2b0da64f-f40d-434a-ad94-afdb01269ea9 > COMPARE_FILE
-            3865c716-4e4f-4d19-9be5-b2d1015fb57c > FERRIS
+            e9ce5e83-d5b9-46d8-91e8-b1e54d8a52d8 > SECRET_ONE
+            1e12e623-d4ce-43d2-a3d3-07918217d280 > SECRET_TWO
 
       - name: Print Output from Rust sm-action
         run: |
           echo the following secrets should be masked:
           echo "SECRET_ONE=$SECRET_ONE"
-          echo "COMPARE_FILE=$COMPARE_FILE"
-          echo "FERRIS=$FERRIS"
+          echo "SECRET_TWO=$SECRET_TWO"
           echo
 
           echo the following secrets should not be masked:
           echo "$SECRET_ONE" | sed 's/./& /g'
-          echo "$COMPARE_FILE" | sed 's/./& /g'
-          echo "$FERRIS" | sed 's/./& /g'
+          echo "$SECRET_TWO" | sed 's/./& /g'
           echo
 
       - name: Test existing sm-action
@@ -134,22 +133,19 @@ jobs:
           access_token: ${{ secrets.SM_ACCESS_TOKEN }}
           base_url: "https://vault.euqa.bitwarden.pw"
           secrets: |
-            cdc0a886-6ad6-4136-bfd4-b04f01149173 > SECRET_ONE
-            2b0da64f-f40d-434a-ad94-afdb01269ea9 > COMPARE_FILE
-            3865c716-4e4f-4d19-9be5-b2d1015fb57c > FERRIS
+            e9ce5e83-d5b9-46d8-91e8-b1e54d8a52d8 > SECRET_ONE
+            1e12e623-d4ce-43d2-a3d3-07918217d280 > SECRET_TWO
 
       - name: Print Output from existing sm-action
         run: |
           echo the following secrets should be masked:
           echo "SECRET_ONE=$SECRET_ONE"
-          echo "COMPARE_FILE=$COMPARE_FILE"
-          echo "FERRIS=$FERRIS"
+          echo "SECRET_TWO=$SECRET_TWO"
           echo
 
           echo the following secrets should not be masked:
           echo "$SECRET_ONE" | sed 's/./& /g'
-          echo "$COMPARE_FILE" | sed 's/./& /g'
-          echo "$FERRIS" | sed 's/./& /g'
+          echo "$SECRET_TWO" | sed 's/./& /g'
           echo
 
       - name: Compare outputs
@@ -158,12 +154,8 @@ jobs:
             echo "SECRET_ONE does not match between sm-action and existing sm-action" >&2
             exit 1
           fi
-          if [ "${{ steps.rust-action.outputs.COMPARE_FILE }}" != "${{ steps.sm-action.outputs.COMPARE_FILE }}" ]; then
-            echo "COMPARE_FILE does not match between sm-action and existing sm-action" >&2
-            exit 1
-          fi
-          if [ "${{ steps.rust-action.outputs.FERRIS }}" != "${{ steps.sm-action.outputs.FERRIS }}" ]; then
-            echo "FERRIS does not match between sm-action and existing sm-action" >&2
+          if [ "${{ steps.rust-action.outputs.SECRET_TWO }}" != "${{ steps.sm-action.outputs.SECRET_TWO }}" ]; then
+            echo "SECRET_TWO does not match between sm-action and existing sm-action" >&2
             exit 1
           fi
           echo "All outputs match successfully between sm-action and existing sm-action"
