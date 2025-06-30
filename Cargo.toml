@@ -16,6 +16,3 @@ tokio = { version = "1.45.1", features = ["macros", "rt-multi-thread"] }
 
 [profile.release]
 strip = true
-
-tokio = { version = "1.44.2", features = ["macros", "rt-multi-thread"] }
-uuid = "1.16.0"
