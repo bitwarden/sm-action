@@ -105,6 +105,7 @@ fn mask_value(value: &str) {
 fn issue_file_command(mut file: std::fs::File, key: &str, value: &str) -> Result<()> {
     let delimiter = format!("ghadelimiter_{}", uuid::Uuid::new_v4());
     file.write_fmt(format_args!("{key}<<{delimiter}\n{value}\n{delimiter}\n"))?;
+    file.flush()?; // ensure the data is written to disk
     Ok(())
 }
 
@@ -116,21 +117,25 @@ fn set_secrets(secret_name: &str, secret_value: &str, set_env: bool) -> Result<(
 
     if set_env {
         let env_path = get_env("GITHUB_ENV").unwrap_or("/dev/null".to_owned());
+        debug!("Writing to GITHUB_ENV: {env_path}");
         let env_file = OpenOptions::new()
             .create(true) // needed for unit tests
             .append(true)
-            .open(env_path)?;
+            .open(&env_path)?;
 
-        issue_file_command(env_file, secret_name, secret_value)?;
+        issue_file_command(env_file, secret_name, escaped_secret)?;
+        debug!("Successfully wrote '{secret_name}' to GITHUB_ENV");
     }
 
     let output_path = get_env("GITHUB_OUTPUT").unwrap_or("/dev/null".to_owned());
+    debug!("Writing to GITHUB_OUTPUT: {output_path}");
     let output_file = OpenOptions::new()
         .create(true) // needed for unit tests
         .append(true)
-        .open(output_path)?;
+        .open(&output_path)?;
 
-    issue_file_command(output_file, secret_name, secret_value)?;
+    issue_file_command(output_file, secret_name, escaped_secret)?;
+    debug!("Successfully wrote '{secret_name}' to GITHUB_OUTPUT");
 
     Ok(())
 }
