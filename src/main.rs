@@ -12,6 +12,8 @@ use bitwarden_sm::secrets::SecretsGetRequest;
 use config::{Config, get_env, infer_urls};
 use uuid::Uuid;
 
+use crate::config::debug;
+
 mod config;
 
 #[tokio::main]
@@ -80,8 +82,8 @@ fn parse_secret_input(secret_lines: Vec<String>) -> Result<HashMap<Uuid, String>
     let mut map: HashMap<Uuid, String> = HashMap::with_capacity(secret_lines.capacity());
 
     for line in secret_lines.iter() {
+        debug("Parsing line: {line}");
         let uuid_part = line.split('>').next().unwrap_or_default().trim();
-        eprintln!("Parsing line: {line}");
         let uuid = Uuid::from_str(uuid_part)
             .map_err(|_| anyhow::anyhow!("Invalid UUID format: {uuid_part}"))?;
 
