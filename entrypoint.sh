@@ -50,7 +50,7 @@ build_from_source() {
     fi
   fi
 
-  if ! CARGO_TARGET_DIR=./dist cargo build --release --target "$target_triple"; then
+  if ! cargo build --release --target "$target_triple"; then
     echo "Failed to build sm-action for target: $target_triple" >&2
     exit 1
   fi
