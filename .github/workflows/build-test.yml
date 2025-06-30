@@ -106,6 +106,7 @@ jobs:
         uses: ./
         with:
           access_token: ${{ secrets.SM_ACCESS_TOKEN }}
+          base_url: "https://vault.euqa.bitwarden.pw"
           secrets: |
             cdc0a886-6ad6-4136-bfd4-b04f01149173 > SECRET_ONE
             2b0da64f-f40d-434a-ad94-afdb01269ea9 > COMPARE_FILE
@@ -130,6 +131,7 @@ jobs:
         uses: bitwarden/sm-action@v2.2.0
         with:
           access_token: ${{ secrets.SM_ACCESS_TOKEN }}
+          base_url: "https://vault.euqa.bitwarden.pw"
           secrets: |
             cdc0a886-6ad6-4136-bfd4-b04f01149173 > SECRET_ONE
             2b0da64f-f40d-434a-ad94-afdb01269ea9 > COMPARE_FILE
