@@ -1,5 +1,15 @@
 use anyhow::{Result, bail};
 
+/// Prints a debug message to the GitHub Actions log if `RUNNER_DEBUG` or `ACTIONS_RUNNER_DEBUG` are set.
+#[macro_export]
+macro_rules! debug {
+    ($($arg:tt)*) => {
+        if std::env::var("RUNNER_DEBUG").is_ok() || std::env::var("ACTIONS_RUNNER_DEBUG").is_ok() {
+            println!("::debug::{}", format!($($arg)*));
+        }
+    };
+}
+
 const EU_DEFAULT_API_URL: &str = "https://api.bitwarden.eu";
 const EU_DEFAULT_IDENTITY_URL: &str = "https://identity.bitwarden.eu";
 
@@ -95,14 +105,14 @@ pub fn infer_urls(config: &Config) -> Result<(String, String)> {
     let (api_url, identity_url) = match config.cloud_region.to_lowercase().as_str() {
         // A cloud region was specified; use it
         "eu" => {
-            debug("Using EU cloud region URLs");
+            debug!("Using EU cloud region URLs");
             (
                 EU_DEFAULT_API_URL.to_string(),
                 EU_DEFAULT_IDENTITY_URL.to_string(),
             )
         }
         "us" => {
-            debug("Using US cloud region URLs");
+            debug!("Using US cloud region URLs");
             (
                 US_DEFAULT_API_URL.to_string(),
                 US_DEFAULT_IDENTITY_URL.to_string(),
@@ -111,12 +121,12 @@ pub fn infer_urls(config: &Config) -> Result<(String, String)> {
 
         // A cloud region was not specified; fall back to inferring the URLs
         _ => {
-            debug("No cloud region specified; inferring URLs");
+            debug!("No cloud region specified; inferring URLs");
             let (api_url, identity_url) =
                 match (config.api_url.clone(), config.identity_url.clone()) {
                     // API and Identity were provided; use them
                     (Some(api), Some(identity)) => {
-                        debug("Using provided API and Identity URLs");
+                        debug!("Using provided API and Identity URLs");
                         (api, identity)
                     }
 
@@ -134,13 +144,13 @@ pub fn infer_urls(config: &Config) -> Result<(String, String)> {
                     (None, None) => match config.base_url.clone() {
                         // Infer the API and Identity URLs from the base URL
                         Some(base) => {
-                            debug("Using provided Base URL");
+                            debug!("Using provided Base URL");
                             (format!("{base}/api"), format!("{base}/identity"))
                         }
 
                         // No URLs were provided; use the defaults
                         None => {
-                            debug("Using default URLs");
+                            debug!("Using default URLs");
                             (
                                 US_DEFAULT_API_URL.to_string(),
                                 US_DEFAULT_IDENTITY_URL.to_string(),
@@ -160,13 +170,6 @@ pub fn get_env(key: &str) -> Option<String> {
     match std::env::var(key) {
         Ok(value) if !value.trim().is_empty() => Some(value),
         _ => None,
-    }
-}
-
-/// Prints a debug message to the GitHub Actions log if `RUNNER_DEBUG` or `ACTIONS_RUNNER_DEBUG` are set.
-pub fn debug(message: &str) {
-    if get_env("RUNNER_DEBUG").is_some() || get_env("ACTIONS_RUNNER_DEBUG").is_some() {
-        println!("::debug::{message}");
     }
 }
 
