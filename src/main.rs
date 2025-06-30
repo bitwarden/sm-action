@@ -156,10 +156,12 @@ mod tests {
     BrowserSettings__EnvironmentUrl=https://example2.com"#;
 
         // Temporarily override the environment variables for testing
-        unsafe {
-            std::env::set_var("GITHUB_ENV", "/tmp/test_env");
-            std::env::set_var("GITHUB_OUTPUT", "/tmp/test_output");
-        };
+        if std::env::var("GITHUB_ENV").is_err() {
+            unsafe { std::env::set_var("GITHUB_ENV", "/dev/null") };
+        }
+        if std::env::var("GITHUB_OUTPUT").is_err() {
+            unsafe { std::env::set_var("GITHUB_OUTPUT", "/dev/null") };
+        }
 
         // Ensure the file does not exist before the test
         let env_path = std::env::var("GITHUB_ENV").unwrap();
