@@ -33,11 +33,9 @@ async fn main() -> Result<()> {
     }));
 
     println!("Parsing secrets input...");
-    let id_to_name_map = parse_secret_input(config.secrets).or_else(|_| {
-        Err(anyhow::anyhow!(
+    let id_to_name_map = parse_secret_input(config.secrets).map_err(|_| anyhow::anyhow!(
             "Failed to parse secrets input. Ensure the format is 'UUID > Name'."
-        ))
-    })?;
+        ))?;
 
     println!("Authenticating with Bitwarden...");
     let auth_result = client
