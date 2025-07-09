@@ -19,6 +19,9 @@ jobs:
   run:
     name: Running QA test on ${{ matrix.settings.os }}
     runs-on: ${{ matrix.settings.os || 'ubuntu-24.04' }}
+    permissions:
+      contents: read
+      id-token: write
     strategy:
       fail-fast: false
       matrix:
@@ -29,10 +32,28 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@d632683dd7b4114ad314bca15554477dd762a938 # v4.2.0
+
+      - name: Log in to Azure
+        uses: bitwarden/gh-actions/azure-login@main
+        with:
+          subscription_id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
+          tenant_id: ${{ secrets.AZURE_TENANT_ID }}
+          client_id: ${{ secrets.AZURE_CLIENT_ID }}
+
+      - name: Get Azure Key Vault secrets
+        id: get-kv-secrets
+        uses: bitwarden/gh-actions/get-keyvault-secrets@main
+        with:
+          keyvault: gh-sm-action
+          secrets: "ACCESS-TOKEN"
+
+      - name: Log out from Azure
+        uses: bitwarden/gh-actions/azure-logout@main
+
       - name: Run Action
         uses: ./
         with:
-          access_token: ${{ secrets.ACCESS_TOKEN }}
+          access_token: ${{ steps.get-kv-secrets.outputs.ACCESS-TOKEN }}
           api_url: ${{ inputs.apiUrl }}
           identity_url: ${{ inputs.identityUrl }}
           secrets: |
