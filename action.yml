@@ -27,6 +27,10 @@ inputs:
     description: "(Optional) For self-hosted bitwarden instances provide your https://your.domain.com/api"
     required: false
     default: ""
+  set_env:
+    description: "(Optional) Set the secrets as environment variables. Defaults to true"
+    required: false
+    default: "true"
 runs:
   using: "node20"
   main: "dist/index.js"
