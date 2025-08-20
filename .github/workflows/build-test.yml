@@ -110,7 +110,7 @@ jobs:
         id: rust-action
         uses: ./
         with:
-          access_token: ${{ secrets.SM_ACCESS_TOKEN }}
+          access_token: ${{ secrets.TEST_SM_ACCESS_TOKEN }}
           base_url: "https://vault.euqa.bitwarden.pw"
           secrets: |
             e9ce5e83-d5b9-46d8-91e8-b1e54d8a52d8 > SECRET_ONE
@@ -132,7 +132,7 @@ jobs:
         id: sm-action
         uses: bitwarden/sm-action@v2.2.0
         with:
-          access_token: ${{ secrets.SM_ACCESS_TOKEN }}
+          access_token: ${{ secrets.TEST_SM_ACCESS_TOKEN }}
           base_url: "https://vault.euqa.bitwarden.pw"
           secrets: |
             e9ce5e83-d5b9-46d8-91e8-b1e54d8a52d8 > SECRET_ONE
