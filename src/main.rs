@@ -111,9 +111,7 @@ fn issue_file_command(mut file: std::fs::File, key: &str, value: &str) -> Result
 
 /// Sets a secret in the GitHub Actions environment.
 fn set_secrets(secret_name: &str, secret_value: &str, set_env: bool) -> Result<()> {
-    let binding = github_escape(secret_value);
-    let escaped_secret = binding.as_str();
-    mask_value(escaped_secret); // ensure the value is masked in the logs
+    mask_value(secret_value);
 
     if set_env {
         let env_path = get_env("GITHUB_ENV").unwrap_or("/dev/null".to_owned());
@@ -123,7 +121,7 @@ fn set_secrets(secret_name: &str, secret_value: &str, set_env: bool) -> Result<(
             .append(true)
             .open(&env_path)?;
 
-        issue_file_command(env_file, secret_name, escaped_secret)?;
+        issue_file_command(env_file, secret_name, secret_value)?;
         debug!("Successfully wrote '{secret_name}' to GITHUB_ENV");
     }
 
@@ -134,17 +132,10 @@ fn set_secrets(secret_name: &str, secret_value: &str, set_env: bool) -> Result<(
         .append(true)
         .open(&output_path)?;
 
-    issue_file_command(output_file, secret_name, escaped_secret)?;
+    issue_file_command(output_file, secret_name, secret_value)?;
     debug!("Successfully wrote '{secret_name}' to GITHUB_OUTPUT");
 
     Ok(())
-}
-
-fn github_escape(secret_value: &str) -> String {
-    secret_value
-        .replace('%', "%25")
-        .replace('\r', "%0D")
-        .replace('\n', "%0A")
 }
 
 #[cfg(test)]
@@ -177,33 +168,14 @@ mod tests {
         let env_content = std::fs::read_to_string(&env_path).unwrap();
         let output_content = std::fs::read_to_string(&output_path).unwrap();
 
-        let escaped_secret_value = github_escape(secret_value);
-
         assert!(env_content.contains(&format!("{secret_name}<<ghadelimiter_")));
-        assert!(env_content.contains(&escaped_secret_value));
+        assert!(env_content.contains(&secret_value));
         assert!(output_content.contains(&format!("{secret_name}<<ghadelimiter_")));
-        assert!(output_content.contains(&escaped_secret_value));
+        assert!(output_content.contains(&secret_value));
 
         // Clean up temp files
         let _ = std::fs::remove_file(&env_path);
         let _ = std::fs::remove_file(&output_path);
-    }
-
-    #[test]
-    fn test_github_escape() {
-        github_escape_with_special_chars(
-            "percent % percent % cr \r cr \r lf \n lf \n",
-            "percent %25 percent %25 cr %0D cr %0D lf %0A lf %0A",
-        );
-        github_escape_with_special_chars(
-            "%25 %25 %0D %0D %0A %0A %3A %3A %2C %2C",
-            "%2525 %2525 %250D %250D %250A %250A %253A %253A %252C %252C",
-        );
-        github_escape_with_special_chars("normal text", "normal text");
-    }
-
-    fn github_escape_with_special_chars(input: &str, expected: &str) {
-        assert_eq!(github_escape(input), expected)
     }
 
     #[test]
