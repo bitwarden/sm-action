@@ -159,30 +159,34 @@ mod tests {
     # Browser Settings 2
     BrowserSettings__EnvironmentUrl=https://example2.com"#;
 
-        // Temporarily override the environment variables for testing
-        if std::env::var("GITHUB_ENV").is_err() {
-            unsafe { std::env::set_var("GITHUB_ENV", "/dev/null") };
+        // Create temporary files for testing
+        let temp_dir = std::env::temp_dir();
+        let env_path = temp_dir.join(format!("github_env_test_{}", uuid::Uuid::new_v4()));
+        let output_path = temp_dir.join(format!("github_output_test_{}", uuid::Uuid::new_v4()));
+
+        // Set environment variables to point to our temp files
+        unsafe {
+            std::env::set_var("GITHUB_ENV", &env_path);
+            std::env::set_var("GITHUB_OUTPUT", &output_path);
         }
-        if std::env::var("GITHUB_OUTPUT").is_err() {
-            unsafe { std::env::set_var("GITHUB_OUTPUT", "/dev/null") };
-        }
 
-        // Ensure the file does not exist before the test
-        let env_path = std::env::var("GITHUB_ENV").unwrap();
-        let output_path = std::env::var("GITHUB_OUTPUT").unwrap();
-        let _ = std::fs::remove_file(&env_path);
-        let _ = std::fs::remove_file(&output_path);
+        // Run the function
+        set_secrets(secret_name, secret_value, true).unwrap();
 
-        let _ = set_secrets(secret_name, secret_value, true);
-
-        // Check if the file was created and contains the expected value
+        // Check if the files were created and contain the expected values
         let env_content = std::fs::read_to_string(&env_path).unwrap();
         let output_content = std::fs::read_to_string(&output_path).unwrap();
 
+        let escaped_secret_value = github_escape(secret_value);
+
         assert!(env_content.contains(&format!("{secret_name}<<ghadelimiter_")));
-        assert!(env_content.contains(secret_value));
+        assert!(env_content.contains(&escaped_secret_value));
         assert!(output_content.contains(&format!("{secret_name}<<ghadelimiter_")));
-        assert!(output_content.contains(secret_value));
+        assert!(output_content.contains(&escaped_secret_value));
+
+        // Clean up temp files
+        let _ = std::fs::remove_file(&env_path);
+        let _ = std::fs::remove_file(&output_path);
     }
 
     #[test]
