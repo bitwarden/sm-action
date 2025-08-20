@@ -150,7 +150,7 @@ To run the Bitwarden sm-action locally, you will need to have [Rust](https://www
 Set the required environment variables for the Action:
 
 ```bash
-export SM_ACCESS_TOKEN=<your_access_token>
+export SM_ACCESS_TOKEN="<your_access_token>"
 export SM_CLOUD_REGION=us # or eu; setting this will mean ignoring SM_BASE_URL, SM_API_URL, and SM_IDENTITY_URL
 export SM_BASE_URL=https://your.domain.com # optional; only needed for self-hosted
 export SM_API_URL=https://your.domain.com/api # optional; only needed for self-hosted; ignored if SM_BASE_URL is set
