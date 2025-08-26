@@ -77,23 +77,20 @@ fn validate_urls(base_url: Option<&str>, api_url: Option<&str>, identity_url: Op
         return Ok(()); // No URLs provided, nothing to validate
     }
 
-    if let Some(url) = base_url {
-        if !url.starts_with("http://") && !url.starts_with("https://") {
+    if let Some(url) = base_url
+        && !url.starts_with("http://") && !url.starts_with("https://") {
             bail!("base_url must start with 'https://' or 'http://'");
         }
-    }
 
-    if let Some(url) = api_url {
-        if !url.starts_with("http://") && !url.starts_with("https://") {
+    if let Some(url) = api_url
+        && !url.starts_with("http://") && !url.starts_with("https://") {
             bail!("api_url must start with 'https://' or 'http://'");
         }
-    }
 
-    if let Some(url) = identity_url {
-        if !url.starts_with("http://") && !url.starts_with("https://") {
+    if let Some(url) = identity_url
+        && !url.starts_with("http://") && !url.starts_with("https://") {
             bail!("identity_url must start with 'https://' or 'http://'");
         }
-    }
 
     Ok(())
 }

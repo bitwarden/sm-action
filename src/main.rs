@@ -171,9 +171,9 @@ mod tests {
         let output_content = std::fs::read_to_string(&output_path).unwrap();
 
         assert!(env_content.contains(&format!("{secret_name}<<ghadelimiter_")));
-        assert!(env_content.contains(&secret_value));
+        assert!(env_content.contains(secret_value));
         assert!(output_content.contains(&format!("{secret_name}<<ghadelimiter_")));
-        assert!(output_content.contains(&secret_value));
+        assert!(output_content.contains(secret_value));
 
         // Clean up temp files
         let _ = std::fs::remove_file(&env_path);
