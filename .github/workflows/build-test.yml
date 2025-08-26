@@ -2,6 +2,7 @@ name: Build & Test
 
 on:
   pull_request:
+  workflow_dispatch:
 
 defaults:
   run:
@@ -12,7 +13,7 @@ permissions:
 
 env:
   CARGO_TERM_COLOR: always
-  CARGO_TARGET_DIR: ./dist
+  CARGO_TARGET_DIR: ./target
 
 jobs:
   build:
@@ -55,6 +56,15 @@ jobs:
       - name: Checkout repo
         uses: actions/checkout@d632683dd7b4114ad314bca15554477dd762a938 # v4.2.0
 
+      - name: Setup Node.js
+        uses: actions/setup-node@1e60f620b9541d16bece96c5465dc8ee9832be0b # v4.0.3
+        with:
+          node-version: "20"
+          cache: "npm"
+
+      - name: Install Node.js dependencies
+        run: npm ci
+
       - name: Install Rust
         uses: dtolnay/rust-toolchain@4305c38b25d97ef35a8ad1f985ccf2d2242004f2 # stable
         with:
@@ -79,19 +89,15 @@ jobs:
       - name: Cache target directory
         uses: actions/cache@5a3ec84eff668545956fd18022155c47e93e2684 # v4.2.3
         with:
-          path: dist
-          key: ${{ runner.os }}-dist-${{ hashFiles('**/Cargo.lock') }}
+          path: target
+          key: ${{ runner.os }}-target-${{ hashFiles('**/Cargo.lock') }}
           restore-keys: |
-            ${{ runner.os }}-dist-
+            ${{ runner.os }}-target-
 
       - name: Build
-        env:
-          CARGO_TARGET_DIR: ./dist
         run: ${{ matrix.build }}
 
       - name: Run tests
-        env:
-          CARGO_TARGET_DIR: ./dist
         run: |
           cargo test --release || { echo "Unit tests failed" >&2; exit 1; }
 
@@ -105,6 +111,33 @@ jobs:
             echo "Test output: $test_stdout" >&2
             exit $exit_code
           fi
+
+      - name: Test `set_env=false`
+        id: set-env-false
+        uses: ./
+        with:
+          access_token: ${{ secrets.TEST_SM_ACCESS_TOKEN }}
+          base_url: "https://vault.euqa.bitwarden.pw"
+          set_env: false
+          secrets: |
+            e9ce5e83-d5b9-46d8-91e8-b1e54d8a52d8 > SECRET_NO_ENV_ONE
+            1e12e623-d4ce-43d2-a3d3-07918217d280 > SECRET_NO_ENV_TWO
+
+      - name: Ensure that `set_env=false` works correctly
+        run: |
+          echo set_env is false, so secrets should not be in env:
+          if [ -n "$SECRET_NO_ENV_ONE" ] || [ -n "$SECRET_NO_ENV_TWO" ]; then
+            echo "Secrets found in environment variables, but set_env is false" >&2
+            exit 1
+          else
+            echo "No secrets found in environment variables, as expected"
+          fi
+          echo
+
+          echo printing unredacted secrets from GITHUB_OUTPUT:
+          echo "${{ steps.set-env-false.outputs.SECRET_NO_ENV_ONE }}" | sed 's/./& /g'
+          echo "${{ steps.set-env-false.outputs.SECRET_NO_ENV_TWO }}" | sed 's/./& /g'
+          echo
 
       - name: Run the Action
         id: rust-action

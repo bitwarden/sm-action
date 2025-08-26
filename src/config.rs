@@ -31,7 +31,7 @@ pub struct Config {
 impl Config {
     /// Creates a new Config instance from environment variables.
     pub fn new() -> Result<Self> {
-        let cloud_region = get_env("SM_CLOUD_REGION")
+        let cloud_region = get_env("INPUT_CLOUD_REGION")
             .unwrap_or_default()
             .to_lowercase()
             .trim()
@@ -41,10 +41,10 @@ impl Config {
             bail!("Cloud region must be either 'US' or 'EU'");
         }
 
-        let access_token = get_env("SM_ACCESS_TOKEN")
+        let access_token = get_env("INPUT_ACCESS_TOKEN")
             .ok_or_else(|| anyhow::anyhow!("Access token is required"))?;
 
-        let secrets = get_env("SM_SECRETS")
+        let secrets = get_env("INPUT_SECRETS")
             .ok_or_else(|| anyhow::anyhow!("Secrets are required"))?
             .lines()
             .map(str::trim)
@@ -52,13 +52,13 @@ impl Config {
             .map(String::from)
             .collect();
 
-        let base_url = get_env("SM_BASE_URL");
-        let api_url = get_env("SM_API_URL");
-        let identity_url = get_env("SM_IDENTITY_URL");
+        let base_url = get_env("INPUT_BASE_URL");
+        let api_url = get_env("INPUT_API_URL");
+        let identity_url = get_env("INPUT_IDENTITY_URL");
 
         validate_urls(base_url.as_deref(), api_url.as_deref(), identity_url.as_deref())?;
 
-        let set_env = get_env("SM_SET_ENV").is_some_and(|val| val != "false");
+        let set_env = get_env("INPUT_SET_ENV").is_some_and(|val| val != "false");
 
         Ok(Self {
             access_token,

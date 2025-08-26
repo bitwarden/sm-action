@@ -5,3 +5,9 @@ Thumbs.db
 # Build directories
 target
 dist
+
+# Node.js
+node_modules
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*

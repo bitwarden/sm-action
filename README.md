@@ -14,11 +14,32 @@ To use the action, add a step to your GitHub workflow using the following syntax
 
 ```yaml
 - name: Step name
-  uses: bitwarden/sm-action@v2
+  uses: bitwarden/sm-action@v3
   with:
     access_token: ${{ secrets.SM_ACCESS_TOKEN }}
     secrets: |
       SECRET_ID > ENVIRONMENT_VARIABLE_NAME
+```
+
+## Outputs
+
+The action sets step outputs for each secret retrieved, allowing you to access secrets in subsequent steps:
+
+```yaml
+- name: Get Secrets
+  id: secrets
+  uses: bitwarden/sm-action@v3
+  with:
+    access_token: ${{ secrets.SM_ACCESS_TOKEN }}
+    secrets: |
+      00000000-0000-0000-0000-000000000000 > DATABASE_PASSWORD
+      bdbb16bc-0b9b-472e-99fa-af4101309076 > API_KEY
+
+- name: Use secrets in another step
+  run: |
+    echo "Database password: ${{ steps.secrets.outputs.DATABASE_PASSWORD }}"
+    echo "API key: ${{ steps.secrets.outputs.API_KEY }}"
+    # These values will be automatically masked in GitHub Actions logs
 ```
 
 ## Parameters
@@ -89,7 +110,7 @@ To use the action, add a step to your GitHub workflow using the following syntax
 
   ```yaml
   - name: Get Secrets
-    uses: bitwarden/sm-action@v2
+    uses: bitwarden/sm-action@v3
     id: get_secrets # set an ID so we can access the output
     with:
       access_token: ${{ secrets.SM_ACCESS_TOKEN }}
@@ -100,7 +121,7 @@ To use the action, add a step to your GitHub workflow using the following syntax
   - name: Use Secret
     run: |
       echo "Accessing secret via output."
-      echo "Masked value is: ${{ github.output.get_secrets.TEST_EXAMPLE }}"
+      echo "Masked value is: ${{ steps.get_secrets.outputs.TEST_EXAMPLE }}"
 
       echo "Attempting to access TEST_EXAMPLE as an environment variable."
       echo "This will fail because the environment variable is not set."

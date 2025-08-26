@@ -1,0 +1,16 @@
+{
+  "name": "bitwarden-sm-action",
+  "version": "3.0.0",
+  "lockfileVersion": 3,
+  "requires": true,
+  "packages": {
+    "": {
+      "name": "bitwarden-sm-action",
+      "version": "3.0.0",
+      "license": "GPL-3.0-or-later",
+      "engines": {
+        "node": ">=20"
+      }
+    }
+  }
+}
