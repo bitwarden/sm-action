@@ -4,15 +4,15 @@ version = "3.0.0"
 edition = "2024"
 
 [dependencies]
-anyhow = "1.0.98"
+anyhow = "1.0.99"
 
 # TODO: switch to a stable release after a version newer than 1.0.0 is available
+bitwarden-core = { git = "https://github.com/bitwarden/sdk-internal.git", branch = "sm-action-rs", features = ["secrets"] }
 bitwarden-sm = { git = "https://github.com/bitwarden/sdk-internal.git", branch = "sm-action-rs" }
 bitwarden-vault = { git = "https://github.com/bitwarden/sdk-internal.git", branch = "sm-action-rs" }
-bitwarden-core = { git = "https://github.com/bitwarden/sdk-internal.git", branch = "sm-action-rs", features = ["secrets"] }
 
-uuid = "1.17.0"
-tokio = { version = "1.45.1", features = ["macros", "rt-multi-thread"] }
+tokio = { version = "1.47.1", features = ["macros", "rt-multi-thread"] }
+uuid = "1.18.1"
 
 [profile.release]
 strip = true
