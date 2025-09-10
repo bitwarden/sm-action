@@ -65,12 +65,15 @@ async fn main() -> Result<()> {
             )
         })?;
 
+    println!("Setting secrets...");
     for secret in secrets.data.iter() {
         id_to_name_map
             .get(&secret.id)
             .map(|name| set_secrets(name, &secret.value, config.set_env))
             .transpose()?;
     }
+
+    println!("Completed setting secrets.");
 
     Ok(())
 }
