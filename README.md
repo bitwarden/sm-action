@@ -60,14 +60,14 @@ The action sets step outputs for each secret retrieved, allowing you to access s
 
   ```yaml
   secrets: |
-      SECRET_ID > ENVIRONMENT_VARIABLE_NAME
+    SECRET_ID > ENVIRONMENT_VARIABLE_NAME
   ```
 
   Example:
 
   ```yaml
-      secrets: |
-          00000000-0000-0000-0000-000000000000 > TEST_EXAMPLE
+  secrets: |
+    00000000-0000-0000-0000-000000000000 > TEST_EXAMPLE
   ```
 
 - `cloud_region`
@@ -121,18 +121,18 @@ The action sets step outputs for each secret retrieved, allowing you to access s
   - name: Use Secret
     run: |
       echo "Accessing secret via output."
-      echo "Masked value is: ${{ steps.get_secrets.outputs.TEST_EXAMPLE }}"
+      echo "Secret from GITHUB_OUTPUT - ${{ steps.get_secrets.outputs.TEST_EXAMPLE }}"
 
       echo "Attempting to access TEST_EXAMPLE as an environment variable."
       echo "This will fail because the environment variable is not set."
-      echo "Masked value is: $TEST_EXAMPLE (not set)"
+      echo "TEST_SECRET environment variable should be empty - $TEST_EXAMPLE"
   ```
 
 ## Examples
 
 ```yaml
 - name: Get Secrets
-  uses: bitwarden/sm-action@v1
+  uses: bitwarden/sm-action@v3
   with:
     access_token: ${{ secrets.SM_ACCESS_TOKEN }}
     secrets: |
@@ -151,7 +151,7 @@ TEST_EXAMPLE_2=SECRET_VALUE_FOR_bdbb16bc-0b9b-472e-99fa-af4101309076
 
 ```yaml
 - name: Get Secrets
-  uses: bitwarden/sm-action@v1
+  uses: bitwarden/sm-action@v3
   with:
     access_token: ${{ secrets.SM_ACCESS_TOKEN }}
     cloud_region: eu
@@ -166,27 +166,27 @@ TEST_EXAMPLE_2=SECRET_VALUE_FOR_bdbb16bc-0b9b-472e-99fa-af4101309076
 
 ## Run Locally
 
-To run the Bitwarden sm-action locally, you will need to have [Rust](https://www.rust-lang.org/tools/install) installed.
+To build the Bitwarden sm-action locally, you will need to have [NodeJS](https://nodejs.org/en/download) and [Rust](https://www.rust-lang.org/tools/install) installed.
 
 Set the required environment variables for the Action:
 
 ```bash
-export SM_ACCESS_TOKEN="<your_access_token>"
-export SM_CLOUD_REGION=us # or eu; setting this will mean ignoring SM_BASE_URL, SM_API_URL, and SM_IDENTITY_URL
-export SM_BASE_URL=https://your.domain.com # optional; only needed for self-hosted
-export SM_API_URL=https://your.domain.com/api # optional; only needed for self-hosted; ignored if SM_BASE_URL is set
-export SM_IDENTITY_URL=https://your.domain.com/identity # optional; only needed for self-hosted; ignored if SM_BASE_URL is set
-export SM_SET_ENV=true # set to false to disable setting environment variables and only use ${{ github.output }}
-export GITHUB_ENV=/dev/stdout # can be set to any file for local testing
-export GITHUB_OUTPUT=/dev/stdout # can be set to any file for local testing
-export SM_SECRETS='4994471d-0b20-4c3c-8040-f65c42d4f80f > FAKE_SECRET_1
+export INPUT_ACCESS_TOKEN="<your_access_token>"
+export INPUT_CLOUD_REGION=us                               # or eu; setting this will mean ignoring SM_BASE_URL, SM_API_URL, and SM_IDENTITY_URL
+export INPUT_BASE_URL=https://your.domain.com              # optional; only needed for self-hosted
+export INPUT_API_URL=https://your.domain.com/api           # optional; only needed for self-hosted; ignored if SM_BASE_URL is set
+export INPUT_IDENTITY_URL=https://your.domain.com/identity # optional; only needed for self-hosted; ignored if SM_BASE_URL is set
+export INPUT_SET_ENV=true                                  # set to false to disable setting environment variables and only use ${{ github.output }}
+export GITHUB_ENV=/tmp/sm-action.env                       # can be set to any file for local testing
+export GITHUB_OUTPUT=/tmp/sm-action.out                    # can be set to any file for local testing
+export INPUT_SECRETS='4994471d-0b20-4c3c-8040-f65c42d4f80f > FAKE_SECRET_1
 dfc20e02-fb1a-4d63-8a7e-d02acce1feb4 > FAKE_SECRET_2'
 ```
 
 Build and run the action locally using the following command:
 
 ```bash
-cargo run
+node index.js # or just `cargo run`, to skip the JS wrapper
 ```
 
 Run the tests :heavy_check_mark:
@@ -195,7 +195,3 @@ Run the tests :heavy_check_mark:
 cargo test
 cargo run -- --test | grep -q "success"
 ```
-
-## Prepare Source for Distribution
-
-`TODO`: Distribution and release strategy is a work-in-progress.
