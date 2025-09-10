@@ -1,16 +1,23 @@
 {
   "name": "bitwarden-sm-action",
-  "version": "3.0.0",
-  "lockfileVersion": 3,
-  "requires": true,
-  "packages": {
-    "": {
-      "name": "bitwarden-sm-action",
-      "version": "3.0.0",
-      "license": "GPL-3.0-or-later",
-      "engines": {
-        "node": ">=20"
-      }
-    }
+  "description": "GitHub action for retrieving secrets from Bitwarden Secrets Manager",
+  "main": "index.js",
+  "scripts": {
+    "build": "cargo build --release",
+    "test": "npm run build && node index.js"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/bitwarden/sm-action.git"
+  },
+  "keywords": [
+    "github-action",
+    "bitwarden",
+    "secrets-manager"
+  ],
+  "author": "Bitwarden",
+  "license": "GPL-3.0-or-later",
+  "engines": {
+    "node": ">=20"
   }
 }
