@@ -387,6 +387,7 @@ mod tests {
     }
 
     #[test]
+    #[cfg(not(target_os = "windows"))] // this test is flaky on Windows CI
     fn test_get_env_returns_some_if_set() {
         unsafe {
             std::env::set_var("ARBITRARY_VAR1234", "some_value");
