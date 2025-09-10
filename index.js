@@ -16,7 +16,7 @@ function debug(message) {
 function getVersion() {
   if ("SM_ACTION_VERSION" in process.env) {
     console.log(
-      `Using version from environment: ${process.env.SM_ACTION_VERSION}`
+      `Using version from environment: ${process.env.SM_ACTION_VERSION}`,
     );
     return process.env.SM_ACTION_VERSION;
   }
@@ -64,8 +64,8 @@ function downloadFile(url, outputPath) {
         cleanupDownload(file, request, outputPath);
         return reject(
           new Error(
-            `Failed to download: ${response.statusCode} ${response.statusMessage}`
-          )
+            `Failed to download: ${response.statusCode} ${response.statusMessage}`,
+          ),
         );
       }
 
@@ -176,7 +176,7 @@ async function buildFromSource(targetTriple) {
 
   // Check if target is installed
   const installedTargets = execSync(
-    "rustup target list --installed"
+    "rustup target list --installed",
   ).toString();
 
   if (!installedTargets.includes(buildTarget)) {
@@ -196,7 +196,7 @@ function copyBuiltBinary(targetTriple, binaryName, expectedPath) {
     "target",
     targetTriple,
     "release",
-    binaryName
+    binaryName,
   );
 
   if (!fs.existsSync(builtBinaryPath)) {
@@ -215,7 +215,7 @@ async function getBinary() {
     "target",
     targetTriple,
     "release",
-    binaryName
+    binaryName,
   );
 
   debug(`Looking for binary at: ${binaryPath}`);
