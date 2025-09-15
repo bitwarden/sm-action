@@ -9,7 +9,7 @@ defaults:
     shell: bash
 
 permissions:
-  contents: write # TODO: separate the release step into a different workflow later
+  contents: read
 
 env:
   CARGO_TERM_COLOR: always
@@ -196,8 +196,7 @@ jobs:
           fi
           echo "All outputs match between sm-action and existing sm-action"
 
-      - name: Upload the build artifacts
-        # use the gh CLI to do this because we don't want to zip the files
+      - name: Prepare build artifacts
         run: |
           echo renaming files to:
           for target in ${{ join(matrix.targets, ' ') }}; do
@@ -209,15 +208,10 @@ jobs:
             echo "sm-action-$target$ext"
           done
 
-          git_commit_long=$(git rev-parse HEAD)
+      - name: Upload build artifacts
+        uses: actions/upload-artifact@b4b15b8c7c6ac21ea08fcf65892d2ee8f75cf882 # v4.4.3
+        with:
+          name: sm-action-${{ matrix.os }}-${{ github.sha }}
+          path: sm-action-*
+          retention-days: 30
 
-          gh release delete "v0.0.0" || true
-          git tag -d "v0.0.0" || true
-          git push origin --delete "v0.0.0" || true
-
-          gh release create "v0.0.0" \
-            --notes "Automated build from commit: $git_commit_long" \
-            --prerelease
-          gh release upload "v0.0.0" sm-action-*
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
