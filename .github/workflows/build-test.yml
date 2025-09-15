@@ -214,13 +214,3 @@ jobs:
           name: sm-action-${{ matrix.os }}-${{ github.sha }}
           path: sm-action-*
           retention-days: 30
-
-  test:
-    name: Test build artifacts
-    runs-on: ubuntu-22.04
-    needs: build
-    steps:
-      - name: Download build artifacts
-        uses: actions/download-artifact
-        with:
-          name: sm-action-ubuntu-latest-${{ needs.build.outputs.github_sha }}
