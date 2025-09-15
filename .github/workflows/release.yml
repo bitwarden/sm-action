@@ -73,7 +73,7 @@ jobs:
 
       - name: Create release
         if: ${{ inputs.release_type != 'Dry Run' }}
-        uses: ncipollo/release-action@bcfe5470707e8832e12347755757cec0eb3c22af # v1.18.0
+        uses: ncipollo/release-action@b7eabc95ff50cbeeedec83973935c8f306dfcd0b # v1.20.0
         env:
           PKG_VERSION: ${{ steps.current-version.outputs.version }}
         with:
