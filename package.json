@@ -29,7 +29,7 @@
     "bundle": "npm run prettier && npm run lint && npm run dist",
     "lint": "eslint src/**/*.ts && prettier --check '**/*.ts'",
     "lint:fix": "eslint src/**/*.ts --fix",
-    "dist": "pwsh ./pack.ps1 && ncc build src/index.ts --license licenses.txt --external @bitwarden/sdk-napi",
+    "dist": "./pack.sh && ncc build src/index.ts --license licenses.txt --external @bitwarden/sdk-napi",
     "prepare": "husky",
     "prettier": "prettier --write .",
     "test": "jest"
@@ -44,6 +44,7 @@
   },
   "devDependencies": {
     "@types/jest": "29.5.14",
+    "@types/js-yaml": "^4.0.9",
     "@types/node": "22.15.27",
     "@typescript-eslint/eslint-plugin": "7.15.0",
     "@typescript-eslint/parser": "7.15.0",
