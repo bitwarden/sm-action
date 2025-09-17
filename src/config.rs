@@ -1,4 +1,4 @@
-use anyhow::{Result, bail};
+use anyhow::{bail, Result};
 
 /// Prints a debug message to the GitHub Actions log if `RUNNER_DEBUG` or `ACTIONS_RUNNER_DEBUG` are set.
 #[macro_export]
@@ -56,7 +56,11 @@ impl Config {
         let api_url = get_env("INPUT_API_URL");
         let identity_url = get_env("INPUT_IDENTITY_URL");
 
-        validate_urls(base_url.as_deref(), api_url.as_deref(), identity_url.as_deref())?;
+        validate_urls(
+            base_url.as_deref(),
+            api_url.as_deref(),
+            identity_url.as_deref(),
+        )?;
 
         let set_env = get_env("INPUT_SET_ENV").is_some_and(|val| val != "false");
 
@@ -72,25 +76,35 @@ impl Config {
     }
 }
 
-fn validate_urls(base_url: Option<&str>, api_url: Option<&str>, identity_url: Option<&str>) -> Result<()> {
+fn validate_urls(
+    base_url: Option<&str>,
+    api_url: Option<&str>,
+    identity_url: Option<&str>,
+) -> Result<()> {
     if base_url.is_none() && api_url.is_none() && identity_url.is_none() {
         return Ok(()); // No URLs provided, nothing to validate
     }
 
     if let Some(url) = base_url
-        && !url.starts_with("http://") && !url.starts_with("https://") {
-            bail!("base_url must start with 'https://' or 'http://'");
-        }
+        && !url.starts_with("http://")
+        && !url.starts_with("https://")
+    {
+        bail!("base_url must start with 'https://' or 'http://'");
+    }
 
     if let Some(url) = api_url
-        && !url.starts_with("http://") && !url.starts_with("https://") {
-            bail!("api_url must start with 'https://' or 'http://'");
-        }
+        && !url.starts_with("http://")
+        && !url.starts_with("https://")
+    {
+        bail!("api_url must start with 'https://' or 'http://'");
+    }
 
     if let Some(url) = identity_url
-        && !url.starts_with("http://") && !url.starts_with("https://") {
-            bail!("identity_url must start with 'https://' or 'http://'");
-        }
+        && !url.starts_with("http://")
+        && !url.starts_with("https://")
+    {
+        bail!("identity_url must start with 'https://' or 'http://'");
+    }
 
     Ok(())
 }
