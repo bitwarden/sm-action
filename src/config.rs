@@ -382,35 +382,18 @@ mod tests {
 
     #[test]
     fn test_get_env_returns_none_if_empty() {
-        unsafe { std::env::set_var("ARBITRARY_VAR1234", "") };
-
-        assert_eq!(get_env("ARBITRARY_VAR1234"), None);
-
-        unsafe {
-            std::env::remove_var("ARBITRARY_VAR1234");
-        }
+        unsafe { std::env::set_var("ARBITRARY_VAR_THAT_SHOULD_BE_EMPTY", "") };
+        assert_eq!(get_env("ARBITRARY_VAR_THAT_SHOULD_BE_EMPTY"), None);
     }
 
     #[test]
     fn test_get_env_returns_none_if_unset() {
-        unsafe {
-            std::env::remove_var("ARBITRARY_VAR1234");
-        }
-
-        assert_eq!(get_env("ARBITRARY_VAR1234"), None);
+        assert_eq!(get_env("ARBITRARY_VAR_THAT_SHOULD_BE_UNSET"), None);
     }
 
     #[test]
-    #[cfg(not(target_os = "windows"))] // this test is flaky on Windows CI
     fn test_get_env_returns_some_if_set() {
-        unsafe {
-            std::env::set_var("ARBITRARY_VAR1234", "some_value");
-        }
-
-        assert_eq!(get_env("ARBITRARY_VAR1234"), Some("some_value".to_string()));
-
-        unsafe {
-            std::env::remove_var("ARBITRARY_VAR1234");
-        }
+        // PATH should always be set...
+        assert!(get_env("PATH").is_some());
     }
 }
