@@ -27,7 +27,9 @@ export async function run(): Promise<void> {
         const secretInput = secretInputs.find((secretInput) => secretInput.id === secret.id);
         if (secretInput) {
           core.setSecret(secret.value);
-          core.exportVariable(secretInput.outputEnvName, secret.value);
+          if(inputs.setEnv) {
+            core.exportVariable(secretInput.outputEnvName, secret.value);
+          }
           core.setOutput(secretInput.outputEnvName, secret.value);
         }
       });
@@ -50,6 +52,7 @@ type Inputs = {
   secrets: string[];
   identityUrl: string;
   apiUrl: string;
+  setEnv: boolean;
 };
 
 function readInputs(): Inputs {
@@ -61,6 +64,7 @@ function readInputs(): Inputs {
   });
   const cloudRegion: string = core.getInput("cloud_region");
   const baseUrl: string = core.getInput("base_url");
+  const setEnv: boolean = core.getBooleanInput("set_env");
   let identityUrl: string = core.getInput("identity_url");
   let apiUrl: string = core.getInput("api_url");
 
@@ -118,6 +122,7 @@ function readInputs(): Inputs {
     secrets,
     identityUrl,
     apiUrl,
+    setEnv
   };
 }
 
