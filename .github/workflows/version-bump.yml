@@ -27,7 +27,7 @@ jobs:
       id-token: write
     steps:
       - name: Validate version input
-        uses: bitwarden/gh-actions/version-check@main
+        uses: bitwarden/gh-actions/version-check@BRE-1186-add-semver-support-in-version-check-action
         with:
           version: ${{ env._VERSION_NUMBER }}
 
@@ -94,7 +94,7 @@ jobs:
 
       - name: Bump Version
         id: bump-version-override
-        uses: bitwarden/gh-actions/version-bump@BRE-1186-add-semver-support-in-version-check-action
+        uses: bitwarden/gh-actions/version-bump@main
         with:
           file_path: "$_VERSION_FILE"
           version: ${{ env._VERSION_NUMBER }}
