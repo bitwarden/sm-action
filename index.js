@@ -21,7 +21,7 @@ function getVersion() {
     return process.env.SM_ACTION_VERSION;
   }
 
-  console.log(`Using version from version.js: ${version}`);
+  console.log(`Using version from version.json: ${version}`);
   return version;
 }
 
