@@ -14,7 +14,7 @@ on:
           - Dry Run
 
 env:
-  _RELEASE_BRANCH_NAME: BRE-1150-create-workflows-to-release-updated-rust-sm-action # TODO: change to main when ready
+  _RELEASE_BRANCH_NAME: rewrite-it-in-rust # TODO: change to main when ready
   _VERSION_FILE: version.json
 
 jobs:
