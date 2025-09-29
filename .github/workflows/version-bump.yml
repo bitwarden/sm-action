@@ -12,7 +12,6 @@ on:
 permissions: {}
 
 env:
-  _BRANCH: main
   _BOT_NAME: "bw-ghapp[bot]"
   _BOT_EMAIL: "178206702+bw-ghapp[bot]@users.noreply.github.com"
   _VERSION_FILE: version.json
@@ -59,7 +58,6 @@ jobs:
       - name: Check out branch
         uses: actions/checkout@08c6903cd8c0fde910a37f88322edcfb5dd907a8 # v5.0.0
         with:
-          #ref: ${{ env._BRANCH }}
           token: ${{ steps.app-token.outputs.token }}
 
       - name: Configure Git
