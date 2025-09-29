@@ -94,7 +94,7 @@ jobs:
 
       - name: Bump Version
         id: bump-version-override
-        uses: bitwarden/gh-actions/version-bump@main
+        uses: bitwarden/gh-actions/version-bump@BRE-1186-add-semver-support-in-version-check-action
         with:
           file_path: "$_VERSION_FILE"
           version: ${{ env._VERSION_NUMBER }}
