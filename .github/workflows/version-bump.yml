@@ -9,8 +9,6 @@ on:
         required: true
         type: string
 
-permissions: {}
-
 env:
   _BOT_NAME: "bw-ghapp[bot]"
   _BOT_EMAIL: "178206702+bw-ghapp[bot]@users.noreply.github.com"
