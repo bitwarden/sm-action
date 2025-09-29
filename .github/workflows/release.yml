@@ -14,7 +14,7 @@ on:
           - Dry Run
 
 env:
-  _RELEASE_BRANCH_NAME: rewrite-it-in-rust # TODO: change to main when ready
+  _RELEASE_BRANCH_NAME: main
   _VERSION_FILE: version.json
 
 jobs:
@@ -27,15 +27,15 @@ jobs:
       - name: Checkout Branch
         uses: actions/checkout@08c6903cd8c0fde910a37f88322edcfb5dd907a8 # v5.0.0
 
-      # - name: Branch check # TODO put this back
-      #   if: ${{ inputs.release_type != 'Dry Run' }}
-      #   run: |
-      #     if [[ "$GITHUB_REF" != "refs/heads/main" ]]; then
-      #       echo "==================================="
-      #       echo "[!] Can only release from the 'main' branch"
-      #       echo "==================================="
-      #       exit 1
-      #     fi
+      - name: Branch check
+        if: ${{ inputs.release_type != 'Dry Run' }}
+        run: |
+          if [[ "$GITHUB_REF" != "refs/heads/main" ]]; then
+            echo "==================================="
+            echo "[!] Can only release from the 'main' branch"
+            echo "==================================="
+            exit 1
+          fi
 
       - name: Get latest release version
         id: get-latest-release
@@ -77,8 +77,6 @@ jobs:
           workflow_conclusion: success
           artifacts: "sm-action-*"
           branch: ${{ env._RELEASE_BRANCH_NAME }}
-
-      - run: ls -la
 
       - name: Create release
         if: ${{ inputs.release_type != 'Dry Run' }}
