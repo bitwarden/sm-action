@@ -97,7 +97,7 @@ jobs:
         id: bump-version-override
         uses: bitwarden/gh-actions/version-bump@main
         with:
-          file_path: "$_VERSION_FILE"
+          file_path: ${{ env._VERSION_FILE }}
           version: ${{ env._VERSION_NUMBER }}
 
       - name: Check if version changed
