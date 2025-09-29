@@ -24,7 +24,7 @@ jobs:
       id-token: write
     steps:
       - name: Validate version input
-        uses: bitwarden/gh-actions/version-check@BRE-1186-add-semver-support-in-version-check-action
+        uses: bitwarden/gh-actions/version-check@main
         with:
           version: ${{ env._VERSION_NUMBER }}
           validation_type: semver
