@@ -2,7 +2,7 @@ const { execSync } = require("node:child_process");
 const fs = require("fs");
 const path = require("path");
 const https = require("https");
-const version = require("./version").version;
+const version = require("./version.json").version;
 
 const repoOwner = "bitwarden";
 const repoName = "sm-action";
@@ -21,7 +21,7 @@ function getVersion() {
     return process.env.SM_ACTION_VERSION;
   }
 
-  console.log(`Using version from version.js: ${version}`);
+  console.log(`Using version from version.json: ${version}`);
   return version;
 }
 
@@ -109,7 +109,7 @@ function buildDownloadUrl(targetTriple, version) {
     process.platform === "win32" ? ".exe" : ""
   }`;
 
-  return `https://github.com/${repoOwner}/${repoName}/releases/download/${releaseVersion}/${assetName}`;
+  return `https://github.com/${repoOwner}/${repoName}/releases/download/v${releaseVersion}/${assetName}`;
 }
 
 /**
