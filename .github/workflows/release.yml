@@ -22,6 +22,8 @@ jobs:
     steps:
       - name: Checkout Branch
         uses: actions/checkout@08c6903cd8c0fde910a37f88322edcfb5dd907a8 # v5.0.0
+        with:
+          persist-credentials: false
 
       - name: Branch check
         if: ${{ inputs.release_type != 'Dry Run' }}
@@ -38,13 +40,13 @@ jobs:
         run: |
           LATEST_RELEASE_VERSION=$(curl --silent "https://api.github.com/repos/${GITHUB_REPOSITORY}/releases/latest" | jq -r '.tag_name')
           echo "Latest release version is $latest_version"
-          echo "latest_version=${LATEST_RELEASE_VERSION#v}" >> $GITHUB_OUTPUT
+          echo "latest_version=${LATEST_RELEASE_VERSION#v}" >> "$GITHUB_OUTPUT"
 
       - name: Get current action version
         id: current-version
         run: |
           CURRENT_VERSION=$(cat package.json | jq -r '.version')
-          echo "version=$CURRENT_VERSION" >> $GITHUB_OUTPUT
+          echo "version=$CURRENT_VERSION" >> "$GITHUB_OUTPUT"
 
       - name: Verify input version
         env:
@@ -58,8 +60,7 @@ jobs:
           fi
 
           # Check if version is newer.
-          printf '%s\n' "${LATEST_RELEASE_VERSION}" "${CURRENT_PKG_VERSION}" | sort -C -V
-          if [ $? -eq 0 ]; then
+          if printf '%s\n' "${LATEST_RELEASE_VERSION}" "${CURRENT_PKG_VERSION}" | sort -C -V; then
             echo "Version check successful."
           else
             echo "Version check failed."

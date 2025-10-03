@@ -46,6 +46,7 @@ jobs:
         with:
           ref: main
           token: ${{ steps.app-token.outputs.token }}
+          persist-credentials: true
 
       - name: Configure Git
         run: |
@@ -56,7 +57,7 @@ jobs:
         id: current-version
         run: |
           CURRENT_VERSION=$(cat package.json | jq -r '.version')
-          echo "version=$CURRENT_VERSION" >> $GITHUB_OUTPUT
+          echo "version=$CURRENT_VERSION" >> "$GITHUB_OUTPUT"
 
       - name: Verify input version
         env:
@@ -70,8 +71,7 @@ jobs:
           fi
 
           # Check if version is newer.
-          printf '%s\n' "${CURRENT_VERSION}" "${NEW_VERSION}" | sort -C -V
-          if [ $? -eq 0 ]; then
+          if printf '%s\n' "${CURRENT_VERSION}" "${NEW_VERSION}" | sort -C -V; then
             echo "Version check successful."
           else
             echo "Version check failed."
@@ -81,15 +81,15 @@ jobs:
       - name: Bump version
         env:
           VERSION: ${{ inputs.version_number }}
-        run: npm version --no-commit-hooks --no-git-tag-version $VERSION
+        run: npm version --no-commit-hooks --no-git-tag-version "$VERSION"
 
       - name: Check if version changed
         id: version-changed
         run: |
           if [ -n "$(git status --porcelain)" ]; then
-            echo "changes_to_commit=TRUE" >> $GITHUB_OUTPUT
+            echo "changes_to_commit=TRUE" >> "$GITHUB_OUTPUT"
           else
-            echo "changes_to_commit=FALSE" >> $GITHUB_OUTPUT
+            echo "changes_to_commit=FALSE" >> "$GITHUB_OUTPUT"
             echo "No changes to commit!";
           fi
 
