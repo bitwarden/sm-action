@@ -1,4 +1,5 @@
 name: Version Bump
+run-name: Version Bump - v${{ inputs.version_number }}
 
 on:
   workflow_dispatch:
@@ -8,6 +9,11 @@ on:
         required: true
         type: string
 
+env:
+  _BOT_NAME: "bw-ghapp[bot]"
+  _BOT_EMAIL: "178206702+bw-ghapp[bot]@users.noreply.github.com"
+  _VERSION_FILE: version.json
+  _VERSION_NUMBER: ${{ inputs.version_number }}
 
 jobs:
   bump_version:
@@ -17,6 +23,12 @@ jobs:
       contents: write
       id-token: write
     steps:
+      - name: Validate version input
+        uses: bitwarden/gh-actions/version-check@main
+        with:
+          version: ${{ env._VERSION_NUMBER }}
+          validation_type: semver
+
       - name: Log in to Azure
         uses: bitwarden/gh-actions/azure-login@main
         with:
@@ -35,7 +47,7 @@ jobs:
         uses: bitwarden/gh-actions/azure-logout@main
 
       - name: Generate GH App token
-        uses: actions/create-github-app-token@c1a285145b9d317df6ced56c09f525b5c2b6f755 # v1.11.1
+        uses: actions/create-github-app-token@df432ceedc7162793a195dd1713ff69aefc7379e # v2.0.6
         id: app-token
         with:
           app-id: ${{ steps.get-kv-secrets.outputs.BW-GHAPP-ID }}
@@ -44,25 +56,24 @@ jobs:
       - name: Check out branch
         uses: actions/checkout@08c6903cd8c0fde910a37f88322edcfb5dd907a8 # v5.0.0
         with:
-          ref: main
           token: ${{ steps.app-token.outputs.token }}
           persist-credentials: true
 
       - name: Configure Git
         run: |
-          git config --local user.email "actions@github.com"
-          git config --local user.name "Github Actions"
+          git config --local user.name "$_BOT_NAME"
+          git config --local user.email "$_BOT_EMAIL"
 
-      - name: Get current action version
+      - name: Get current version
         id: current-version
         run: |
-          CURRENT_VERSION=$(cat package.json | jq -r '.version')
+          CURRENT_VERSION=$(jq -r '.version' "$_VERSION_FILE")
           echo "version=$CURRENT_VERSION" >> "$GITHUB_OUTPUT"
 
       - name: Verify input version
         env:
           CURRENT_VERSION: ${{ steps.current-version.outputs.version }}
-          NEW_VERSION: ${{ inputs.version_number }}
+          NEW_VERSION: ${{ env._VERSION_NUMBER }}
         run: |
           # Error if version has not changed.
           if [[ "$NEW_VERSION" == "$CURRENT_VERSION" ]]; then
@@ -78,10 +89,12 @@ jobs:
             exit 1
           fi
 
-      - name: Bump version
-        env:
-          VERSION: ${{ inputs.version_number }}
-        run: npm version --no-commit-hooks --no-git-tag-version "$VERSION"
+      - name: Bump Version
+        id: bump-version-override
+        uses: bitwarden/gh-actions/version-bump@main
+        with:
+          file_path: ${{ env._VERSION_FILE }}
+          version: ${{ env._VERSION_NUMBER }}
 
       - name: Check if version changed
         id: version-changed
@@ -95,9 +108,7 @@ jobs:
 
       - name: Commit files
         if: ${{ steps.version-changed.outputs.changes_to_commit == 'TRUE' }}
-        env:
-          VERSION: ${{ inputs.version_number }}
-        run: git commit -m "Bumped sm-action version to $VERSION" -a
+        run: git commit -m "Bumped sm-action version to $_VERSION_NUMBER" -a
 
       - name: Push changes
         if: ${{ steps.version-changed.outputs.changes_to_commit == 'TRUE' }}
