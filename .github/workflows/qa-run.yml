@@ -32,6 +32,8 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@08c6903cd8c0fde910a37f88322edcfb5dd907a8 # v5.0.0
+        with:
+          persist-credentials: false
 
       - name: Log in to Azure
         uses: bitwarden/gh-actions/azure-login@main
@@ -60,4 +62,4 @@ jobs:
             ${{inputs.secretId}} > TEST_EXAMPLE
       - name: Show secrets
         shell: bash
-        run: echo $TEST_EXAMPLE is secrets value
+        run: echo "$TEST_EXAMPLE is secrets value"
