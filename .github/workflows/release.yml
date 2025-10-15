@@ -26,6 +26,8 @@ jobs:
     steps:
       - name: Checkout Branch
         uses: actions/checkout@08c6903cd8c0fde910a37f88322edcfb5dd907a8 # v5.0.0
+        with:
+          persist-credentials: false
 
       - name: Branch check
         if: ${{ inputs.release_type != 'Dry Run' }}
@@ -62,8 +64,7 @@ jobs:
           fi
 
           # Check if version is newer.
-          printf '%s\n' "${LATEST_RELEASE_VERSION}" "${CURRENT_VERSION}" | sort -C -V
-          if [ $? -eq 0 ]; then
+          if printf '%s\n' "${LATEST_RELEASE_VERSION}" "${CURRENT_VERSION}" | sort -C -V; then
             echo "Version check successful."
           else
             echo "Version check failed."
@@ -80,7 +81,7 @@ jobs:
 
       - name: Create release
         if: ${{ inputs.release_type != 'Dry Run' }}
-        uses: ncipollo/release-action@bcfe5470707e8832e12347755757cec0eb3c22af # v1.18.0
+        uses: ncipollo/release-action@b7eabc95ff50cbeeedec83973935c8f306dfcd0b # v1.20.0
         env:
           NEW_VERSION: ${{ steps.current-version.outputs.version }}
         with:
