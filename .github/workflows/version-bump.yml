@@ -12,7 +12,8 @@ on:
 env:
   _BOT_NAME: "bw-ghapp[bot]"
   _BOT_EMAIL: "178206702+bw-ghapp[bot]@users.noreply.github.com"
-  _VERSION_FILE: version.json
+  _VERSION_FILE_JSON: version.json
+  _VERSION_FILE_CARGO: Cargo.toml
   _VERSION_NUMBER: ${{ inputs.version_number }}
 
 jobs:
@@ -67,7 +68,7 @@ jobs:
       - name: Get current version
         id: current-version
         run: |
-          CURRENT_VERSION=$(jq -r '.version' "$_VERSION_FILE")
+          CURRENT_VERSION=$(jq -r '.version' "$_VERSION_FILE_JSON")
           echo "version=$CURRENT_VERSION" >> "$GITHUB_OUTPUT"
 
       - name: Verify input version
@@ -89,11 +90,16 @@ jobs:
             exit 1
           fi
 
-      - name: Bump Version
-        id: bump-version-override
+      - name: Bump Version - ${{ env._VERSION_FILE_JSON }}
         uses: bitwarden/gh-actions/version-bump@main
         with:
-          file_path: ${{ env._VERSION_FILE }}
+          file_path: ${{ env._VERSION_FILE_JSON }}
+          version: ${{ env._VERSION_NUMBER }}
+
+      - name: Bump Version - ${{ env._VERSION_FILE_CARGO }}
+        uses: bitwarden/gh-actions/version-bump@main
+        with:
+          file_path: ${{ env._VERSION_FILE_CARGO }}
           version: ${{ env._VERSION_NUMBER }}
 
       - name: Check if version changed
