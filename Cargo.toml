@@ -1,6 +1,6 @@
 [package]
 name = "sm-action"
-version = "3.0.0"
+version = "3.0.0-beta"
 edition = "2024"
 
 [dependencies]
