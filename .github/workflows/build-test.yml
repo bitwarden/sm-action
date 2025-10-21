@@ -3,6 +3,9 @@ name: Build & Test
 on:
   pull_request:
   workflow_dispatch:
+  push:
+    branches:
+      - release-v3.0.0-beta
 
 defaults:
   run:
