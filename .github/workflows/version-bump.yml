@@ -102,6 +102,11 @@ jobs:
           file_path: ${{ env._VERSION_FILE_CARGO }}
           version: ${{ env._VERSION_NUMBER }}
 
+      - name: Bump Version - Cargo.lock
+        run: |
+          cargo_project=$(grep 'name =' $_VERSION_FILE_CARGO | head -1 | cut -d '"' -f2)
+          cargo update -p $cargo_project --precise "$_VERSION_NUMBER"
+
       - name: Check if version changed
         id: version-changed
         run: |
