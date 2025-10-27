@@ -99,8 +99,7 @@ impl Config {
 
         let set_env = env_getter
             .get("INPUT_SET_ENV")
-            .is_some_and(|val| val.eq_ignore_ascii_case("false"));
-        // let set_env = get_env("INPUT_SET_ENV").is_some_and(|val| val != "false");
+            .is_some_and(|val| !val.eq_ignore_ascii_case("false"));
         debug!("set_env: {set_env}");
 
         Ok(Self {
