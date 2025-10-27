@@ -51,7 +51,7 @@ async fn main() -> Result<()> {
     if let Err(e) = auth_result {
         return Err(anyhow::anyhow!(
             "Authentication with Bitwarden failed.\nError: {}",
-            e.to_string()
+            e
         ));
     }
 
@@ -63,7 +63,7 @@ async fn main() -> Result<()> {
         .await.map_err(|e| {
             anyhow::anyhow!(
                 "The secrets provided could not be found. Please check the machine account has access to the secret UUIDs provided.\nError: {}",
-                e.to_string()
+                e
             )
         })?;
 
