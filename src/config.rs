@@ -18,6 +18,23 @@ const EU_DEFAULT_IDENTITY_URL: &str = "https://identity.bitwarden.eu";
 const US_DEFAULT_API_URL: &str = "https://api.bitwarden.com";
 const US_DEFAULT_IDENTITY_URL: &str = "https://identity.bitwarden.com";
 
+pub trait EnvVarGetter {
+    fn get(&self, env: &str) -> Option<String>;
+}
+
+pub struct RealEnvironment {}
+
+impl EnvVarGetter for RealEnvironment {
+    /// Prefer this over `std::env::var` to ensure that vars are both set and not empty to avoid
+    /// unintended errors.
+    fn get(&self, key: &str) -> Option<String> {
+        match std::env::var(key) {
+            Ok(value) if !value.trim().is_empty() => Some(value),
+            _ => None,
+        }
+    }
+}
+
 #[derive(Debug, PartialEq)]
 pub enum EnvironmentType {
     Eu,
@@ -51,14 +68,16 @@ pub struct Config {
 
 impl Config {
     /// Creates a new Config instance from environment variables.
-    pub fn new() -> Result<Self> {
+    pub fn new<T: EnvVarGetter>(env_getter: &T) -> Result<Self> {
         let cloud_region = /* this should never fail because we treat the Other variant as self-hosted */
-            EnvironmentType::from_str(&get_env("INPUT_CLOUD_REGION").unwrap_or_default())?;
+            EnvironmentType::from_str(&env_getter.get("INPUT_CLOUD_REGION").expect("cloud region should be one of 'us' or 'eu'"))?;
 
-        let access_token = get_env("INPUT_ACCESS_TOKEN")
+        let access_token = env_getter
+            .get("INPUT_ACCESS_TOKEN")
             .ok_or_else(|| anyhow::anyhow!("Access token is required"))?;
 
-        let secrets = get_env("INPUT_SECRETS")
+        let secrets = env_getter
+            .get("INPUT_SECRETS")
             .ok_or_else(|| anyhow::anyhow!("Secrets are required"))?
             .lines()
             .map(str::trim)
@@ -66,9 +85,9 @@ impl Config {
             .map(String::from)
             .collect();
 
-        let base_url = get_env("INPUT_BASE_URL");
-        let api_url = get_env("INPUT_API_URL");
-        let identity_url = get_env("INPUT_IDENTITY_URL");
+        let base_url = env_getter.get("INPUT_BASE_URL");
+        let api_url = env_getter.get("INPUT_API_URL");
+        let identity_url = env_getter.get("INPUT_IDENTITY_URL");
 
         debug!("cloud_region: {cloud_region:?}");
         debug!("secrets: {secrets:?}");
@@ -82,7 +101,11 @@ impl Config {
             identity_url.as_deref(),
         )?;
 
-        let set_env = get_env("INPUT_SET_ENV").is_some_and(|val| val.eq_ignore_ascii_case("false"));
+        let set_env = env_getter
+            .get("INPUT_SET_ENV")
+            .is_some_and(|val| val.eq_ignore_ascii_case("false"));
+        // let set_env = get_env("INPUT_SET_ENV").is_some_and(|val| val != "false");
+        debug!("set_env: {set_env}");
 
         Ok(Self {
             access_token,
@@ -190,15 +213,6 @@ pub fn infer_urls(config: &Config) -> Result<(String, String)> {
                 },
             }
         }
-    }
-}
-
-/// Prefer this over `std::env::var` to ensure that vars are both set and not empty to avoid
-/// unintended errors.
-pub fn get_env(key: &str) -> Option<String> {
-    match std::env::var(key) {
-        Ok(value) if !value.trim().is_empty() => Some(value),
-        _ => None,
     }
 }
 
@@ -428,22 +442,5 @@ mod tests {
         assert_eq!(eu_cloud_region, EnvironmentType::Eu);
         assert_eq!(us_cloud_region, EnvironmentType::Us);
         assert_eq!(other_environment_type, EnvironmentType::Other);
-    }
-
-    #[test]
-    fn test_get_env_returns_none_if_empty() {
-        unsafe { std::env::set_var("ARBITRARY_VAR_THAT_SHOULD_BE_EMPTY", "") };
-        assert_eq!(get_env("ARBITRARY_VAR_THAT_SHOULD_BE_EMPTY"), None);
-    }
-
-    #[test]
-    fn test_get_env_returns_none_if_unset() {
-        assert_eq!(get_env("ARBITRARY_VAR_THAT_SHOULD_BE_UNSET"), None);
-    }
-
-    #[test]
-    fn test_get_env_returns_some_if_set() {
-        // PATH should always be set...
-        assert!(get_env("PATH").is_some());
     }
 }

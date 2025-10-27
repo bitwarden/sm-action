@@ -9,8 +9,10 @@ use bitwarden_core::{Client, ClientSettings};
 use bitwarden_sm::ClientSecretsExt;
 use bitwarden_sm::secrets::SecretsGetRequest;
 
-use config::{Config, get_env, infer_urls};
+use config::{Config, infer_urls};
 use uuid::Uuid;
+
+use crate::config::{EnvVarGetter, RealEnvironment};
 
 mod config;
 
@@ -18,13 +20,18 @@ const VERSION: &str = env!("CARGO_PKG_VERSION");
 
 #[tokio::main(flavor = "current_thread")]
 async fn main() -> Result<()> {
+    let real_env = RealEnvironment {};
+    run(&real_env).await
+}
+
+async fn run<T: EnvVarGetter>(env_getter: &T) -> Result<()> {
     // this doubles as a way to validate the binaries in CI
     if std::env::args().any(|arg| arg == "--version") {
         println!("{VERSION}");
         return Ok(());
     }
 
-    let config = Config::new()?;
+    let config = Config::new(env_getter)?;
     let (api_url, identity_url) = infer_urls(&config)?;
 
     let client = Client::new(Some(ClientSettings {
@@ -71,7 +78,7 @@ async fn main() -> Result<()> {
     for secret in secrets.data.iter() {
         id_to_name_map
             .get(&secret.id)
-            .map(|name| set_secrets(name, &secret.value, config.set_env))
+            .map(|name| set_secrets(env_getter, name, &secret.value, config.set_env))
             .transpose()?;
     }
 
@@ -117,11 +124,18 @@ fn issue_file_command(mut file: std::fs::File, key: &str, value: &str) -> Result
 }
 
 /// Sets a secret in the GitHub Actions environment.
-fn set_secrets(secret_name: &str, secret_value: &str, set_env: bool) -> Result<()> {
+fn set_secrets<T: EnvVarGetter>(
+    env_getter: &T,
+    secret_name: &str,
+    secret_value: &str,
+    set_env: bool,
+) -> Result<()> {
     mask_value(secret_value);
 
     if set_env {
-        let env_path = get_env("GITHUB_ENV").expect("GITHUB_ENV must be set");
+        let env_path = env_getter
+            .get("GITHUB_ENV")
+            .expect("GITHUB_ENV must be set");
         debug!("Writing to GITHUB_ENV: {env_path}");
         let env_file = OpenOptions::new()
             .create(true) // needed for unit tests
@@ -132,7 +146,9 @@ fn set_secrets(secret_name: &str, secret_value: &str, set_env: bool) -> Result<(
         debug!("Successfully wrote '{secret_name}' to GITHUB_ENV");
     }
 
-    let output_path = get_env("GITHUB_OUTPUT").expect("GITHUB_OUTPUT must be set");
+    let output_path = env_getter
+        .get("GITHUB_OUTPUT")
+        .expect("GITHUB_OUTPUT must be set");
     debug!("Writing to GITHUB_OUTPUT: {output_path}");
     let output_file = OpenOptions::new()
         .create(true) // needed for unit tests
@@ -147,7 +163,15 @@ fn set_secrets(secret_name: &str, secret_value: &str, set_env: bool) -> Result<(
 
 #[cfg(test)]
 mod tests {
+    use std::fs::File;
+
     use super::*;
+
+    impl EnvVarGetter for HashMap<String, String> {
+        fn get(&self, env: &str) -> Option<String> {
+            self.get(env).map(|s| s.to_owned())
+        }
+    }
 
     #[test]
     fn test_set_secrets() {
@@ -162,14 +186,18 @@ mod tests {
         let env_path = temp_dir.join(format!("github_env_test_{}", uuid::Uuid::new_v4()));
         let output_path = temp_dir.join(format!("github_output_test_{}", uuid::Uuid::new_v4()));
 
-        // Set environment variables to point to our temp files
-        unsafe {
-            std::env::set_var("GITHUB_ENV", &env_path);
-            std::env::set_var("GITHUB_OUTPUT", &output_path);
-        }
-
         // Run the function
-        set_secrets(secret_name, secret_value, true).unwrap();
+        let env_getter = HashMap::from([
+            (
+                String::from("GITHUB_ENV"),
+                env_path.to_str().unwrap().to_owned(),
+            ),
+            (
+                String::from("GITHUB_OUTPUT"),
+                output_path.to_str().unwrap().to_owned(),
+            ),
+        ]);
+        set_secrets(&env_getter, secret_name, secret_value, true).unwrap();
 
         // Check if the files were created and contain the expected values
         let env_content = std::fs::read_to_string(&env_path).unwrap();
@@ -177,6 +205,48 @@ mod tests {
 
         assert!(env_content.contains(&format!("{secret_name}<<ghadelimiter_")));
         assert!(env_content.contains(secret_value));
+        assert!(output_content.contains(&format!("{secret_name}<<ghadelimiter_")));
+        assert!(output_content.contains(secret_value));
+
+        // Clean up temp files
+        let _ = std::fs::remove_file(&env_path);
+        let _ = std::fs::remove_file(&output_path);
+    }
+
+    #[test]
+    fn test_set_secrets_with_set_env_disabled() {
+        let secret_name = "TEST_SECRET";
+        let secret_value = r#"BrowserSettings__EnvironmentUrl=https://example.com
+
+    # Browser Settings 2
+    BrowserSettings__EnvironmentUrl=https://example2.com"#;
+
+        // Create temporary files for testing
+        let temp_dir = std::env::temp_dir();
+        let env_path = temp_dir.join(format!("github_env_test_{}", uuid::Uuid::new_v4()));
+        let output_path = temp_dir.join(format!("github_output_test_{}", uuid::Uuid::new_v4()));
+
+        File::create(&env_path).unwrap();
+
+        // Run the function
+        let env_getter = HashMap::from([
+            (
+                String::from("GITHUB_ENV"),
+                env_path.to_str().unwrap().to_owned(),
+            ),
+            (
+                String::from("GITHUB_OUTPUT"),
+                output_path.to_str().unwrap().to_owned(),
+            ),
+        ]);
+        set_secrets(&env_getter, secret_name, secret_value, false).unwrap();
+
+        // Check if GITHUB_OUTPUT was created and contains the expected values
+        let env_content = std::fs::read_to_string(&env_path).unwrap();
+        let output_content = std::fs::read_to_string(&output_path).unwrap();
+
+        assert!(!env_content.contains(&format!("{secret_name}<<ghadelimiter_")));
+        assert!(!env_content.contains(secret_value));
         assert!(output_content.contains(&format!("{secret_name}<<ghadelimiter_")));
         assert!(output_content.contains(secret_value));
 
