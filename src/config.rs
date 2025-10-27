@@ -18,7 +18,7 @@ const EU_DEFAULT_IDENTITY_URL: &str = "https://identity.bitwarden.eu";
 const US_DEFAULT_API_URL: &str = "https://api.bitwarden.com";
 const US_DEFAULT_IDENTITY_URL: &str = "https://identity.bitwarden.com";
 
-#[derive(Debug)]
+#[derive(Debug, PartialEq)]
 pub enum EnvironmentType {
     Eu,
     Us,
@@ -308,6 +308,41 @@ mod tests {
     }
 
     #[test]
+    fn test_ensure_case_insensitivity_for_eu_region() {
+        let cloud_region = EnvironmentType::from_str("eU").unwrap();
+        let config = Config {
+            access_token: "fake_access_token".to_string(),
+            secrets: vec!["de66de56-0b1f-42ff-8033-8b7866416520 > SECRET_NAME".to_string()],
+            cloud_region,
+            base_url: None,
+            api_url: None,
+            identity_url: None,
+            set_env: true,
+        };
+        let (api_url, identity_url) = infer_urls(&config).unwrap();
+        assert_eq!(api_url, EU_DEFAULT_API_URL);
+        assert_eq!(identity_url, EU_DEFAULT_IDENTITY_URL);
+    }
+
+    #[test]
+    fn test_ensure_case_insensitivity_for_us_region() {
+        let cloud_region = EnvironmentType::from_str("uS").unwrap();
+        let config = Config {
+            access_token: "fake_access_token".to_string(),
+            secrets: vec!["de66de56-0b1f-42ff-8033-8b7866416520 > SECRET_NAME".to_string()],
+            cloud_region,
+            base_url: None,
+            api_url: None,
+            identity_url: None,
+            set_env: true,
+        };
+
+        let (api_url, identity_url) = infer_urls(&config).unwrap();
+        assert_eq!(api_url, US_DEFAULT_API_URL);
+        assert_eq!(identity_url, US_DEFAULT_IDENTITY_URL);
+    }
+
+    #[test]
     fn test_infer_urls_with_cloud_region_and_base_url_should_use_cloud_region() {
         let config = Config {
             access_token: "fake_access_token".to_string(),
@@ -379,6 +414,20 @@ mod tests {
             result.unwrap_err().to_string(),
             "Both API and Identity URLs must be provided if one is specified"
         );
+    }
+
+    #[test]
+    fn test_ensure_environment_enum_correctly_matches_input() {
+        let eu_cloud_region = EnvironmentType::from_str("eu").unwrap();
+        let us_cloud_region = EnvironmentType::from_str("us").unwrap();
+        let other_environment_type = EnvironmentType::from_str(
+            "something that will not be recognized as a cloud environment",
+        )
+        .unwrap();
+
+        assert_eq!(eu_cloud_region, EnvironmentType::Eu);
+        assert_eq!(us_cloud_region, EnvironmentType::Us);
+        assert_eq!(other_environment_type, EnvironmentType::Other);
     }
 
     #[test]
