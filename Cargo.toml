@@ -4,7 +4,7 @@ version = "3.0.0"
 edition = "2024"
 
 [dependencies]
-anyhow = "1.0.99"
+anyhow = { version = "1.0.100", default-features = false }
 
 # TODO: switch to a stable release after a version newer than 1.0.0 is available
 bitwarden-core = { git = "https://github.com/bitwarden/sdk-internal.git", branch = "sm-action-rs", features = ["secrets"] }
