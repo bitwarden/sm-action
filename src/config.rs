@@ -82,7 +82,7 @@ impl Config {
             identity_url.as_deref(),
         )?;
 
-        let set_env = get_env("INPUT_SET_ENV").is_some_and(|val| val != "false");
+        let set_env = get_env("INPUT_SET_ENV").is_some_and(|val| val.eq_ignore_ascii_case("false"));
 
         Ok(Self {
             access_token,
