@@ -1,4 +1,6 @@
-use anyhow::{bail, Result};
+use std::str::FromStr;
+
+use anyhow::{Result, bail};
 
 /// Prints a debug message to the GitHub Actions log if `RUNNER_DEBUG` or `ACTIONS_RUNNER_DEBUG` are set.
 #[macro_export]
@@ -17,11 +19,30 @@ const US_DEFAULT_API_URL: &str = "https://api.bitwarden.com";
 const US_DEFAULT_IDENTITY_URL: &str = "https://identity.bitwarden.com";
 
 #[derive(Debug)]
+pub enum EnvironmentType {
+    Eu,
+    Us,
+    Other, // unrecognized; treat it as self-hosted
+}
+
+impl FromStr for EnvironmentType {
+    type Err = anyhow::Error;
+
+    fn from_str(input: &str) -> std::result::Result<Self, Self::Err> {
+        match input.trim().to_ascii_lowercase().as_ref() {
+            "us" => Ok(EnvironmentType::Us),
+            "eu" => Ok(EnvironmentType::Eu),
+            _ => Ok(EnvironmentType::Other),
+        }
+    }
+}
+
+#[derive(Debug)]
 /// Input parameters for the GitHub Action.
 pub struct Config {
     pub access_token: String,
     pub secrets: Vec<String>,
-    pub cloud_region: String, // "US" or "EU"; default is "US"
+    pub cloud_region: EnvironmentType,
     pub base_url: Option<String>,
     pub api_url: Option<String>,
     pub identity_url: Option<String>,
@@ -31,15 +52,8 @@ pub struct Config {
 impl Config {
     /// Creates a new Config instance from environment variables.
     pub fn new() -> Result<Self> {
-        let cloud_region = get_env("INPUT_CLOUD_REGION")
-            .unwrap_or_default()
-            .to_lowercase()
-            .trim()
-            .to_owned();
-
-        if cloud_region != "us" && cloud_region != "eu" && !cloud_region.is_empty() {
-            bail!("Cloud region must be either 'US' or 'EU'");
-        }
+        let cloud_region = /* this should never fail because we treat the Other variant as self-hosted */
+            EnvironmentType::from_str(&get_env("INPUT_CLOUD_REGION").unwrap_or_default())?;
 
         let access_token = get_env("INPUT_ACCESS_TOKEN")
             .ok_or_else(|| anyhow::anyhow!("Access token is required"))?;
@@ -55,6 +69,12 @@ impl Config {
         let base_url = get_env("INPUT_BASE_URL");
         let api_url = get_env("INPUT_API_URL");
         let identity_url = get_env("INPUT_IDENTITY_URL");
+
+        debug!("cloud_region: {cloud_region:?}");
+        debug!("secrets: {secrets:?}");
+        debug!("base_url: {base_url:?}");
+        debug!("api_url: {api_url:?}");
+        debug!("identity_url: {identity_url:?}");
 
         validate_urls(
             base_url.as_deref(),
@@ -113,16 +133,16 @@ fn validate_urls(
 /// If none of these values are set, it defaults to US or EU URLs,
 /// with US being preferred.
 pub fn infer_urls(config: &Config) -> Result<(String, String)> {
-    let (api_url, identity_url) = match config.cloud_region.to_lowercase().as_str() {
+    let (api_url, identity_url) = match config.cloud_region {
         // A cloud region was specified; use it
-        "eu" => {
+        EnvironmentType::Eu => {
             debug!("Using EU cloud region URLs");
             (
                 EU_DEFAULT_API_URL.to_string(),
                 EU_DEFAULT_IDENTITY_URL.to_string(),
             )
         }
-        "us" => {
+        EnvironmentType::Us => {
             debug!("Using US cloud region URLs");
             (
                 US_DEFAULT_API_URL.to_string(),
@@ -131,7 +151,7 @@ pub fn infer_urls(config: &Config) -> Result<(String, String)> {
         }
 
         // A cloud region was not specified; fall back to inferring the URLs
-        _ => {
+        EnvironmentType::Other => {
             debug!("No cloud region specified; inferring URLs");
             let (api_url, identity_url) =
                 match (config.api_url.clone(), config.identity_url.clone()) {
@@ -193,7 +213,7 @@ mod tests {
         let config = Config {
             access_token: "fake_access_token".to_string(),
             secrets: vec!["de66de56-0b1f-42ff-8033-8b7866416520 > SECRET_NAME".to_string()],
-            cloud_region: "".to_string(),
+            cloud_region: EnvironmentType::Other,
             base_url: None,
             api_url: Some("https://api.example.com".to_string()),
             identity_url: Some("https://identity.example.com".to_string()),
@@ -210,7 +230,7 @@ mod tests {
         let config = Config {
             access_token: "fake_access_token".to_string(),
             secrets: vec!["de66de56-0b1f-42ff-8033-8b7866416520 > SECRET_NAME".to_string()],
-            cloud_region: "".to_string(),
+            cloud_region: EnvironmentType::Other,
             base_url: None,
             api_url: None,
             identity_url: None,
@@ -227,7 +247,7 @@ mod tests {
         let config = Config {
             access_token: "fake_access_token".to_string(),
             secrets: vec!["de66de56-0b1f-42ff-8033-8b7866416520 > SECRET_NAME".to_string()],
-            cloud_region: "".to_string(),
+            cloud_region: EnvironmentType::Other,
             base_url: Some("https://example.com".to_string()),
             api_url: None,
             identity_url: None,
@@ -244,7 +264,7 @@ mod tests {
         let config = Config {
             access_token: "fake_access_token".to_string(),
             secrets: vec!["de66de56-0b1f-42ff-8033-8b7866416520 > SECRET_NAME".to_string()],
-            cloud_region: "".to_string(),
+            cloud_region: EnvironmentType::Other,
             base_url: None,
             api_url: Some("https://api.example.com".to_string()),
             identity_url: Some("https://identity.example.com".to_string()),
@@ -261,7 +281,7 @@ mod tests {
         let config = Config {
             access_token: "fake_access_token".to_string(),
             secrets: vec!["de66de56-0b1f-42ff-8033-8b7866416520 > SECRET_NAME".to_string()],
-            cloud_region: "".to_string(),
+            cloud_region: EnvironmentType::Other,
             base_url: None,
             api_url: None,
             identity_url: None,
@@ -278,7 +298,7 @@ mod tests {
         let config = Config {
             access_token: "fake_access_token".to_string(),
             secrets: vec!["de66de56-0b1f-42ff-8033-8b7866416520 > SECRET_NAME".to_string()],
-            cloud_region: "EU".to_string(),
+            cloud_region: EnvironmentType::Eu,
             base_url: None,
             api_url: None,
             identity_url: None,
@@ -294,7 +314,7 @@ mod tests {
         let config = Config {
             access_token: "fake_access_token".to_string(),
             secrets: vec!["de66de56-0b1f-42ff-8033-8b7866416520 > SECRET_NAME".to_string()],
-            cloud_region: "US".to_string(),
+            cloud_region: EnvironmentType::Us,
             base_url: None,
             api_url: None,
             identity_url: None,
@@ -311,7 +331,7 @@ mod tests {
         let config = Config {
             access_token: "fake_access_token".to_string(),
             secrets: vec!["de66de56-0b1f-42ff-8033-8b7866416520 > SECRET_NAME".to_string()],
-            cloud_region: "EU".to_string(),
+            cloud_region: EnvironmentType::Eu,
             base_url: Some("https://example.com".to_string()),
             api_url: None,
             identity_url: None,
@@ -328,7 +348,7 @@ mod tests {
         let config = Config {
             access_token: "fake_access_token".to_string(),
             secrets: vec!["de66de56-0b1f-42ff-8033-8b7866416520 > SECRET_NAME".to_string()],
-            cloud_region: "EU".to_string(),
+            cloud_region: EnvironmentType::Eu,
             base_url: None,
             api_url: Some("https://api.example.com".to_string()),
             identity_url: Some("https://identity.example.com".to_string()),
@@ -345,7 +365,7 @@ mod tests {
         let config = Config {
             access_token: "fake_access_token".to_string(),
             secrets: vec!["de66de56-0b1f-42ff-8033-8b7866416520 > SECRET_NAME".to_string()],
-            cloud_region: "".to_string(),
+            cloud_region: EnvironmentType::Other,
             base_url: None,
             api_url: Some("https://api.example.com".to_string()),
             identity_url: None,
@@ -365,7 +385,7 @@ mod tests {
         let config = Config {
             access_token: "fake_access_token".to_string(),
             secrets: vec!["de66de56-0b1f-42ff-8033-8b7866416520 > SECRET_NAME".to_string()],
-            cloud_region: "".to_string(),
+            cloud_region: EnvironmentType::Other,
             base_url: None,
             api_url: None,
             identity_url: Some("https://identity.example.com".to_string()),
