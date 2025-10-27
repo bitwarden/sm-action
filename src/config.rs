@@ -133,66 +133,64 @@ fn validate_urls(
 /// If none of these values are set, it defaults to US or EU URLs,
 /// with US being preferred.
 pub fn infer_urls(config: &Config) -> Result<(String, String)> {
-    let (api_url, identity_url) = match config.cloud_region {
+    match config.cloud_region {
         // A cloud region was specified; use it
         EnvironmentType::Eu => {
             debug!("Using EU cloud region URLs");
-            (
+            Ok((
                 EU_DEFAULT_API_URL.to_string(),
                 EU_DEFAULT_IDENTITY_URL.to_string(),
-            )
+            ))
         }
         EnvironmentType::Us => {
             debug!("Using US cloud region URLs");
-            (
+            Ok((
                 US_DEFAULT_API_URL.to_string(),
                 US_DEFAULT_IDENTITY_URL.to_string(),
-            )
+            ))
         }
 
-        // A cloud region was not specified; fall back to inferring the URLs
+        // A cloud region was not detected; fall back to inferring the URLs
         EnvironmentType::Other => {
-            debug!("No cloud region specified; inferring URLs");
-            let (api_url, identity_url) =
-                match (config.api_url.clone(), config.identity_url.clone()) {
-                    // API and Identity were provided; use them
-                    (Some(api), Some(identity)) => {
-                        debug!("Using provided API and Identity URLs");
-                        (api, identity)
+            debug!("No cloud region detected; inferring URLs");
+
+            match (config.api_url.clone(), config.identity_url.clone()) {
+                // API and Identity were provided; use them
+                (Some(api), Some(identity)) => {
+                    debug!("Using provided API and Identity URLs");
+                    Ok((api, identity))
+                }
+
+                // Only API was provided; this is an error
+                (Some(_), None) => {
+                    bail!("Both API and Identity URLs must be provided if one is specified");
+                }
+
+                // Only Identity was provided; this is an error
+                (None, Some(_)) => {
+                    bail!("Both API and Identity URLs must be provided if one is specified");
+                }
+
+                // Neither API nor Identity were provided; use the base URL
+                (None, None) => match config.base_url.clone() {
+                    // Infer the API and Identity URLs from the base URL
+                    Some(base) => {
+                        debug!("Using provided Base URL");
+                        Ok((format!("{base}/api"), format!("{base}/identity")))
                     }
 
-                    // Only API was provided; this is an error
-                    (Some(_), None) => {
-                        bail!("Both API and Identity URLs must be provided if one is specified");
+                    // No URLs were provided; use the defaults
+                    None => {
+                        debug!("Using default URLs");
+                        Ok((
+                            US_DEFAULT_API_URL.to_string(),
+                            US_DEFAULT_IDENTITY_URL.to_string(),
+                        ))
                     }
-
-                    // Only Identity was provided; this is an error
-                    (None, Some(_)) => {
-                        bail!("Both API and Identity URLs must be provided if one is specified");
-                    }
-
-                    // Neither API nor Identity were provided; use the base URL
-                    (None, None) => match config.base_url.clone() {
-                        // Infer the API and Identity URLs from the base URL
-                        Some(base) => {
-                            debug!("Using provided Base URL");
-                            (format!("{base}/api"), format!("{base}/identity"))
-                        }
-
-                        // No URLs were provided; use the defaults
-                        None => {
-                            debug!("Using default URLs");
-                            (
-                                US_DEFAULT_API_URL.to_string(),
-                                US_DEFAULT_IDENTITY_URL.to_string(),
-                            )
-                        }
-                    },
-                };
-            (api_url, identity_url)
+                },
+            }
         }
-    };
-    Ok((api_url, identity_url))
+    }
 }
 
 /// Prefer this over `std::env::var` to ensure that vars are both set and not empty to avoid
