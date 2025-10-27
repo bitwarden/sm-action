@@ -1,5 +1,3 @@
-use std::str::FromStr;
-
 use anyhow::{Result, bail};
 
 /// Prints a debug message to the GitHub Actions log if `RUNNER_DEBUG` or `ACTIONS_RUNNER_DEBUG` are set.
@@ -42,14 +40,12 @@ pub enum EnvironmentType {
     Other, // unrecognized; treat it as self-hosted
 }
 
-impl FromStr for EnvironmentType {
-    type Err = anyhow::Error;
-
-    fn from_str(input: &str) -> std::result::Result<Self, Self::Err> {
+impl EnvironmentType {
+    fn from_str(input: &str) -> Self {
         match input.trim().to_ascii_lowercase().as_ref() {
-            "us" => Ok(EnvironmentType::Us),
-            "eu" => Ok(EnvironmentType::Eu),
-            _ => Ok(EnvironmentType::Other),
+            "us" => EnvironmentType::Us,
+            "eu" => EnvironmentType::Eu,
+            _ => EnvironmentType::Other,
         }
     }
 }
@@ -69,8 +65,8 @@ pub struct Config {
 impl Config {
     /// Creates a new Config instance from environment variables.
     pub fn new<T: EnvVarGetter>(env_getter: &T) -> Result<Self> {
-        let cloud_region = /* this should never fail because we treat the Other variant as self-hosted */
-            EnvironmentType::from_str(&env_getter.get("INPUT_CLOUD_REGION").expect("cloud region should be one of 'us' or 'eu'"))?;
+        let cloud_region =
+            EnvironmentType::from_str(&env_getter.get("INPUT_CLOUD_REGION").unwrap_or_default());
 
         let access_token = env_getter
             .get("INPUT_ACCESS_TOKEN")
@@ -323,7 +319,7 @@ mod tests {
 
     #[test]
     fn test_ensure_case_insensitivity_for_eu_region() {
-        let cloud_region = EnvironmentType::from_str("eU").unwrap();
+        let cloud_region = EnvironmentType::from_str("eU");
         let config = Config {
             access_token: "fake_access_token".to_string(),
             secrets: vec!["de66de56-0b1f-42ff-8033-8b7866416520 > SECRET_NAME".to_string()],
@@ -340,7 +336,7 @@ mod tests {
 
     #[test]
     fn test_ensure_case_insensitivity_for_us_region() {
-        let cloud_region = EnvironmentType::from_str("uS").unwrap();
+        let cloud_region = EnvironmentType::from_str("uS");
         let config = Config {
             access_token: "fake_access_token".to_string(),
             secrets: vec!["de66de56-0b1f-42ff-8033-8b7866416520 > SECRET_NAME".to_string()],
@@ -432,12 +428,11 @@ mod tests {
 
     #[test]
     fn test_ensure_environment_enum_correctly_matches_input() {
-        let eu_cloud_region = EnvironmentType::from_str("eu").unwrap();
-        let us_cloud_region = EnvironmentType::from_str("us").unwrap();
+        let eu_cloud_region = EnvironmentType::from_str("eu");
+        let us_cloud_region = EnvironmentType::from_str("us");
         let other_environment_type = EnvironmentType::from_str(
             "something that will not be recognized as a cloud environment",
-        )
-        .unwrap();
+        );
 
         assert_eq!(eu_cloud_region, EnvironmentType::Eu);
         assert_eq!(us_cloud_region, EnvironmentType::Us);
