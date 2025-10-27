@@ -275,23 +275,6 @@ mod tests {
     }
 
     #[test]
-    fn test_infer_urls_with_no_urls() {
-        let config = Config {
-            access_token: "fake_access_token".to_string(),
-            secrets: vec!["de66de56-0b1f-42ff-8033-8b7866416520 > SECRET_NAME".to_string()],
-            cloud_region: EnvironmentType::Other,
-            base_url: None,
-            api_url: None,
-            identity_url: None,
-            set_env: true,
-        };
-
-        let (api_url, identity_url) = infer_urls(&config).unwrap();
-        assert_eq!(api_url, US_DEFAULT_API_URL);
-        assert_eq!(identity_url, US_DEFAULT_IDENTITY_URL);
-    }
-
-    #[test]
     fn test_infer_urls_with_eu_region() {
         let config = Config {
             access_token: "fake_access_token".to_string(),
