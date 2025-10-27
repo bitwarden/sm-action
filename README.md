@@ -177,8 +177,8 @@ export INPUT_BASE_URL=https://your.domain.com              # optional; only need
 export INPUT_API_URL=https://your.domain.com/api           # optional; only needed for self-hosted; ignored if SM_BASE_URL is set
 export INPUT_IDENTITY_URL=https://your.domain.com/identity # optional; only needed for self-hosted; ignored if SM_BASE_URL is set
 export INPUT_SET_ENV=true                                  # set to false to disable setting environment variables and only use ${{ github.output }}
-export GITHUB_ENV=/tmp/sm-action.env                       # can be set to any file for local testing
-export GITHUB_OUTPUT=/tmp/sm-action.out                    # can be set to any file for local testing
+export GITHUB_ENV=/tmp/sm-action.env                       # must be set to any file for local testing
+export GITHUB_OUTPUT=/tmp/sm-action.out                    # must be set to any file for local testing
 export INPUT_SECRETS='4994471d-0b20-4c3c-8040-f65c42d4f80f > FAKE_SECRET_1
 dfc20e02-fb1a-4d63-8a7e-d02acce1feb4 > FAKE_SECRET_2'
 ```

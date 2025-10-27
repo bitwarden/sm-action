@@ -121,7 +121,7 @@ fn set_secrets(secret_name: &str, secret_value: &str, set_env: bool) -> Result<(
     mask_value(secret_value);
 
     if set_env {
-        let env_path = get_env("GITHUB_ENV").unwrap_or("/dev/null".to_owned());
+        let env_path = get_env("GITHUB_ENV").expect("GITHUB_ENV must be set");
         debug!("Writing to GITHUB_ENV: {env_path}");
         let env_file = OpenOptions::new()
             .create(true) // needed for unit tests
@@ -132,7 +132,7 @@ fn set_secrets(secret_name: &str, secret_value: &str, set_env: bool) -> Result<(
         debug!("Successfully wrote '{secret_name}' to GITHUB_ENV");
     }
 
-    let output_path = get_env("GITHUB_OUTPUT").unwrap_or("/dev/null".to_owned());
+    let output_path = get_env("GITHUB_OUTPUT").expect("GITHUB_OUTPUT must be set");
     debug!("Writing to GITHUB_OUTPUT: {output_path}");
     let output_file = OpenOptions::new()
         .create(true) // needed for unit tests
