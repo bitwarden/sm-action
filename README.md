@@ -193,5 +193,5 @@ Run the tests :heavy_check_mark:
 
 ```bash
 cargo test
-cargo run -- --test | grep -q "success"
+cargo run -- --version # ensures the binary compiles and runs
 ```

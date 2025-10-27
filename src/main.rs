@@ -14,11 +14,13 @@ use uuid::Uuid;
 
 mod config;
 
-#[tokio::main]
+const VERSION: &str = env!("CARGO_PKG_VERSION");
+
+#[tokio::main(flavor = "current_thread")]
 async fn main() -> Result<()> {
-    // --test arg to validate the binaries in CI
-    if std::env::args().any(|arg| arg == "--test") {
-        println!("success");
+    // this doubles as a way to validate the binaries in CI
+    if std::env::args().any(|arg| arg == "--version") {
+        println!("{VERSION}");
         return Ok(());
     }
 

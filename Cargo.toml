@@ -11,7 +11,7 @@ bitwarden-core = { git = "https://github.com/bitwarden/sdk-internal.git", branch
 bitwarden-sm = { git = "https://github.com/bitwarden/sdk-internal.git", branch = "sm-action-rs" }
 bitwarden-vault = { git = "https://github.com/bitwarden/sdk-internal.git", branch = "sm-action-rs" }
 
-tokio = { version = "1.47.1", features = ["macros", "rt-multi-thread"] }
+tokio = { version = "1.48.0", features = ["macros"] }
 uuid = "1.18.1"
 
 [profile.release]

@@ -101,14 +101,16 @@ jobs:
         run: |
           cargo test --release || { echo "Unit tests failed" >&2; exit 1; }
 
-          test_stdout="$(cargo run --quiet --release -- --test)"
+          # use the --version arg to ensure that the binary compiles and runs
+          test_stdout="$(cargo run --quiet --release -- --version)"
           exit_code=$?
 
-          if [[ $exit_code -eq 0 && "$test_stdout" == *"success"* ]]; then
+          if [[ $exit_code -eq 0 ]]; then
             echo "Binary execution tests passed"
+            echo "Binary version: $test_stdout"
           else
             echo "Binary execution tests failed with exit code $exit_code" >&2
-            echo "Test output: $test_stdout" >&2
+            echo "stdout of sm-action --version was: '$test_stdout'" >&2
             exit $exit_code
           fi
 
