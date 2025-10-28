@@ -1,5 +1,7 @@
 use anyhow::{Result, bail};
 
+use crate::ci::ContinuousIntegration;
+
 /// Prints a debug message to the GitHub Actions log if `RUNNER_DEBUG` or `ACTIONS_RUNNER_DEBUG` are set.
 #[macro_export]
 macro_rules! debug {
@@ -15,23 +17,6 @@ const EU_DEFAULT_IDENTITY_URL: &str = "https://identity.bitwarden.eu";
 
 const US_DEFAULT_API_URL: &str = "https://api.bitwarden.com";
 const US_DEFAULT_IDENTITY_URL: &str = "https://identity.bitwarden.com";
-
-pub trait EnvVarGetter {
-    fn get(&self, env: &str) -> Option<String>;
-}
-
-pub struct RealEnvironment {}
-
-impl EnvVarGetter for RealEnvironment {
-    /// Prefer this over `std::env::var` to ensure that vars are both set and not empty to avoid
-    /// unintended errors.
-    fn get(&self, key: &str) -> Option<String> {
-        match std::env::var(key) {
-            Ok(value) if !value.trim().is_empty() => Some(value),
-            _ => None,
-        }
-    }
-}
 
 #[derive(Debug, PartialEq)]
 pub enum EnvironmentType {
@@ -64,16 +49,16 @@ pub struct Config {
 
 impl Config {
     /// Creates a new Config instance from environment variables.
-    pub fn new<T: EnvVarGetter>(env_getter: &T) -> Result<Self> {
+    pub fn new<T: ContinuousIntegration>(ci: &T) -> Result<Self> {
         let cloud_region =
-            EnvironmentType::from_str(&env_getter.get("INPUT_CLOUD_REGION").unwrap_or_default());
+            EnvironmentType::from_str(&ci.get_input("CLOUD_REGION").unwrap_or_default());
 
-        let access_token = env_getter
-            .get("INPUT_ACCESS_TOKEN")
+        let access_token = ci
+            .get_input("ACCESS_TOKEN")
             .ok_or_else(|| anyhow::anyhow!("Access token is required"))?;
 
-        let secrets = env_getter
-            .get("INPUT_SECRETS")
+        let secrets = ci
+            .get_input("SECRETS")
             .ok_or_else(|| anyhow::anyhow!("Secrets are required"))?
             .lines()
             .map(str::trim)
@@ -81,14 +66,14 @@ impl Config {
             .map(String::from)
             .collect();
 
-        let base_url = env_getter.get("INPUT_BASE_URL");
-        let api_url = env_getter.get("INPUT_API_URL");
-        let identity_url = env_getter.get("INPUT_IDENTITY_URL");
+        let base_url = ci.get_input("BASE_URL");
+        let api_url = ci.get_input("API_URL");
+        let identity_url = ci.get_input("IDENTITY_URL");
 
         debug!("cloud_region: {cloud_region:?}");
-        debug!("secrets: {secrets:?}");
-        debug!("base_url: {base_url:?}");
-        debug!("api_url: {api_url:?}");
+        debug!("secrets:      {secrets:?}");
+        debug!("base_url:     {base_url:?}");
+        debug!("api_url:      {api_url:?}");
         debug!("identity_url: {identity_url:?}");
 
         validate_urls(
@@ -97,8 +82,8 @@ impl Config {
             identity_url.as_deref(),
         )?;
 
-        let set_env = env_getter
-            .get("INPUT_SET_ENV")
+        let set_env = ci
+            .get_input("SET_ENV")
             .is_some_and(|val| !val.eq_ignore_ascii_case("false"));
         debug!("set_env: {set_env}");
 

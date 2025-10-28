@@ -1,6 +1,4 @@
 use std::collections::HashMap;
-use std::fs::OpenOptions;
-use std::io::Write;
 use std::str::FromStr;
 
 use anyhow::Result;
@@ -12,26 +10,27 @@ use bitwarden_sm::secrets::SecretsGetRequest;
 use config::{Config, infer_urls};
 use uuid::Uuid;
 
-use crate::config::{EnvVarGetter, RealEnvironment};
+use ci::{ContinuousIntegration, GithubActionsRunner};
 
+mod ci;
 mod config;
 
 const VERSION: &str = env!("CARGO_PKG_VERSION");
 
 #[tokio::main(flavor = "current_thread")]
 async fn main() -> Result<()> {
-    let real_env = RealEnvironment {};
-    run(&real_env).await
+    let mut github_runner = GithubActionsRunner::new()?;
+    run(&mut github_runner).await
 }
 
-async fn run<T: EnvVarGetter>(env_getter: &T) -> Result<()> {
+async fn run<T: ContinuousIntegration>(ci: &mut T) -> Result<()> {
     // this doubles as a way to validate the binaries in CI
     if std::env::args().any(|arg| arg == "--version") {
         println!("{VERSION}");
         return Ok(());
     }
 
-    let config = Config::new(env_getter)?;
+    let config = Config::new(ci)?;
     let (api_url, identity_url) = infer_urls(&config)?;
 
     let client = Client::new(Some(ClientSettings {
@@ -57,8 +56,7 @@ async fn run<T: EnvVarGetter>(env_getter: &T) -> Result<()> {
 
     if let Err(e) = auth_result {
         return Err(anyhow::anyhow!(
-            "Authentication with Bitwarden failed.\nError: {}",
-            e
+            "Authentication with Bitwarden failed.\nError: {e}",
         ));
     }
 
@@ -69,8 +67,7 @@ async fn run<T: EnvVarGetter>(env_getter: &T) -> Result<()> {
         .get_by_ids(SecretsGetRequest { ids: secret_ids })
         .await.map_err(|e| {
             anyhow::anyhow!(
-                "The secrets provided could not be found. Please check the machine account has access to the secret UUIDs provided.\nError: {}",
-                e
+                "The secrets provided could not be found. Please check the machine account has access to the secret UUIDs provided.\nError: {e}",
             )
         })?;
 
@@ -78,7 +75,7 @@ async fn run<T: EnvVarGetter>(env_getter: &T) -> Result<()> {
     for secret in secrets.data.iter() {
         id_to_name_map
             .get(&secret.id)
-            .map(|name| set_secrets(env_getter, name, &secret.value, config.set_env))
+            .map(|name| set_secret(ci, name, &secret.value, config.set_env))
             .transpose()?;
     }
 
@@ -109,67 +106,69 @@ fn parse_secret_input(secret_lines: Vec<String>) -> Result<HashMap<Uuid, String>
     Ok(map)
 }
 
-/// Masks a value in the GitHub Actions logs to prevent it from being displayed.
-fn mask_value(value: &str) {
-    println!("::add-mask::{value}");
-}
-
-fn issue_file_command(mut file: std::fs::File, key: &str, value: &str) -> Result<()> {
-    let delimiter = format!("ghadelimiter_{}", uuid::Uuid::new_v4());
-    writeln!(file, "{key}<<{delimiter}")?;
-    writeln!(file, "{value}")?;
-    writeln!(file, "{delimiter}")?;
-    file.flush()?; // ensure the data is written to disk
-    Ok(())
-}
-
 /// Sets a secret in the GitHub Actions environment.
-fn set_secrets<T: EnvVarGetter>(
-    env_getter: &T,
+fn set_secret<T: ContinuousIntegration>(
+    ci: &mut T,
     secret_name: &str,
     secret_value: &str,
     set_env: bool,
 ) -> Result<()> {
-    mask_value(secret_value);
+    ci.mask_value(secret_value);
 
     if set_env {
-        let env_path = env_getter
-            .get("GITHUB_ENV")
-            .expect("GITHUB_ENV must be set");
-        debug!("Writing to GITHUB_ENV: {env_path}");
-        let env_file = OpenOptions::new()
-            .create(true) // needed for unit tests
-            .append(true)
-            .open(&env_path)?;
-
-        issue_file_command(env_file, secret_name, secret_value)?;
-        debug!("Successfully wrote '{secret_name}' to GITHUB_ENV");
+        ci.set_environment(secret_name, secret_value)?;
+        debug!("Successfully wrote '{secret_name}' to environment");
     }
 
-    let output_path = env_getter
-        .get("GITHUB_OUTPUT")
-        .expect("GITHUB_OUTPUT must be set");
-    debug!("Writing to GITHUB_OUTPUT: {output_path}");
-    let output_file = OpenOptions::new()
-        .create(true) // needed for unit tests
-        .append(true)
-        .open(&output_path)?;
-
-    issue_file_command(output_file, secret_name, secret_value)?;
-    debug!("Successfully wrote '{secret_name}' to GITHUB_OUTPUT");
+    ci.set_output(secret_name, secret_value)?;
+    debug!("Successfully wrote '{secret_name}' to output file");
 
     Ok(())
 }
 
 #[cfg(test)]
 mod tests {
-    use std::fs::File;
-
     use super::*;
 
-    impl EnvVarGetter for HashMap<String, String> {
-        fn get(&self, env: &str) -> Option<String> {
-            self.get(env).map(|s| s.to_owned())
+    struct FakeContinuousIntegration {
+        inputs: HashMap<String, String>,
+        outputs: HashMap<String, String>,
+        environment: HashMap<String, String>,
+        masked_values: Vec<String>,
+    }
+
+    impl FakeContinuousIntegration {
+        fn new(inputs: HashMap<String, String>) -> Self {
+            FakeContinuousIntegration {
+                inputs: inputs,
+                outputs: HashMap::new(),
+                environment: HashMap::new(),
+                masked_values: Vec::new(),
+            }
+        }
+
+        fn default() -> Self {
+            Self::new(HashMap::default())
+        }
+    }
+
+    impl ContinuousIntegration for FakeContinuousIntegration {
+        fn get_input(&self, value: &str) -> Option<String> {
+            self.inputs.get(value).map(|s| s.to_owned())
+        }
+
+        fn set_environment(&mut self, name: &str, value: &str) -> Result<()> {
+            self.environment.insert(name.to_owned(), value.to_owned());
+            Ok(())
+        }
+
+        fn set_output(&mut self, name: &str, value: &str) -> Result<()> {
+            self.outputs.insert(name.to_owned(), value.to_owned());
+            Ok(())
+        }
+
+        fn mask_value(&mut self, value: &str) {
+            self.masked_values.push(value.to_owned());
         }
     }
 
@@ -181,36 +180,16 @@ mod tests {
     # Browser Settings 2
     BrowserSettings__EnvironmentUrl=https://example2.com"#;
 
-        // Create temporary files for testing
-        let temp_dir = std::env::temp_dir();
-        let env_path = temp_dir.join(format!("github_env_test_{}", uuid::Uuid::new_v4()));
-        let output_path = temp_dir.join(format!("github_output_test_{}", uuid::Uuid::new_v4()));
+        let mut ci = FakeContinuousIntegration::default();
 
         // Run the function
-        let env_getter = HashMap::from([
-            (
-                String::from("GITHUB_ENV"),
-                env_path.to_str().unwrap().to_owned(),
-            ),
-            (
-                String::from("GITHUB_OUTPUT"),
-                output_path.to_str().unwrap().to_owned(),
-            ),
-        ]);
-        set_secrets(&env_getter, secret_name, secret_value, true).unwrap();
+        set_secret(&mut ci, secret_name, secret_value, true).unwrap();
 
-        // Check if the files were created and contain the expected values
-        let env_content = std::fs::read_to_string(&env_path).unwrap();
-        let output_content = std::fs::read_to_string(&output_path).unwrap();
-
-        assert!(env_content.contains(&format!("{secret_name}<<ghadelimiter_")));
-        assert!(env_content.contains(secret_value));
-        assert!(output_content.contains(&format!("{secret_name}<<ghadelimiter_")));
-        assert!(output_content.contains(secret_value));
-
-        // Clean up temp files
-        let _ = std::fs::remove_file(&env_path);
-        let _ = std::fs::remove_file(&output_path);
+        assert_eq!(
+            ci.environment.get(secret_name),
+            Some(&secret_value.to_string())
+        );
+        assert_eq!(ci.outputs.get(secret_name), Some(&secret_value.to_string()));
     }
 
     #[test]
@@ -221,38 +200,15 @@ mod tests {
     # Browser Settings 2
     BrowserSettings__EnvironmentUrl=https://example2.com"#;
 
-        // Create temporary files for testing
-        let temp_dir = std::env::temp_dir();
-        let env_path = temp_dir.join(format!("github_env_test_{}", uuid::Uuid::new_v4()));
-        let output_path = temp_dir.join(format!("github_output_test_{}", uuid::Uuid::new_v4()));
-
-        File::create(&env_path).unwrap();
+        let mut ci = FakeContinuousIntegration::default();
 
         // Run the function
-        let env_getter = HashMap::from([
-            (
-                String::from("GITHUB_ENV"),
-                env_path.to_str().unwrap().to_owned(),
-            ),
-            (
-                String::from("GITHUB_OUTPUT"),
-                output_path.to_str().unwrap().to_owned(),
-            ),
-        ]);
-        set_secrets(&env_getter, secret_name, secret_value, false).unwrap();
+        set_secret(&mut ci, secret_name, secret_value, false).unwrap();
 
         // Check if GITHUB_OUTPUT was created and contains the expected values
-        let env_content = std::fs::read_to_string(&env_path).unwrap();
-        let output_content = std::fs::read_to_string(&output_path).unwrap();
 
-        assert!(!env_content.contains(&format!("{secret_name}<<ghadelimiter_")));
-        assert!(!env_content.contains(secret_value));
-        assert!(output_content.contains(&format!("{secret_name}<<ghadelimiter_")));
-        assert!(output_content.contains(secret_value));
-
-        // Clean up temp files
-        let _ = std::fs::remove_file(&env_path);
-        let _ = std::fs::remove_file(&output_path);
+        assert_eq!(ci.environment.get(secret_name), None);
+        assert_eq!(ci.outputs.get(secret_name), Some(&secret_value.to_string()));
     }
 
     #[test]
