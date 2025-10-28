@@ -140,7 +140,7 @@ mod tests {
     impl FakeContinuousIntegration {
         fn new(inputs: HashMap<String, String>) -> Self {
             FakeContinuousIntegration {
-                inputs: inputs,
+                inputs,
                 outputs: HashMap::new(),
                 environment: HashMap::new(),
                 masked_values: Vec::new(),

@@ -124,7 +124,7 @@ mod tests {
     }
 
     /// Asserts that name value pairs are written to the buffer in the correct format
-    fn assert_github_output(buffer: &Vec<u8>, name: &str) -> Result<(String, uuid::Uuid)> {
+    fn assert_github_output(buffer: &[u8], name: &str) -> Result<(String, uuid::Uuid)> {
         let delimiter_marker = "<<";
         let ghadelimiter_prefix = "ghadelimiter_";
         // Convert the byte buffer to a UTF-8 string and search its lines for the matching prefix.
@@ -134,7 +134,6 @@ mod tests {
         // Find the line that begins with the desired value and return the index it was found at
         let matching_line = lines
             .iter()
-            .into_iter()
             .enumerate()
             .find(|l| {
                 l.1.starts_with(&format!("{name}{delimiter_marker}{ghadelimiter_prefix}"))
@@ -155,7 +154,6 @@ mod tests {
         // between the start and end
         let end_delimiter_line = lines
             .iter()
-            .into_iter()
             .enumerate()
             .find(|l| l.1 == &format!("{ghadelimiter_prefix}{delimiter}"))
             .map(|l| l.0)
