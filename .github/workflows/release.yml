@@ -14,7 +14,7 @@ on:
           - Dry Run
 
 env:
-  _RELEASE_BRANCH_NAME: main
+  _RELEASE_BRANCH_NAME: release-v3.0.0-beta.2
   _VERSION_FILE: version.json
 
 jobs:
@@ -27,14 +27,15 @@ jobs:
       - name: Checkout Branch
         uses: actions/checkout@08c6903cd8c0fde910a37f88322edcfb5dd907a8 # v5.0.0
         with:
+          ref: ${{ env._RELEASE_BRANCH_NAME }}
           persist-credentials: false
 
       - name: Branch check
         if: ${{ inputs.release_type != 'Dry Run' }}
         run: |
-          if [[ "$GITHUB_REF" != "refs/heads/main" ]]; then
+          if [[ "$GITHUB_REF" != "refs/heads/$_RELEASE_BRANCH_NAME" ]]; then
             echo "==================================="
-            echo "[!] Can only release from the 'main' branch"
+            echo "[!] Can only release from the '$_RELEASE_BRANCH_NAME' branch"
             echo "==================================="
             exit 1
           fi
