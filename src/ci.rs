@@ -50,19 +50,13 @@ impl GithubActionsRunner<std::fs::File> {
 
         debug!("Writing to GITHUB_ENV: {env_path}");
 
-        let env_file = OpenOptions::new()
-            .create(true) // needed for unit tests
-            .append(true)
-            .open(&env_path)?;
+        let env_file = OpenOptions::new().append(true).open(&env_path)?;
 
         let output_path = std::env::var("GITHUB_OUTPUT").expect("GITHUB_OUTPUT must be set");
 
         debug!("Writing to GITHUB_OUTPUT: {env_path}");
 
-        let output_file = OpenOptions::new()
-            .create(true) // needed for unit tests
-            .append(true)
-            .open(&output_path)?;
+        let output_file = OpenOptions::new().append(true).open(&output_path)?;
         Ok(Self {
             env_file,
             output_file,
