@@ -77,6 +77,24 @@ To use the action, add a step to your GitHub workflow using the following syntax
 
   Depending on the `cloud_region` setting, the default value will use https://api.bitwarden.com for `us` (default) or https://api.bitwarden.eu for `eu`.
 
+- `parse_yaml`
+
+  (Optional) parse the secret ids as yaml. can't mix json and yaml
+
+  Default is: `false`
+
+- `parse_json`
+
+  (Optional) parse the secret ids as json. can't mix json and yaml secrets
+
+  Default is: `false`
+
+- `transform_keys`
+
+  (Optional) converts the secret keys to uppercase
+
+  Default is: `false`
+
 ## Examples
 
 ```
@@ -106,6 +124,37 @@ TEST_EXAMPLE_2: SECRET_VALUE_FOR_bdbb16bc-0b9b-472e-99fa-af4101309076
     cloud_region: eu
     secrets: |
       00000000-0000-0000-0000-000000000000 > TEST_EXAMPLE
+- name: Use Secret
+  run: example-command "$TEST_EXAMPLE"
+```
+
+### Example usage
+
+```yaml
+- name: Get Secrets as YAML
+  uses: bitwarden/sm-action@v1
+  with:
+    access_token: ${{ secrets.ACCESS_TOKEN }}
+    cloud_region: eu
+    parse_yaml: true
+    secrets: |
+      00000000-0000-0000-0000-000000000000
+
+- name: Use Secret
+  run: example-command "$TEST_EXAMPLE"
+```
+
+```yaml
+- name: Get Secrets as YAML
+  uses: bitwarden/sm-action@v1
+  with:
+    access_token: ${{ secrets.ACCESS_TOKEN }}
+    cloud_region: eu
+    parse_json: true
+    secrets: |
+      00000000-0000-0000-0000-000000000000
+      11111111-1111-1111-1111-111111111111
+
 - name: Use Secret
   run: example-command "$TEST_EXAMPLE"
 ```
@@ -140,4 +189,23 @@ GitHub recommends using a tool called [@vercel/ncc](https://github.com/vercel/nc
 
 ```bash
 $ npm run bundle
+```
+
+## Note when parsing with json/yaml
+
+If a key is present in both secrets, the last secret that outputs to that var will be the winner.
+
+```yaml
+- name: Get Secrets as YAML
+  uses: bitwarden/sm-action@v1
+  with:
+    access_token: ${{ secrets.ACCESS_TOKEN }}
+    cloud_region: eu
+    parse_true: true
+    secrets: |
+      00000000-0000-0000-0000-000000000000 # outputs TEST_KEY
+      11111111-1111-1111-1111-111111111111 # also outputs TEST_KEY
+
+- name: Use Secret
+  run: example-command "$TEST_KEY" # will comme from 11111111-1111-1111-1111-111111111111 even if they have different values
 ```

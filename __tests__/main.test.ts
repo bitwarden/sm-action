@@ -18,12 +18,18 @@ const DEFAULT_BASE_URL = "";
 const DEFAULT_IDENTITY_URL = "";
 const DEFAULT_API_URL = "";
 const DEFAULT_CLOUD_REGION = "us";
+const DEFAULT_PARSE_YAML = false;
+const DEFAULT_PARSE_JSON = false;
+const DEFAULT_TRANSFORM_KEYS = false;
 
 const OPTIONAL_TEST_INPUTS = {
   baseUrl: DEFAULT_BASE_URL,
   identityUrl: DEFAULT_IDENTITY_URL,
   apiUrl: DEFAULT_API_URL,
   cloudRegion: DEFAULT_CLOUD_REGION,
+  parseYaml: DEFAULT_PARSE_YAML,
+  parseJson: DEFAULT_PARSE_JSON,
+  transformKeys: DEFAULT_TRANSFORM_KEYS,
 } as OptionalInputs;
 
 const TEST_INPUTS = {
@@ -40,6 +46,7 @@ let warningMock: jest.SpyInstance;
 let errorMock: jest.SpyInstance;
 let getInputMock: jest.SpyInstance;
 let getMultilineInputMock: jest.SpyInstance;
+let getBooleanInputMock: jest.SpyInstance;
 let setFailedMock: jest.SpyInstance;
 let setSecretMock: jest.SpyInstance;
 let exportVariableMock: jest.SpyInstance;
@@ -69,6 +76,7 @@ describe("action", () => {
     errorMock = jest.spyOn(core, "error").mockImplementation();
     getInputMock = jest.spyOn(core, "getInput").mockImplementation();
     getMultilineInputMock = jest.spyOn(core, "getMultilineInput").mockImplementation();
+    getBooleanInputMock = jest.spyOn(core, "getBooleanInput").mockImplementation();
     setFailedMock = jest.spyOn(core, "setFailed").mockImplementation();
     setSecretMock = jest.spyOn(core, "setSecret").mockImplementation();
     exportVariableMock = jest.spyOn(core, "exportVariable").mockImplementation();
@@ -197,6 +205,155 @@ describe("action", () => {
       );
     });
 
+    it("parseYaml and parseJson provided", async () => {
+      mockInputs({
+        accessToken: TEST_ACCESS_TOKEN,
+        secrets: TEST_SECRETS,
+        identityUrl: DEFAULT_IDENTITY_URL,
+        apiUrl: DEFAULT_API_URL,
+        cloudRegion: DEFAULT_CLOUD_REGION,
+        parseYaml: true,
+        parseJson: true,
+      } as Inputs);
+
+      await main.run();
+
+      expectFailed("parse_yaml and parse_json cannot both be set to true");
+    });
+
+    it("fails to parse an invalid YAML secret", async () => {
+      const invalidYamlSecret = {
+        id: randomUUID().toString(),
+        value: "key1: value1\nkey2 value2", // Missing colon in key2
+      } as DatumClass;
+
+      mockInputs({
+        ...TEST_INPUTS,
+        secrets: [`${invalidYamlSecret.id}`],
+        parseYaml: true,
+      } as Inputs);
+      mockSecretsGetByIdResponse({
+        success: true,
+        data: { data: [invalidYamlSecret] },
+      });
+
+      await main.run();
+
+      expect(setFailedMock).toHaveBeenCalledWith(expect.stringContaining("Failed to parse secret"));
+    });
+
+    it("fails to parse an invalid JSON secret", async () => {
+      const invalidJsonSecret = {
+        id: randomUUID().toString(),
+        value: '{"key1": "value1", "key2": value2}', // Missing quotes around value2
+      } as DatumClass;
+
+      mockInputs({
+        ...TEST_INPUTS,
+        secrets: [`${invalidJsonSecret.id}`],
+        parseJson: true,
+      } as Inputs);
+      mockSecretsGetByIdResponse({
+        success: true,
+        data: { data: [invalidJsonSecret] },
+      });
+
+      await main.run();
+
+      expect(setFailedMock).toHaveBeenCalledWith(expect.stringContaining("Failed to parse secret"));
+    });
+
+    it("fails when YAML secret contains nested structure", async () => {
+      const nestedYamlSecret = {
+        id: randomUUID().toString(),
+        value: "key1: value1\nnested:\n  subkey: subvalue",
+      } as DatumClass;
+
+      mockInputs({
+        ...TEST_INPUTS,
+        secrets: [`${nestedYamlSecret.id}`],
+        parseYaml: true,
+      } as Inputs);
+      mockSecretsGetByIdResponse({
+        success: true,
+        data: { data: [nestedYamlSecret] },
+      });
+
+      await main.run();
+
+      expect(setFailedMock).toHaveBeenCalledWith(
+        expect.stringContaining(
+          "Secret contains nested structures. Only flat key-value pairs are allowed",
+        ),
+      );
+    });
+
+    it("fails when JSON secret contains nested structure", async () => {
+      const jsonSecret = {
+        id: randomUUID().toString(),
+        value: '{"key1":"value1","key2":"value2","nested":{"subkey":"subvalue"}}',
+      } as DatumClass;
+
+      mockInputs({
+        ...TEST_INPUTS,
+        secrets: [`${jsonSecret.id}`],
+        parseJson: true,
+      } as Inputs);
+      mockSecretsGetByIdResponse({
+        success: true,
+        data: { data: [jsonSecret] },
+      });
+
+      await main.run();
+      expect(setFailedMock).toHaveBeenCalledWith(
+        expect.stringContaining(
+          "Secret contains nested structures. Only flat key-value pairs are allowed",
+        ),
+      );
+    });
+
+    it("fails when duplicate keys exist in a JSON secret", async () => {
+      const duplicateJsonSecret = {
+        id: randomUUID().toString(),
+        value: '{"key1":"value1","key1":"value2"}',
+      } as DatumClass;
+
+      mockInputs({
+        ...TEST_INPUTS,
+        secrets: [`${duplicateJsonSecret.id}`],
+        parseJson: true,
+      } as Inputs);
+      mockSecretsGetByIdResponse({
+        success: true,
+        data: { data: [duplicateJsonSecret] },
+      });
+
+      await main.run();
+
+      expect(setFailedMock).toHaveBeenCalledWith(expect.stringContaining("Duplicate key detected"));
+    });
+
+    it("fails when duplicate keys exist in a YAML secret", async () => {
+      const duplicateYamlSecret = {
+        id: randomUUID().toString(),
+        value: "key1: value1\nkey1: value2",
+      } as DatumClass;
+
+      mockInputs({
+        ...TEST_INPUTS,
+        secrets: [`${duplicateYamlSecret.id}`],
+        parseYaml: true,
+      } as Inputs);
+      mockSecretsGetByIdResponse({
+        success: true,
+        data: { data: [duplicateYamlSecret] },
+      });
+
+      await main.run();
+
+      expect(setFailedMock).toHaveBeenCalledWith(expect.stringContaining("duplicated mapping key"));
+    });
+
     function expectFailed(errorMessage: string) {
       expect(setFailedMock).toHaveBeenNthCalledWith(1, errorMessage);
       expect(setFailedMock).toHaveBeenCalledTimes(1);
@@ -252,6 +409,30 @@ describe("action", () => {
         {
           identityUrl: "https://identity.bitwarden.eu",
           apiUrl: "https://api.bitwarden.eu",
+        } as ClientSettings,
+      ],
+      [
+        "parse_yaml provided",
+        {
+          ...OPTIONAL_TEST_INPUTS,
+          parseYaml: true,
+          transformKeys: true,
+        } as OptionalInputs,
+        {
+          identityUrl: EXPECTED_DEFAULT_IDENTITY_URL,
+          apiUrl: EXPECTED_DEFAULT_API_URL,
+        } as ClientSettings,
+      ],
+      [
+        "parse_json provided",
+        {
+          ...OPTIONAL_TEST_INPUTS,
+          parseJson: true,
+          transformKeys: true,
+        } as OptionalInputs,
+        {
+          identityUrl: EXPECTED_DEFAULT_IDENTITY_URL,
+          apiUrl: EXPECTED_DEFAULT_API_URL,
         } as ClientSettings,
       ],
     ])("%s", async (_, optionalInputs: OptionalInputs, expectedClientSettings: ClientSettings) => {
@@ -393,6 +574,272 @@ describe("action", () => {
       expect(setOutputMock).toHaveBeenNthCalledWith(2, "TEST_ENV_VAR_2", secretsResponse[1].value);
       expect(setOutputMock).toHaveBeenCalledTimes(2);
     });
+
+    it("parses a YAML secret and sets environment variables", async () => {
+      const secretResponse = [
+        {
+          id: randomUUID().toString(),
+          value: "key1: value1\nkey2: value2",
+        } as DatumClass,
+      ];
+
+      mockInputs({
+        ...TEST_INPUTS,
+        secrets: [`${secretResponse[0].id}`],
+        parseYaml: true,
+        transformKeys: true,
+      } as Inputs);
+      mockSecretsGetByIdResponse({
+        success: true,
+        data: { data: secretResponse },
+      });
+
+      await main.run();
+
+      expect(setFailedMock).not.toHaveBeenCalled();
+      expect(errorMock).not.toHaveBeenCalled();
+
+      expect(setSecretMock).toHaveBeenNthCalledWith(1, "value1");
+      expect(setSecretMock).toHaveBeenNthCalledWith(2, "value2");
+      expect(setSecretMock).toHaveBeenCalledTimes(2);
+
+      expect(exportVariableMock).toHaveBeenCalledWith("KEY1", "value1");
+      expect(exportVariableMock).toHaveBeenCalledWith("KEY2", "value2");
+
+      expect(setOutputMock).toHaveBeenCalledWith("KEY1", "value1");
+      expect(setOutputMock).toHaveBeenCalledWith("KEY2", "value2");
+
+      expect(exportVariableMock).toHaveBeenCalledTimes(2);
+      expect(setOutputMock).toHaveBeenCalledTimes(2);
+    });
+
+    it("parses a YAML secret and sets environment variables", async () => {
+      const secretResponse = [
+        {
+          id: randomUUID().toString(),
+          value: "key1: value1\nkey2: value2",
+        } as DatumClass,
+      ];
+
+      mockInputs({
+        ...TEST_INPUTS,
+        secrets: [`${secretResponse[0].id}`],
+        parseYaml: true,
+        transformKeys: true,
+      } as Inputs);
+      mockSecretsGetByIdResponse({
+        success: true,
+        data: { data: secretResponse },
+      });
+
+      await main.run();
+
+      expect(setFailedMock).not.toHaveBeenCalled();
+      expect(errorMock).not.toHaveBeenCalled();
+
+      expect(setSecretMock).toHaveBeenNthCalledWith(1, "value1");
+      expect(setSecretMock).toHaveBeenNthCalledWith(2, "value2");
+      expect(setSecretMock).toHaveBeenCalledTimes(2);
+
+      expect(exportVariableMock).toHaveBeenCalledWith("KEY1", "value1");
+      expect(exportVariableMock).toHaveBeenCalledWith("KEY2", "value2");
+
+      expect(setOutputMock).toHaveBeenCalledWith("KEY1", "value1");
+      expect(setOutputMock).toHaveBeenCalledWith("KEY2", "value2");
+
+      expect(exportVariableMock).toHaveBeenCalledTimes(2);
+      expect(setOutputMock).toHaveBeenCalledTimes(2);
+    });
+
+    it("parses multiple YAML secrets and sets environment variables", async () => {
+      const secretResponse = [
+        {
+          id: randomUUID().toString(),
+          value: "key1: value1\nkey2: value2",
+        } as DatumClass,
+        {
+          id: randomUUID().toString(),
+          value: "key1: value1\nkey2: value2",
+        } as DatumClass,
+      ];
+
+      mockInputs({
+        ...TEST_INPUTS,
+        secrets: [`${secretResponse[0].id}`, `${secretResponse[1].id}`],
+        parseYaml: true,
+        transformKeys: true,
+      } as Inputs);
+      mockSecretsGetByIdResponse({
+        success: true,
+        data: { data: secretResponse },
+      });
+
+      await main.run();
+
+      expect(setFailedMock).not.toHaveBeenCalled();
+      expect(errorMock).not.toHaveBeenCalled();
+
+      expect(setSecretMock).toHaveBeenNthCalledWith(1, "value1");
+      expect(setSecretMock).toHaveBeenNthCalledWith(2, "value2");
+      expect(setSecretMock).toHaveBeenNthCalledWith(3, "value1");
+      expect(setSecretMock).toHaveBeenNthCalledWith(4, "value2");
+      expect(setSecretMock).toHaveBeenCalledTimes(4);
+
+      expect(exportVariableMock).toHaveBeenCalledWith("KEY1", "value1");
+      expect(exportVariableMock).toHaveBeenCalledWith("KEY2", "value2");
+      expect(exportVariableMock).toHaveBeenCalledWith("KEY1", "value1");
+      expect(exportVariableMock).toHaveBeenCalledWith("KEY2", "value2");
+
+      expect(setOutputMock).toHaveBeenCalledWith("KEY1", "value1");
+      expect(setOutputMock).toHaveBeenCalledWith("KEY2", "value2");
+
+      expect(setOutputMock).toHaveBeenCalledWith("KEY1", "value1");
+      expect(setOutputMock).toHaveBeenCalledWith("KEY2", "value2");
+
+      expect(exportVariableMock).toHaveBeenCalledTimes(4);
+      expect(setOutputMock).toHaveBeenCalledTimes(4);
+    });
+
+    it("parses multiple JSON secrets and sets environment variables", async () => {
+      const secretResponse = [
+        {
+          id: randomUUID().toString(),
+          value: '{"key1":"value1","key2":"value2"}',
+        } as DatumClass,
+        {
+          id: randomUUID().toString(),
+          value: '{"key3":"value2","key4":"value1"}',
+        } as DatumClass,
+      ];
+
+      mockInputs({
+        ...TEST_INPUTS,
+        secrets: [`${secretResponse[0].id}`, `${secretResponse[1].id}`],
+        parseJson: true,
+        transformKeys: true,
+      } as Inputs);
+      mockSecretsGetByIdResponse({
+        success: true,
+        data: { data: secretResponse },
+      });
+
+      await main.run();
+
+      expect(setFailedMock).not.toHaveBeenCalled();
+      expect(errorMock).not.toHaveBeenCalled();
+
+      expect(setSecretMock).toHaveBeenNthCalledWith(1, "value1");
+      expect(setSecretMock).toHaveBeenNthCalledWith(2, "value2");
+      expect(setSecretMock).toHaveBeenNthCalledWith(3, "value2");
+      expect(setSecretMock).toHaveBeenNthCalledWith(4, "value1");
+      expect(setSecretMock).toHaveBeenCalledTimes(4);
+
+      expect(exportVariableMock).toHaveBeenCalledWith("KEY1", "value1");
+      expect(exportVariableMock).toHaveBeenCalledWith("KEY2", "value2");
+      expect(exportVariableMock).toHaveBeenCalledWith("KEY3", "value2");
+      expect(exportVariableMock).toHaveBeenCalledWith("KEY4", "value1");
+
+      expect(setOutputMock).toHaveBeenCalledWith("KEY1", "value1");
+      expect(setOutputMock).toHaveBeenCalledWith("KEY2", "value2");
+      expect(setOutputMock).toHaveBeenCalledWith("KEY3", "value2");
+      expect(setOutputMock).toHaveBeenCalledWith("KEY4", "value1");
+
+      expect(exportVariableMock).toHaveBeenCalledTimes(4);
+      expect(setOutputMock).toHaveBeenCalledTimes(4);
+    });
+
+    it("parses multiple JSON secrets and sets environment variables, lowercase", async () => {
+      const secretResponse = [
+        {
+          id: randomUUID().toString(),
+          value: '{"key1":"value1","key2":"value2"}',
+        } as DatumClass,
+        {
+          id: randomUUID().toString(),
+          value: '{"key3":"value2","key4":"value1"}',
+        } as DatumClass,
+      ];
+
+      mockInputs({
+        ...TEST_INPUTS,
+        secrets: [`${secretResponse[0].id}`, `${secretResponse[1].id}`],
+        parseJson: true,
+        transformKeys: false,
+      } as Inputs);
+      mockSecretsGetByIdResponse({
+        success: true,
+        data: { data: secretResponse },
+      });
+
+      await main.run();
+
+      expect(setFailedMock).not.toHaveBeenCalled();
+      expect(errorMock).not.toHaveBeenCalled();
+
+      expect(setSecretMock).toHaveBeenNthCalledWith(1, "value1");
+      expect(setSecretMock).toHaveBeenNthCalledWith(2, "value2");
+      expect(setSecretMock).toHaveBeenNthCalledWith(3, "value2");
+      expect(setSecretMock).toHaveBeenNthCalledWith(4, "value1");
+      expect(setSecretMock).toHaveBeenCalledTimes(4);
+
+      expect(exportVariableMock).toHaveBeenCalledWith("key1", "value1");
+      expect(exportVariableMock).toHaveBeenCalledWith("key2", "value2");
+      expect(exportVariableMock).toHaveBeenCalledWith("key3", "value2");
+      expect(exportVariableMock).toHaveBeenCalledWith("key4", "value1");
+
+      expect(setOutputMock).toHaveBeenCalledWith("key1", "value1");
+      expect(setOutputMock).toHaveBeenCalledWith("key2", "value2");
+      expect(setOutputMock).toHaveBeenCalledWith("key3", "value2");
+      expect(setOutputMock).toHaveBeenCalledWith("key4", "value1");
+
+      expect(exportVariableMock).toHaveBeenCalledTimes(4);
+      expect(setOutputMock).toHaveBeenCalledTimes(4);
+    });
+  });
+
+  it("parses multiple JSON secrets and sets environment variables, overlapping", async () => {
+    const secretResponse = [
+      {
+        id: randomUUID().toString(),
+        value: '{"key1":"value1","key2":"value2"}',
+      } as DatumClass,
+      {
+        id: randomUUID().toString(),
+        value: '{"key2":"value6"}',
+      } as DatumClass,
+    ];
+
+    mockInputs({
+      ...TEST_INPUTS,
+      secrets: [`${secretResponse[0].id}`, `${secretResponse[1].id}`],
+      parseJson: true,
+      transformKeys: true,
+    } as Inputs);
+    mockSecretsGetByIdResponse({
+      success: true,
+      data: { data: secretResponse },
+    });
+
+    await main.run();
+
+    expect(setFailedMock).not.toHaveBeenCalled();
+    expect(errorMock).not.toHaveBeenCalled();
+
+    expect(setSecretMock).toHaveBeenNthCalledWith(1, "value1");
+    expect(setSecretMock).toHaveBeenNthCalledWith(2, "value2");
+    expect(setSecretMock).toHaveBeenNthCalledWith(3, "value6");
+    expect(setSecretMock).toHaveBeenCalledTimes(3);
+
+    expect(exportVariableMock).toHaveBeenCalledWith("KEY1", "value1");
+    expect(exportVariableMock).toHaveBeenCalledWith("KEY2", "value2");
+    expect(exportVariableMock).toHaveBeenCalledWith("KEY2", "value6");
+
+    expect(setOutputMock).toHaveBeenCalledWith("KEY1", "value1");
+    expect(setOutputMock).toHaveBeenCalledWith("KEY2", "value2");
+    expect(setOutputMock).toHaveBeenCalledWith("KEY2", "value6");
+
+    expect(exportVariableMock).toHaveBeenCalledTimes(3);
+    expect(setOutputMock).toHaveBeenCalledTimes(3);
   });
 });
 
@@ -414,6 +861,9 @@ type OptionalInputs = {
   identityUrl?: string;
   apiUrl?: string;
   cloudRegion?: string;
+  parseYaml?: boolean;
+  parseJson?: boolean;
+  transformKeys?: boolean;
 };
 
 type Inputs = {
@@ -422,7 +872,17 @@ type Inputs = {
 } & OptionalInputs;
 
 function mockInputs(inputs: Inputs) {
-  const { accessToken, secrets, baseUrl, identityUrl, apiUrl, cloudRegion } = inputs;
+  const {
+    accessToken,
+    secrets,
+    baseUrl,
+    identityUrl,
+    apiUrl,
+    cloudRegion,
+    parseYaml,
+    parseJson,
+    transformKeys,
+  } = inputs;
 
   getInputMock.mockImplementation(
     (name: string, options?: { required?: boolean }): string | undefined => {
@@ -451,6 +911,22 @@ function mockInputs(inputs: Inputs) {
 
       // Error from core.getMultilineInput is thrown if the input is required and not supplied
       if (options?.required && !value) {
+        throw new Error(`Input required and not supplied: ${name}`);
+      }
+
+      return value;
+    },
+  );
+
+  getBooleanInputMock.mockImplementation(
+    (name: string, options?: { required?: boolean }): boolean | undefined => {
+      const value = {
+        parse_yaml: parseYaml,
+        parse_json: parseJson,
+        transform_keys: transformKeys,
+      }[name];
+
+      if (options?.required && value === undefined) {
         throw new Error(`Input required and not supplied: ${name}`);
       }
 
