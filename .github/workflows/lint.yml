@@ -14,24 +14,25 @@ defaults:
 permissions:
   contents: read
 
+env:
+  CARGO_TERM_COLOR: always
+
 jobs:
   lint:
     name: Lint
-    runs-on: ubuntu-22.04
+    runs-on: ubuntu-24.04
     steps:
       - name: Checkout repo
         uses: actions/checkout@08c6903cd8c0fde910a37f88322edcfb5dd907a8 # v5.0.0
         with:
           persist-credentials: false
 
-      - name: Set up Node
-        uses: actions/setup-node@0a44ba7841725637a19e28fa30b79a866c81b0a6 # v4.0.4
+      - name: Set up Rust
+        uses: dtolnay/rust-toolchain@4305c38b25d97ef35a8ad1f985ccf2d2242004f2 # stable
         with:
-          cache: "npm"
-          cache-dependency-path: "**/package-lock.json"
-          node-version: "20"
+          toolchain: stable
+          components: clippy
 
-      - name: Run linter
+      - name: Lint with Clippy
         run: |
-          npm ci
-          npm run lint
+          cargo clippy --all-targets --all-features -- -D warnings
