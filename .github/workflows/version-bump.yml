@@ -8,7 +8,6 @@ on:
         required: true
         type: string
 
-
 jobs:
   bump_version:
     name: Bump version to v${{ inputs.version_number }}
