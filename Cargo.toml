@@ -7,9 +7,9 @@ edition = "2024"
 anyhow = { version = "1.0.100", default-features = false }
 
 # TODO: switch to a stable release after a version newer than 1.0.0 is available
-bitwarden-core = { git = "https://github.com/bitwarden/sdk-internal.git", rev = "00c854d190cd4b22e3446f862d23b0ca38f41b63", features = ["secrets"] }
-bitwarden-sm = { git = "https://github.com/bitwarden/sdk-internal.git", rev = "00c854d190cd4b22e3446f862d23b0ca38f41b63" }
-bitwarden-vault = { git = "https://github.com/bitwarden/sdk-internal.git", rev = "00c854d190cd4b22e3446f862d23b0ca38f41b63" }
+bitwarden-core = { git = "https://github.com/bitwarden/sdk-internal.git", rev = "d5be37f6d1cd22ed79586916a898fd164f71c0a7", features = ["secrets"] }
+bitwarden-sm = { git = "https://github.com/bitwarden/sdk-internal.git", rev = "d5be37f6d1cd22ed79586916a898fd164f71c0a7" }
+bitwarden-vault = { git = "https://github.com/bitwarden/sdk-internal.git", rev = "d5be37f6d1cd22ed79586916a898fd164f71c0a7" }
 
 tokio = { version = "1.48.0", features = ["macros"] }
 uuid = "1.18.1"
