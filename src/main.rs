@@ -38,6 +38,7 @@ async fn run<T: ContinuousIntegration>(ci: &mut T) -> Result<()> {
         api_url,
         user_agent: "bitwarden/sm-action".to_string(),
         device_type: bitwarden_core::DeviceType::SDK,
+        bitwarden_client_version: Some(VERSION.to_string()),
     }));
 
     println!("Parsing secrets input...");
