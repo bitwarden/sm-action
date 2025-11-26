@@ -8,13 +8,13 @@ on:
         required: true
         type: string
 
+permissions: {}
 
 jobs:
   bump_version:
     name: Bump version to v${{ inputs.version_number }}
     runs-on: ubuntu-24.04
     permissions:
-      contents: write
       id-token: write
     steps:
       - name: Log in to Azure
@@ -40,6 +40,8 @@ jobs:
         with:
           app-id: ${{ steps.get-kv-secrets.outputs.BW-GHAPP-ID }}
           private-key: ${{ steps.get-kv-secrets.outputs.BW-GHAPP-KEY }}
+          permission-contents: write
+
 
       - name: Check out branch
         uses: actions/checkout@08c6903cd8c0fde910a37f88322edcfb5dd907a8 # v5.0.0
