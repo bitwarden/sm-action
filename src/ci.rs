@@ -84,6 +84,99 @@ impl<W: Write> ContinuousIntegration for GithubActionsRunner<W> {
     }
 }
 
+pub struct AzureDevops<W: Write> {
+    out: W,
+}
+
+impl<W: Write> AzureDevops<W> {
+    /// Ref: https://github.com/microsoft/azure-pipelines-task-lib/blob/c0f78177692939272974b25c991c481f11c72005/node/taskcommand.ts#L26-L51
+    fn command(
+        &mut self,
+        command_name: &str,
+        properties: Vec<(&str, &str)>,
+        message: &str,
+    ) -> Result<()> {
+        let mut command = String::new();
+        command.push_str("##vso[");
+        command.push_str(command_name);
+
+        if !properties.is_empty() {
+            command.push(' ');
+        }
+
+        for (key, value) in properties.iter() {
+            // Need to run escape on value
+            let escaped_value = Self::escape(value);
+            command.push_str(format!("{key}={escaped_value};").as_str());
+        }
+        command.push(']');
+
+        // TODO: Need to call escapedata on message
+        command.push_str(&Self::escape_data(message));
+
+        writeln!(self.out, "{command}")?;
+        Ok(())
+    }
+
+    // Ref: https://github.com/microsoft/azure-pipelines-task-lib/blob/c0f78177692939272974b25c991c481f11c72005/node/taskcommand.ts#L105-L111
+    fn escape(s: &str) -> String {
+        s.replace("%", "%AZP25")
+            .replace("\r", "%0D")
+            .replace("\n", "%0A")
+            .replace("]", "%5D")
+            .replace(";", "%3B")
+    }
+
+    // Ref: https://github.com/microsoft/azure-pipelines-task-lib/blob/c0f78177692939272974b25c991c481f11c72005/node/taskcommand.ts#L93-L97
+    fn escape_data(s: &str) -> String {
+        s.replace("%", "%AZP25")
+            .replace("\r", "%0D")
+            .replace("\n", "%0A")
+    }
+}
+
+impl<W: Write> ContinuousIntegration for AzureDevops<W> {
+    fn get_input(&self, name: &str) -> Option<String> {
+        let upper_name = name.to_ascii_uppercase();
+        match std::env::var(format!("INPUT_{upper_name}")) {
+            Ok(value) if !value.trim().is_empty() => Some(value),
+            _ => None,
+        }
+    }
+
+    // Ref: https://github.com/microsoft/azure-pipelines-task-lib/blob/c0f78177692939272974b25c991c481f11c72005/node/task.ts#L215-L241
+    fn set_environment(&mut self, name: &str, value: &str) -> Result<()> {
+        self.command(
+            "task.setvariable",
+            vec![
+                ("variable", name),
+                ("isOutput", "false"),
+                ("issecret", "true"),
+            ],
+            value,
+        )
+    }
+
+    // Ref: https://github.com/microsoft/azure-pipelines-task-lib/blob/c0f78177692939272974b25c991c481f11c72005/node/task.ts#L215-L241
+    fn set_output(&mut self, name: &str, value: &str) -> Result<()> {
+        self.command(
+            "task.setvariable",
+            vec![
+                ("variable", name),
+                ("isOutput", "true"),
+                ("issecret", "true"),
+            ],
+            value,
+        )
+    }
+
+    /// Masks a value in the GitHub Actions logs to prevent it from being displayed.
+    fn mask_value(&mut self, value: &str) {
+        self.command("task.setsecret", vec![], value)
+            .expect("masking secret should have succeeded");
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -161,5 +254,23 @@ mod tests {
             .join("\n");
 
         Ok((value, delimiter))
+    }
+
+    #[test]
+    fn test_ado() -> Result<()> {
+        let out = vec![];
+
+        let mut ado = AzureDevops { out };
+
+        ado.set_output("NAME", "VALUE")?;
+
+        let output = String::from_utf8(ado.out)?;
+
+        assert_eq!(
+            output,
+            "##vso[task.setvariable variable=NAME;isOutput=true;issecret=true;]VALUE\n"
+        );
+
+        Ok(())
     }
 }
