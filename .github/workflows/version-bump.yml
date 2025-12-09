@@ -15,7 +15,6 @@ env:
   _VERSION_FILE_JSON: version.json
   _VERSION_FILE_CARGO: Cargo.toml
   _VERSION_NUMBER: ${{ inputs.version_number }}
-
 jobs:
   bump_version:
     name: Bump version to v${{ inputs.version_number }}
