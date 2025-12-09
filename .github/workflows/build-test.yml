@@ -126,6 +126,9 @@ jobs:
             1e12e623-d4ce-43d2-a3d3-07918217d280 > SECRET_NO_ENV_TWO
 
       - name: Ensure that `set_env=false` works correctly
+        env:
+          SECRET_OUTPUT_ONE: "${{ steps.set-env-false.outputs.SECRET_NO_ENV_ONE }}"
+          SECRET_OUTPUT_TWO: "${{ steps.set-env-false.outputs.SECRET_NO_ENV_TWO }}"
         run: |
           echo set_env is false, so secrets should not be in env:
           if [ -n "$SECRET_NO_ENV_ONE" ] || [ -n "$SECRET_NO_ENV_TWO" ]; then
@@ -137,8 +140,8 @@ jobs:
           echo
 
           echo printing unmasked secrets with spaces between each character from GITHUB_OUTPUT:
-          echo "${{ steps.set-env-false.outputs.SECRET_NO_ENV_ONE }}" | sed 's/./& /g'
-          echo "${{ steps.set-env-false.outputs.SECRET_NO_ENV_TWO }}" | sed 's/./& /g'
+          echo "$SECRET_OUTPUT_ONE" | sed 's/./& /g'
+          echo "$SECRET_OUTPUT_TWO" | sed 's/./& /g'
           echo
 
       - name: Run the Rust Action
