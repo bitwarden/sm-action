@@ -189,12 +189,17 @@ jobs:
 
       - name: Compare GITHUB_OUTPUT values from both actions
         if: ${{ matrix.os != 'ubuntu-24.04-arm' }} # existing action does not support aarch64 linux
+        env:
+          RUST_SECRET_ONE: ${{ steps.rust-action.outputs.SECRET_ONE }}
+          EXISTING_SECRET_ONE: ${{ steps.sm-action.outputs.SECRET_ONE }}
+          RUST_SECRET_TWO: ${{ steps.rust-action.outputs.SECRET_TWO }}
+          EXISTING_SECRET_TWO: ${{ steps.sm-action.outputs.SECRET_TWO }}
         run: |
-          if [ "${{ steps.rust-action.outputs.SECRET_ONE }}" != "${{ steps.sm-action.outputs.SECRET_ONE }}" ]; then
+          if [ "${RUST_SECRET_ONE}" != "${EXISTING_SECRET_ONE}" ]; then
             echo "SECRET_ONE does not match between sm-action and existing sm-action" >&2
             exit 1
           fi
-          if [ "${{ steps.rust-action.outputs.SECRET_TWO }}" != "${{ steps.sm-action.outputs.SECRET_TWO }}" ]; then
+          if [ "${RUST_SECRET_TWO}" != "${EXISTING_SECRET_TWO}" ]; then
             echo "SECRET_TWO does not match between sm-action and existing sm-action" >&2
             exit 1
           fi
