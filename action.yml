@@ -1,9 +1,11 @@
 name: "Bitwarden Secrets Manager GitHub Action"
 description: "GitHub action for retrieving secrets from Bitwarden Secrets Manager"
 author: "Bitwarden"
+
 branding:
   icon: "unlock"
   color: "blue"
+
 inputs:
   access_token:
     description: "The machine account access token for retrieving secrets"
@@ -14,7 +16,6 @@ inputs:
   cloud_region:
     description: "(Optional) The Bitwarden server region to use if cloud-hosted service is used. Either 'us' or 'eu'"
     required: false
-    default: "us"
   base_url:
     description: "(Optional) For self-hosted bitwarden instances provide your https://your.domain.com"
     required: false
@@ -27,6 +28,11 @@ inputs:
     description: "(Optional) For self-hosted bitwarden instances provide your https://your.domain.com/api"
     required: false
     default: ""
+  set_env:
+    description: "(Optional) Set the secrets as environment variables. Defaults to true"
+    required: false
+    default: "true"
+
 runs:
-  using: "node20"
-  main: "dist/index.js"
+  using: "node24"
+  main: "index.js"

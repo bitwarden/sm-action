@@ -1,62 +1,29 @@
 {
   "name": "@bitwarden/sm-action",
-  "version": "2.2.0",
-  "private": true,
   "description": "The Bitwarden Secrets Manager GitHub Action",
-  "keywords": [
-    "actions",
-    "node",
-    "setup"
-  ],
-  "homepage": "https://github.com/bitwarden/sm-action#readme",
-  "bugs": {
-    "url": "https://github.com/bitwarden/sm-action/issues"
+  "main": "index.js",
+  "scripts": {
+    "build": "cargo build --release",
+    "test": "npm run build && node index.js"
   },
   "repository": {
     "type": "git",
     "url": "git+https://github.com/bitwarden/sm-action.git"
   },
-  "license": "GPL-3.0",
-  "author": "Bitwarden Inc. <hello@bitwarden.com> (https://bitwarden.com)",
-  "exports": {
-    ".": "./dist/index.js"
+  "homepage": "https://github.com/bitwarden/sm-action#readme",
+  "bugs": {
+    "url": "https://github.com/bitwarden/sm-action/issues"
   },
+  "author": "Bitwarden Inc. <hello@bitwarden.com> (https://bitwarden.com)",
+  "license": "GPL-3.0",
+  "keywords": [
+    "actions",
+    "bitwarden",
+    "node",
+    "setup",
+    "secrets"
+  ],
   "engines": {
     "node": ">=20"
-  },
-  "scripts": {
-    "all": "npm run prettier && npm run lint && npm test && npm run dist",
-    "bundle": "npm run prettier && npm run lint && npm run dist",
-    "lint": "eslint src/**/*.ts && prettier --check '**/*.ts'",
-    "lint:fix": "eslint src/**/*.ts --fix",
-    "dist": "pwsh ./pack.ps1 && ncc build src/index.ts --license licenses.txt --external @bitwarden/sdk-napi",
-    "prepare": "husky",
-    "prettier": "prettier --write .",
-    "test": "jest"
-  },
-  "lint-staged": {
-    "*": "prettier --ignore-unknown --write",
-    "*.ts": "eslint --cache --cache-strategy content --fix"
-  },
-  "dependencies": {
-    "@actions/core": "1.11.1",
-    "@bitwarden/sdk-napi": "0.3.1"
-  },
-  "devDependencies": {
-    "@types/jest": "29.5.14",
-    "@types/node": "22.19.0",
-    "@typescript-eslint/eslint-plugin": "8.46.3",
-    "@typescript-eslint/parser": "8.46.3",
-    "@vercel/ncc": "0.38.3",
-    "eslint": "8.57.1",
-    "eslint-config-prettier": "9.1.0",
-    "eslint-plugin-jest": "28.7.0",
-    "husky": "9.1.7",
-    "jest": "29.7.0",
-    "js-yaml": "4.1.1",
-    "lint-staged": "15.2.8",
-    "prettier": "3.5.3",
-    "ts-jest": "29.1.5",
-    "typescript": "5.9.3"
   }
 }
