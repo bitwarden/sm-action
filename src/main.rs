@@ -2,11 +2,11 @@ use std::collections::HashMap;
 use std::str::FromStr;
 
 use anyhow::Result;
-use bitwarden_core::auth::login::AccessTokenLoginRequest;
-use bitwarden_core::{Client, ClientSettings};
-use bitwarden_sm::ClientSecretsExt;
-use bitwarden_sm::secrets::SecretsGetRequest;
-
+use bitwarden::{
+    Client, ClientSettings, DeviceType,
+    auth::login::AccessTokenLoginRequest,
+    secrets_manager::{SecretsClientExt, secrets::SecretsGetRequest},
+};
 use config::{Config, infer_urls};
 use uuid::Uuid;
 
@@ -37,7 +37,8 @@ async fn run<T: ContinuousIntegration>(ci: &mut T) -> Result<()> {
         identity_url,
         api_url,
         user_agent: "bitwarden/sm-action".to_string(),
-        device_type: bitwarden_core::DeviceType::SDK,
+        device_type: DeviceType::SDK,
+        ..Default::default()
     }));
 
     println!("Parsing secrets input...");
