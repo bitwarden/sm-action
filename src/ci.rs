@@ -14,11 +14,6 @@ pub trait ContinuousIntegration {
     /// Refers to the GITHUB_OUTPUT concept in GitHub Actions. Sets secrets to this output file.
     fn set_output(&mut self, name: &str, value: &str) -> Result<()>;
 
-    /// Escape the values in a secret to handle special characters.
-    fn escape_secret(&mut self, value: &str) -> String {
-        value.to_string()
-    }
-
     /// Masks a value in the CI logs to prevent it from being displayed.
     /// In some CI systems this may not be possible. In which case this function may be a no-op.
     fn mask_value(&mut self, value: &str);
@@ -46,6 +41,13 @@ impl<W: Write> GithubActionsRunner<W> {
             Ok(value) if !value.trim().is_empty() => Some(value),
             _ => None,
         }
+    }
+
+    fn escape_secret(&self, value: &str) -> String {
+        value
+            .replace('%', "%25")
+            .replace('\r', "%0D")
+            .replace('\n', "%0A")
     }
 }
 
@@ -83,17 +85,9 @@ impl<W: Write> ContinuousIntegration for GithubActionsRunner<W> {
         Self::issue_file_command(&mut self.output_file, name, value)
     }
 
-    /// Escape GitHub special characters to ensure multi-line values are handled properly.
-    fn escape_secret(&mut self, value: &str) -> String {
-        value
-            .replace('%', "%25")
-            .replace('\r', "%0D")
-            .replace('\n', "%0A")
-    }
-
     /// Masks a value in the GitHub Actions logs to prevent it from being displayed.
     fn mask_value(&mut self, value: &str) {
-        let escaped_secret = self.escape_secret(value);
+        let escaped_secret = Self::escape_secret(self, value);
         println!("::add-mask::{escaped_secret}");
     }
 }
@@ -132,7 +126,7 @@ mod tests {
 
     #[test]
     fn test_multiline_secret_masking() {
-        let mut gh: GithubActionsRunner<Vec<u8>> = GithubActionsRunner {
+        let gh: GithubActionsRunner<Vec<u8>> = GithubActionsRunner {
             env_file: vec![],
             output_file: vec![],
         };
@@ -169,7 +163,7 @@ BBBB_THIS_IS_LINE_THREE_SENSITIVE
 
     #[test]
     fn test_escape_characters() {
-        let mut gh: GithubActionsRunner<Vec<u8>> = GithubActionsRunner {
+        let gh: GithubActionsRunner<Vec<u8>> = GithubActionsRunner {
             env_file: vec![],
             output_file: vec![],
         };
