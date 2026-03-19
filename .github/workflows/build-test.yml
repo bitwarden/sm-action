@@ -115,16 +115,16 @@ jobs:
           secrets: |
             e9ce5e83-d5b9-46d8-91e8-b1e54d8a52d8 > SECRET_NO_ENV_ONE
             1e12e623-d4ce-43d2-a3d3-07918217d280 > SECRET_NO_ENV_TWO
-            7cd15779-81a6-4693-bace-b41101535c99 > MULTILINE_SECRET
+            7cd15779-81a6-4693-bace-b41101535c99 > SECRET_NO_ENV_THREE
 
       - name: Ensure that `set_env=false` works correctly
         env:
           SECRET_OUTPUT_ONE: "${{ steps.set-env-false.outputs.SECRET_NO_ENV_ONE }}"
           SECRET_OUTPUT_TWO: "${{ steps.set-env-false.outputs.SECRET_NO_ENV_TWO }}"
-          MULTILINE_SECRET: "${{ steps.set-env-false.outputs.MULTILINE_SECRET }}"
+          SECRET_OUTPUT_THREE: "${{ steps.set-env-false.outputs.SECRET_NO_ENV_THREE }}"
         run: |
           echo set_env is false, so secrets should not be in env:
-          if [ -n "$SECRET_NO_ENV_ONE" ] || [ -n "$SECRET_NO_ENV_TWO" ] || [ -n "$MULTILINE_SECRET" ]; then
+          if [ -n "$SECRET_NO_ENV_ONE" ] || [ -n "$SECRET_NO_ENV_TWO" ] || [ -n "$SECRET_NO_ENV_THREE" ]; then
             echo "Secrets found in environment variables, but set_env is false" >&2
             exit 1
           else
@@ -133,9 +133,9 @@ jobs:
           echo
 
           echo printing unmasked secrets with spaces between each character from GITHUB_OUTPUT:
-          echo "$SECRET_OUTPUT_ONE" | sed 's/./& /g'
-          echo "$SECRET_OUTPUT_TWO" | sed 's/./& /g'
-          echo "$MULTILINE_SECRET" | sed 's/./& /g'
+          echo "${SECRET_OUTPUT_ONE//?/& }"
+          echo "${SECRET_OUTPUT_TWO//?/& }"
+          echo "${SECRET_OUTPUT_THREE//?/& }"
           echo
 
       - name: Run the Rust Action
@@ -147,25 +147,29 @@ jobs:
           secrets: |
             e9ce5e83-d5b9-46d8-91e8-b1e54d8a52d8 > SECRET_ONE
             1e12e623-d4ce-43d2-a3d3-07918217d280 > SECRET_TWO
-            7cd15779-81a6-4693-bace-b41101535c99 > MULTILINE_SECRET
+            7cd15779-81a6-4693-bace-b41101535c99 > SECRET_MULTILINE
 
       - name: Print Output from Rust sm-action
+        env:
+          SECRET_ONE: ${{ steps.rust-action.outputs.SECRET_ONE }}
+          SECRET_TWO: ${{ steps.rust-action.outputs.SECRET_TWO }}
+          SECRET_MULTILINE: ${{ steps.rust-action.outputs.SECRET_MULTILINE }}
         run: |
           echo the following secrets should be masked:
           echo "SECRET_ONE=$SECRET_ONE"
           echo "SECRET_TWO=$SECRET_TWO"
-          echo "MULTILINE_SECRET=$MULTILINE_SECRET"
+          echo "SECRET_MULTILINE=$SECRET_MULTILINE"
           echo
 
           echo the following should be unmasked secret values with spaces between each character:
-          echo "$SECRET_ONE" | sed 's/./& /g'
-          echo "$SECRET_TWO" | sed 's/./& /g'
-          echo "$MULTILINE_SECRET" | sed 's/./& /g'
+          echo "${SECRET_ONE//?/& }"
+          echo "${SECRET_TWO//?/& }"
+          echo "${SECRET_MULTILINE//?/& }"
           echo
 
       - name: Test TypeScript sm-action@v2.2.0
         if: ${{ matrix.os != 'ubuntu-24.04-arm' }} # TS action does not support aarch64 linux
-        id: sm-action
+        id: ts-action
         uses: bitwarden/sm-action@14f92f1d294ae3c2b6a3845d389cd2c318b0dfd8 # v2.2.0
         with:
           access_token: ${{ secrets.TEST_SM_ACCESS_TOKEN }}
@@ -173,26 +177,30 @@ jobs:
           secrets: |
             e9ce5e83-d5b9-46d8-91e8-b1e54d8a52d8 > SECRET_ONE
             1e12e623-d4ce-43d2-a3d3-07918217d280 > SECRET_TWO
-            7cd15779-81a6-4693-bace-b41101535c99 > MULTILINE_SECRET
+            7cd15779-81a6-4693-bace-b41101535c99 > SECRET_MULTILINE
 
       - name: Print output from TypeScript sm-action@v2.2.0
         if: ${{ matrix.os != 'ubuntu-24.04-arm' }} # TS action does not support aarch64 linux
+        env:
+          SECRET_ONE: ${{ steps.ts-action.outputs.SECRET_ONE }}
+          SECRET_TWO: ${{ steps.ts-action.outputs.SECRET_TWO }}
+          SECRET_MULTILINE: ${{ steps.ts-action.outputs.SECRET_MULTILINE }}
         run: |
           echo the following secrets should be masked:
           echo "SECRET_ONE=$SECRET_ONE"
           echo "SECRET_TWO=$SECRET_TWO"
-          echo "MULTILINE_SECRET=$MULTILINE_SECRET"
+          echo "SECRET_MULTILINE=$SECRET_MULTILINE"
           echo
 
           echo the following should be unmasked secret values with spaces between each character:
-          echo "$SECRET_ONE" | sed 's/./& /g'
-          echo "$SECRET_TWO" | sed 's/./& /g'
-          echo "$MULTILINE_SECRET" | sed 's/./& /g'
+          echo "${SECRET_ONE//?/& }"
+          echo "${SECRET_TWO//?/& }"
+          echo "${SECRET_MULTILINE//?/& }"
           echo
 
       - name: Print secret value line-by-line
         env:
-          SECRET_VAL: ${{ env.MULTILINE_SECRET }}
+          SECRET_VAL: ${{ env.SECRET_MULTILINE }}
         run: |
           echo the following multi-line secret should be masked:
           echo "$SECRET_VAL" | while IFS= read -r line; do
@@ -203,11 +211,11 @@ jobs:
         if: ${{ matrix.os != 'ubuntu-24.04-arm' }} # TS action does not support aarch64 linux
         env:
           RUST_SECRET_ONE: ${{ steps.rust-action.outputs.SECRET_ONE }}
-          TYPESCRIPT_SECRET_ONE: ${{ steps.sm-action.outputs.SECRET_ONE }}
+          TYPESCRIPT_SECRET_ONE: ${{ steps.ts-action.outputs.SECRET_ONE }}
           RUST_SECRET_TWO: ${{ steps.rust-action.outputs.SECRET_TWO }}
-          TYPESCRIPT_SECRET_TWO: ${{ steps.sm-action.outputs.SECRET_TWO }}
-          RUST_MULTILINE_SECRET: ${{ steps.rust-action.outputs.MULTILINE_SECRET }}
-          TYPESCRIPT_MULTILINE_SECRET: ${{ steps.sm-action.outputs.MULTILINE_SECRET }}
+          TYPESCRIPT_SECRET_TWO: ${{ steps.ts-action.outputs.SECRET_TWO }}
+          RUST_SECRET_MULTILINE: ${{ steps.rust-action.outputs.SECRET_MULTILINE }}
+          TYPESCRIPT_SECRET_MULTILINE: ${{ steps.ts-action.outputs.SECRET_MULTILINE }}
         run: |
           if [ "${RUST_SECRET_ONE}" != "${TYPESCRIPT_SECRET_ONE}" ]; then
             echo "SECRET_ONE does not match between sm-action and TypeScript sm-action@v2.2.0" >&2
@@ -217,8 +225,8 @@ jobs:
             echo "SECRET_TWO does not match between sm-action and TypeScript sm-action@v2.2.0" >&2
             exit 1
           fi
-          if [ "${RUST_MULTILINE_SECRET}" != "${TYPESCRIPT_MULTILINE_SECRET}" ]; then
-            echo "MULTILINE_SECRET does not match between sm-action and TypeScript sm-action@v2.2.0" >&2
+          if [ "${RUST_SECRET_MULTILINE}" != "${TYPESCRIPT_SECRET_MULTILINE}" ]; then
+            echo "SECRET_MULTILINE does not match between sm-action and TypeScript sm-action@v2.2.0" >&2
             exit 1
           fi
           echo "All outputs match between sm-action and TypeScript sm-action@v2.2.0"
