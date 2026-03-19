@@ -133,9 +133,9 @@ jobs:
           echo
 
           echo printing unmasked secrets with spaces between each character from GITHUB_OUTPUT:
-          echo "${SECRET_OUTPUT_ONE//?/& }"
-          echo "${SECRET_OUTPUT_TWO//?/& }"
-          echo "${SECRET_OUTPUT_THREE//?/& }"
+          echo "$SECRET_OUTPUT_ONE" | sed 's/./& /g'
+          echo "$SECRET_OUTPUT_TWO" | sed 's/./& /g'
+          echo "$SECRET_OUTPUT_THREE" | sed 's/./& /g'
           echo
 
       - name: Run the Rust Action
@@ -162,9 +162,9 @@ jobs:
           echo
 
           echo the following should be unmasked secret values with spaces between each character:
-          echo "${SECRET_ONE//?/& }"
-          echo "${SECRET_TWO//?/& }"
-          echo "${SECRET_MULTILINE//?/& }"
+          echo "$SECRET_ONE" | sed 's/./& /g'
+          echo "$SECRET_TWO" | sed 's/./& /g'
+          echo "$SECRET_MULTILINE" | sed 's/./& /g'
           echo
 
       - name: Test TypeScript sm-action@v2.2.0
@@ -193,9 +193,9 @@ jobs:
           echo
 
           echo the following should be unmasked secret values with spaces between each character:
-          echo "${SECRET_ONE//?/& }"
-          echo "${SECRET_TWO//?/& }"
-          echo "${SECRET_MULTILINE//?/& }"
+          echo "$SECRET_ONE" | sed 's/./& /g'
+          echo "$SECRET_TWO" | sed 's/./& /g'
+          echo "$SECRET_MULTILINE" | sed 's/./& /g'
           echo
 
       - name: Print secret value line-by-line
