@@ -118,8 +118,9 @@ jobs:
 
       - name: Ensure that `set_env=false` works correctly
         env:
-          SECRET_OUTPUT_ONE: "${{ steps.set-env-false.outputs.SECRET_NO_ENV_ONE }}"
-          SECRET_OUTPUT_TWO: "${{ steps.set-env-false.outputs.SECRET_NO_ENV_TWO }}"
+          # fromJSON(toJSON(...)) handles actionlint limitation with dynamic outputs from local actions
+          SECRET_OUTPUT_ONE: "${{ fromJSON(toJSON(steps.set-env-false.outputs)).SECRET_NO_ENV_ONE }}"
+          SECRET_OUTPUT_TWO: "${{ fromJSON(toJSON(steps.set-env-false.outputs)).SECRET_NO_ENV_TWO }}"
         run: |
           echo set_env is false, so secrets should not be in env:
           if [ -n "$SECRET_NO_ENV_ONE" ] || [ -n "$SECRET_NO_ENV_TWO" ]; then
@@ -184,9 +185,10 @@ jobs:
       - name: Compare GITHUB_OUTPUT values from both actions
         if: ${{ matrix.os != 'ubuntu-24.04-arm' }} # existing action does not support aarch64 linux
         env:
-          RUST_SECRET_ONE: ${{ steps.rust-action.outputs.SECRET_ONE }}
+          # fromJSON(toJSON(...)) handles actionlint limitation with dynamic outputs from local actions
+          RUST_SECRET_ONE: ${{ fromJSON(toJSON(steps.rust-action.outputs)).SECRET_ONE }}
           EXISTING_SECRET_ONE: ${{ steps.sm-action.outputs.SECRET_ONE }}
-          RUST_SECRET_TWO: ${{ steps.rust-action.outputs.SECRET_TWO }}
+          RUST_SECRET_TWO: ${{ fromJSON(toJSON(steps.rust-action.outputs)).SECRET_TWO }}
           EXISTING_SECRET_TWO: ${{ steps.sm-action.outputs.SECRET_TWO }}
         run: |
           if [ "${RUST_SECRET_ONE}" != "${EXISTING_SECRET_ONE}" ]; then
