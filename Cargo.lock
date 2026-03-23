@@ -2488,7 +2488,7 @@ checksum = "0c790de23124f9ab44544d7ac05d60440adc586479ce501c1d6d7da3cd8c9cf5"
 
 [[package]]
 name = "sm-action"
-version = "3.0.0"
+version = "3.0.0-beta.5"
 dependencies = [
  "anyhow",
  "bitwarden",
