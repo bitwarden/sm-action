@@ -42,6 +42,13 @@ impl<W: Write> GithubActionsRunner<W> {
             _ => None,
         }
     }
+
+    fn escape_secret(&self, value: &str) -> String {
+        value
+            .replace('%', "%25")
+            .replace('\r', "%0D")
+            .replace('\n', "%0A")
+    }
 }
 
 impl GithubActionsRunner<std::fs::File> {
@@ -80,7 +87,8 @@ impl<W: Write> ContinuousIntegration for GithubActionsRunner<W> {
 
     /// Masks a value in the GitHub Actions logs to prevent it from being displayed.
     fn mask_value(&mut self, value: &str) {
-        println!("::add-mask::{value}");
+        let escaped_secret = Self::escape_secret(self, value);
+        println!("::add-mask::{escaped_secret}");
     }
 }
 
@@ -102,8 +110,7 @@ mod tests {
         let _ = gh.set_output("NAME2", "VALUE2\nNEWLINE");
         let _ = gh.set_output("NAME3", "\nVALUE3\n\t\t\t\tNEWLINE");
 
-        // Take back ownership of buffers
-        let binding = gh.output_file.clone();
+        let binding = gh.output_file;
 
         let (value_1, delimiter_value_1) = assert_github_output(&binding, "NAME1")?;
         let (value_2, delimiter_value_2) = assert_github_output(&binding, "NAME2")?;
@@ -115,6 +122,77 @@ mod tests {
         assert_ne!(delimiter_value_1, delimiter_value_2);
         assert_ne!(delimiter_value_2, delimiter_value_3);
         Ok(())
+    }
+
+    #[test]
+    fn test_multiline_secret_masking() {
+        let gh: GithubActionsRunner<Vec<u8>> = GithubActionsRunner {
+            env_file: vec![],
+            output_file: vec![],
+        };
+
+        let multiline_secret = "-----BEGIN TEST KEY-----
+AAAA_THIS_IS_LINE_TWO_SENSITIVE
+BBBB_THIS_IS_LINE_THREE_SENSITIVE
+-----END TEST KEY-----";
+
+        let escaped = gh.escape_secret(multiline_secret);
+
+        assert!(
+            escaped.contains("AAAA_THIS_IS_LINE_TWO_SENSITIVE"),
+            "Second line should be present in escaped value"
+        );
+        assert!(
+            escaped.contains("BBBB_THIS_IS_LINE_THREE_SENSITIVE"),
+            "Third line should be present in escaped value"
+        );
+        assert!(
+            escaped.contains("-----BEGIN TEST KEY-----"),
+            "First line should be present in escaped value"
+        );
+        assert!(
+            escaped.contains("-----END TEST KEY-----"),
+            "Fourth line should be present in escaped value"
+        );
+        assert!(
+            !escaped.contains('\n'),
+            "No raw newlines should remain after escaping"
+        );
+        assert!(escaped.contains("%0A"), "Newlines should be escaped as %0A");
+    }
+
+    #[test]
+    fn test_escape_characters() {
+        let gh: GithubActionsRunner<Vec<u8>> = GithubActionsRunner {
+            env_file: vec![],
+            output_file: vec![],
+        };
+
+        let value_with_escapes = "100% complete\r\nline2";
+
+        let escaped = gh.escape_secret(value_with_escapes);
+
+        assert!(
+            escaped.contains("%25"),
+            "Percent signs should be escaped as %25"
+        );
+        assert!(
+            escaped.contains("%0D"),
+            "Carriage returns should be escaped as %0D"
+        );
+        assert!(escaped.contains("%0A"), "Newlines should be escaped as %0A");
+        assert!(
+            escaped.contains("100"),
+            "Original content should be preserved"
+        );
+        assert!(
+            escaped.contains("complete"),
+            "Original content should be preserved"
+        );
+        assert!(
+            escaped.contains("line2"),
+            "Original content should be preserved"
+        );
     }
 
     /// Asserts that name value pairs are written to the buffer in the correct format
