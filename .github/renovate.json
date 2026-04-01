@@ -1,6 +1,8 @@
 {
   "$schema": "https://docs.renovatebot.com/renovate-schema.json",
   "extends": ["github>bitwarden/renovate-config"],
+  "timezone": "America/Chicago",
+  "schedule": ["0 0-4 1-7 2/2 1"],
   "enabledManagers": ["github-actions", "cargo"],
   "packageRules": [
     {
