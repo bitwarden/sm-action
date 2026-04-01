@@ -119,9 +119,10 @@ jobs:
 
       - name: Ensure that `set_env=false` works correctly
         env:
-          SECRET_OUTPUT_ONE: "${{ steps.set-env-false.outputs.SECRET_NO_ENV_ONE }}"
-          SECRET_OUTPUT_TWO: "${{ steps.set-env-false.outputs.SECRET_NO_ENV_TWO }}"
-          SECRET_OUTPUT_THREE: "${{ steps.set-env-false.outputs.SECRET_NO_ENV_THREE }}"
+          # fromJSON(toJSON(...)) works around actionlint's inability to type-check dynamic outputs from local actions
+          SECRET_OUTPUT_ONE: "${{ fromJSON(toJSON(steps.set-env-false.outputs)).SECRET_NO_ENV_ONE }}"
+          SECRET_OUTPUT_TWO: "${{ fromJSON(toJSON(steps.set-env-false.outputs)).SECRET_NO_ENV_TWO }}"
+          SECRET_OUTPUT_THREE: "${{ fromJSON(toJSON(steps.set-env-false.outputs)).SECRET_NO_ENV_THREE }}"
         run: |
           echo set_env is false, so secrets should not be in env:
           if [ -n "$SECRET_NO_ENV_ONE" ] || [ -n "$SECRET_NO_ENV_TWO" ] || [ -n "$SECRET_NO_ENV_THREE" ]; then
@@ -151,9 +152,10 @@ jobs:
 
       - name: Print Output from Rust sm-action
         env:
-          SECRET_ONE: ${{ steps.rust-action.outputs.SECRET_ONE }}
-          SECRET_TWO: ${{ steps.rust-action.outputs.SECRET_TWO }}
-          SECRET_MULTILINE: ${{ steps.rust-action.outputs.SECRET_MULTILINE }}
+          # fromJSON(toJSON(...)) works around actionlint's inability to type-check dynamic outputs from local actions
+          SECRET_ONE: ${{ fromJSON(toJSON(steps.rust-action.outputs)).SECRET_ONE }}
+          SECRET_TWO: ${{ fromJSON(toJSON(steps.rust-action.outputs)).SECRET_TWO }}
+          SECRET_MULTILINE: ${{ fromJSON(toJSON(steps.rust-action.outputs)).SECRET_MULTILINE }}
         run: |
           echo the following secrets should be masked:
           echo "SECRET_ONE=$SECRET_ONE"
@@ -210,11 +212,12 @@ jobs:
       - name: Compare GITHUB_OUTPUT values from both actions
         if: ${{ matrix.os != 'ubuntu-24.04-arm' }} # TS action does not support aarch64 linux
         env:
-          RUST_SECRET_ONE: ${{ steps.rust-action.outputs.SECRET_ONE }}
+          # fromJSON(toJSON(...)) works around actionlint's inability to type-check dynamic outputs from local actions
+          RUST_SECRET_ONE: ${{ fromJSON(toJSON(steps.rust-action.outputs)).SECRET_ONE }}
           TYPESCRIPT_SECRET_ONE: ${{ steps.ts-action.outputs.SECRET_ONE }}
-          RUST_SECRET_TWO: ${{ steps.rust-action.outputs.SECRET_TWO }}
+          RUST_SECRET_TWO: ${{ fromJSON(toJSON(steps.rust-action.outputs)).SECRET_TWO }}
           TYPESCRIPT_SECRET_TWO: ${{ steps.ts-action.outputs.SECRET_TWO }}
-          RUST_SECRET_MULTILINE: ${{ steps.rust-action.outputs.SECRET_MULTILINE }}
+          RUST_SECRET_MULTILINE: ${{ fromJSON(toJSON(steps.rust-action.outputs)).SECRET_MULTILINE }}
           TYPESCRIPT_SECRET_MULTILINE: ${{ steps.ts-action.outputs.SECRET_MULTILINE }}
         run: |
           if [ "${RUST_SECRET_ONE}" != "${TYPESCRIPT_SECRET_ONE}" ]; then
