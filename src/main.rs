@@ -3,9 +3,8 @@ use std::str::FromStr;
 
 use anyhow::Result;
 use bitwarden::{
-    Client, ClientSettings, DeviceType,
-    auth::login::AccessTokenLoginRequest,
-    secrets_manager::{SecretsClientExt, secrets::SecretsGetRequest},
+    Client, ClientSettings, DeviceType, auth::login::AccessTokenLoginRequest,
+    secrets_manager::secrets::SecretsGetRequest,
 };
 use config::{Config, infer_urls};
 use uuid::Uuid;
