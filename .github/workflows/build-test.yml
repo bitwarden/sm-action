@@ -20,6 +20,9 @@ jobs:
   build:
     name: Building & testing @bitwarden/sm-action for - ${{ matrix.os }}
     runs-on: ${{ matrix.os }}
+    permissions:
+      contents: read
+      id-token: write # required for Azure OIDC login
     strategy:
       fail-fast: false
       matrix:
@@ -105,11 +108,28 @@ jobs:
             exit $exit_code
           fi
 
+      - name: Azure Login
+        uses: bitwarden/gh-actions/azure-login@main
+        with:
+          subscription_id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
+          tenant_id: ${{ secrets.AZURE_TENANT_ID }}
+          client_id: ${{ secrets.AZURE_CLIENT_ID }}
+
+      - name: Get KV Secrets
+        id: get-kv-secrets
+        uses: bitwarden/gh-actions/get-keyvault-secrets@main
+        with:
+          keyvault: gh-sm-action
+          secrets: "TEST-SM-ACCESS-TOKEN"
+
+      - name: Azure Logout
+        uses: bitwarden/gh-actions/azure-logout@main
+
       - name: Test `set_env=false`
         id: set-env-false
         uses: ./
         with:
-          access_token: ${{ secrets.TEST_SM_ACCESS_TOKEN }}
+          access_token: ${{ steps.get-kv-secrets.outputs.TEST-SM-ACCESS-TOKEN }}
           base_url: "https://vault.euqa.bitwarden.pw"
           set_env: false
           secrets: |
@@ -143,7 +163,7 @@ jobs:
         id: rust-action
         uses: ./
         with:
-          access_token: ${{ secrets.TEST_SM_ACCESS_TOKEN }}
+          access_token: ${{ steps.get-kv-secrets.outputs.TEST-SM-ACCESS-TOKEN }}
           base_url: "https://vault.euqa.bitwarden.pw"
           secrets: |
             e9ce5e83-d5b9-46d8-91e8-b1e54d8a52d8 > SECRET_ONE
@@ -174,7 +194,7 @@ jobs:
         id: ts-action
         uses: bitwarden/sm-action@14f92f1d294ae3c2b6a3845d389cd2c318b0dfd8 # v2.2.0
         with:
-          access_token: ${{ secrets.TEST_SM_ACCESS_TOKEN }}
+          access_token: ${{ steps.get-kv-secrets.outputs.TEST-SM-ACCESS-TOKEN }}
           base_url: "https://vault.euqa.bitwarden.pw"
           secrets: |
             e9ce5e83-d5b9-46d8-91e8-b1e54d8a52d8 > SECRET_ONE
