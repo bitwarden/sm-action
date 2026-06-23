@@ -7,7 +7,7 @@ edition = "2024"
 anyhow = { version = "=1.0.102", default-features = false }
 bitwarden = "=2.1.0"
 tokio = { version = "=1.50.0", features = ["macros"] }
-uuid = "=1.22.0"
+uuid = "=1.23.3"
 
 [profile.release]
 strip = true
