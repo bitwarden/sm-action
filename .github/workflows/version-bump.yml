@@ -54,7 +54,7 @@ jobs:
           private-key: ${{ steps.get-kv-secrets.outputs.BW-GHAPP-KEY }}
 
       - name: Check out branch
-        uses: actions/checkout@8e8c483db84b4bee98b60c0593521ed34d9990e8 # v6.0.1
+        uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6.1.0
         with:
           token: ${{ steps.app-token.outputs.token }}
           persist-credentials: true
