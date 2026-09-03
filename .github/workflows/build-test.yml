@@ -192,7 +192,7 @@ jobs:
       - name: Test TypeScript sm-action@v2.2.0
         if: ${{ matrix.os != 'ubuntu-24.04-arm' }} # TS action does not support aarch64 linux
         id: ts-action
-        uses: bitwarden/sm-action@14f92f1d294ae3c2b6a3845d389cd2c318b0dfd8 # v2.2.0
+        uses: bitwarden/sm-action@1238aae8fc64b212641190a9227c8a734ab1a793 # v3.0.1
         with:
           access_token: ${{ steps.get-kv-secrets.outputs.TEST-SM-ACCESS-TOKEN }}
           base_url: "https://vault.euqa.bitwarden.pw"
