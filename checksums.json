@@ -1,0 +1,11 @@
+{
+  "version": "3.0.1",
+  "assets": {
+    "sm-action-aarch64-apple-darwin": "a426480977db65e7ae0d50c5e0ba70508ff15bb1fc803a9b9048e5ccda8d1b73",
+    "sm-action-aarch64-pc-windows-msvc.exe": "be716878c305707b7141e9581cdbf292c785f3aa3f7fbb42ac9c5e5460c09dba",
+    "sm-action-aarch64-unknown-linux-gnu": "35dde396e46be03c2b8f711d8ea4c3c75a3b42ab6681a260d614b17fca726989",
+    "sm-action-x86_64-apple-darwin": "9dfeab4d83b0347f9b5a04e8ca57f816c390b0f1c58a3d3bd7919ebfd3ab1124",
+    "sm-action-x86_64-pc-windows-msvc.exe": "ae9cf1f9c400200cf889f17a44d7b3c9c525b9f462c0acd3cda76efab74e0174",
+    "sm-action-x86_64-unknown-linux-gnu": "fa998e9db775d5c7bdbc0fd8840ac6474a8348cdc989176c5ce24c3d09045752"
+  }
+}

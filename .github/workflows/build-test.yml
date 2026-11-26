@@ -22,7 +22,8 @@ jobs:
     runs-on: ${{ matrix.os }}
     permissions:
       contents: read
-      id-token: write # required for Azure OIDC login
+      id-token: write # required for Azure OIDC login and build provenance
+      attestations: write # required for build provenance attestations
     strategy:
       fail-fast: false
       matrix:
@@ -265,6 +266,12 @@ jobs:
             mv "target/$target/release/sm-action$ext" "sm-action-$target$ext"
             echo "sm-action-$target$ext"
           done
+
+      - name: Attest build provenance
+        if: github.event_name == 'workflow_dispatch' && github.ref == 'refs/heads/main'
+        uses: actions/attest-build-provenance@4d101475d8b20a2381f78447822ac1eab6504dd8 # v4.2.2
+        with:
+          subject-path: sm-action-*
 
       - name: Upload build artifacts
         uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1

@@ -2,10 +2,25 @@ const { execSync } = require("node:child_process");
 const fs = require("fs");
 const path = require("path");
 const https = require("https");
+const crypto = require("crypto");
 const version = require("./version.json").version;
+const checksums = require("./checksums.json");
 
 const repoOwner = "bitwarden";
 const repoName = "sm-action";
+
+const SEMVER_PATTERN = /^\d+\.\d+\.\d+(?:-[0-9A-Za-z.-]+)?$/;
+const MAX_REDIRECTS = 5;
+const MAX_DOWNLOAD_BYTES = 100 * 1024 * 1024;
+// GitHub serves release assets from github.com, redirecting to one of these hosts.
+const ALLOWED_DOWNLOAD_HOSTS = new Set([
+  "github.com",
+  "objects.githubusercontent.com",
+  "release-assets.githubusercontent.com",
+  "github-releases.githubusercontent.com",
+]);
+
+class VerificationError extends Error {}
 
 function debug(message) {
   if ("RUNNER_DEBUG" in process.env || "ACTIONS_RUNNER_DEBUG" in process.env) {
@@ -14,11 +29,8 @@ function debug(message) {
 }
 
 function getVersion() {
-  if ("SM_ACTION_VERSION" in process.env) {
-    console.log(
-      `Using version from environment: ${process.env.SM_ACTION_VERSION}`,
-    );
-    return process.env.SM_ACTION_VERSION;
+  if (!SEMVER_PATTERN.test(version)) {
+    throw new VerificationError(`Invalid version in version.json: ${version}`);
   }
 
   console.log(`Using version from version.json: ${version}`);
@@ -37,79 +49,140 @@ function safeUnlink(filePath) {
   }
 }
 
-function cleanupDownload(file, request, outputPath) {
-  file.close();
-  safeUnlink(outputPath);
-  request.destroy();
-}
-
 /**
  * Downloads a file from a URL to a local path
  */
-function downloadFile(url, outputPath) {
+function downloadFile(url, outputPath, redirects = 0) {
   return new Promise((resolve, reject) => {
-    const file = fs.createWriteStream(outputPath);
-
     const request = https.get(url, (response) => {
-      // Handle redirects
-      if (response.statusCode === 302 || response.statusCode === 301) {
-        cleanupDownload(file, request, outputPath);
-        return downloadFile(response.headers.location, outputPath)
+      const status = response.statusCode;
+
+      if ([301, 302, 303, 307, 308].includes(status)) {
+        response.resume();
+        if (redirects >= MAX_REDIRECTS) {
+          return reject(new VerificationError("Too many redirects"));
+        }
+
+        let next;
+        try {
+          next = new URL(response.headers.location, url);
+        } catch {
+          return reject(new VerificationError("Invalid redirect location"));
+        }
+        if (
+          next.protocol !== "https:" ||
+          !ALLOWED_DOWNLOAD_HOSTS.has(next.hostname)
+        ) {
+          return reject(
+            new VerificationError(`Refusing redirect to ${next.origin}`),
+          );
+        }
+
+        return downloadFile(next.href, outputPath, redirects + 1)
           .then(resolve)
           .catch(reject);
       }
 
-      // Handle non-success status codes
-      if (response.statusCode !== 200) {
-        cleanupDownload(file, request, outputPath);
+      if (status !== 200) {
+        response.resume();
         return reject(
-          new Error(
-            `Failed to download: ${response.statusCode} ${response.statusMessage}`,
-          ),
+          new Error(`Failed to download: ${status} ${response.statusMessage}`),
         );
       }
 
-      // Pipe response to file
-      response.pipe(file);
+      const file = fs.createWriteStream(outputPath);
+      let received = 0;
+      const fail = (err) => {
+        file.close();
+        safeUnlink(outputPath);
+        request.destroy();
+        reject(err);
+      };
 
-      // Handle successful completion
+      response.on("data", (chunk) => {
+        received += chunk.length;
+        if (received > MAX_DOWNLOAD_BYTES) {
+          fail(new Error("Download exceeds maximum allowed size"));
+        }
+      });
+      response.on("error", fail);
+      response.pipe(file);
       file.on("finish", () => {
         file.close();
-        request.destroy();
         resolve();
       });
-
-      // Handle file write errors
-      file.on("error", (err) => {
-        cleanupDownload(file, request, outputPath);
-        reject(err);
-      });
+      file.on("error", fail);
     });
 
-    // Handle request errors
     request.on("error", (err) => {
-      cleanupDownload(file, request, outputPath);
+      safeUnlink(outputPath);
       reject(err);
     });
 
     // Set timeout to prevent hanging
     request.setTimeout(30000, () => {
-      cleanupDownload(file, request, outputPath);
+      request.destroy();
+      safeUnlink(outputPath);
       reject(new Error("Download timeout"));
     });
   });
+}
+
+function getAssetName(targetTriple) {
+  return `sm-action-${targetTriple}${
+    process.platform === "win32" ? ".exe" : ""
+  }`;
 }
 
 /**
  * Constructs the GitHub release download URL
  */
 function buildDownloadUrl(targetTriple, version) {
-  const releaseVersion = `${version}`;
-  const assetName = `sm-action-${targetTriple}${
-    process.platform === "win32" ? ".exe" : ""
-  }`;
+  if (!SEMVER_PATTERN.test(version)) {
+    throw new VerificationError(`Invalid version: ${version}`);
+  }
 
-  return `https://github.com/${repoOwner}/${repoName}/releases/download/v${releaseVersion}/${assetName}`;
+  const assetName = getAssetName(targetTriple);
+  const expectedPath = `/${repoOwner}/${repoName}/releases/download/v${version}/${assetName}`;
+  const url = new URL(`https://github.com${expectedPath}`);
+
+  if (
+    url.protocol !== "https:" ||
+    url.host !== "github.com" ||
+    url.pathname !== expectedPath
+  ) {
+    throw new VerificationError(`Unexpected download URL: ${url.href}`);
+  }
+
+  return url.href;
+}
+
+function getExpectedChecksum(version, assetName) {
+  if (checksums.version !== version) {
+    throw new VerificationError(
+      `checksums.json is for version ${checksums.version}, expected ${version}`,
+    );
+  }
+
+  const expected = checksums.assets && checksums.assets[assetName];
+  if (!/^[0-9a-f]{64}$/.test(expected || "")) {
+    throw new VerificationError(`No checksum recorded for ${assetName}`);
+  }
+
+  return expected;
+}
+
+function verifyChecksum(filePath, expected) {
+  const actual = crypto
+    .createHash("sha256")
+    .update(fs.readFileSync(filePath))
+    .digest();
+
+  if (!crypto.timingSafeEqual(actual, Buffer.from(expected, "hex"))) {
+    throw new VerificationError(
+      `Checksum mismatch: expected ${expected}, got ${actual.toString("hex")}`,
+    );
+  }
 }
 
 /**
@@ -118,18 +191,33 @@ function buildDownloadUrl(targetTriple, version) {
 async function downloadBinary(targetTriple, binaryPath) {
   const version = getVersion();
   const downloadUrl = buildDownloadUrl(targetTriple, version);
+  const expected = getExpectedChecksum(version, getAssetName(targetTriple));
+  const tempPath = `${binaryPath}.download`;
 
   console.log(`Attempting to download binary from: ${downloadUrl}`);
 
   try {
     ensureDirectoryExists(path.dirname(binaryPath));
-    await downloadFile(downloadUrl, binaryPath);
-    console.log(`Successfully downloaded binary to: ${binaryPath}`);
-    return true;
+    await downloadFile(downloadUrl, tempPath);
   } catch (error) {
+    safeUnlink(tempPath);
+    if (error instanceof VerificationError) {
+      throw error;
+    }
     console.warn(`Failed to download binary: ${error.message}`);
     return false;
   }
+
+  try {
+    verifyChecksum(tempPath, expected);
+  } catch (error) {
+    safeUnlink(tempPath);
+    throw error;
+  }
+
+  fs.renameSync(tempPath, binaryPath);
+  console.log(`Downloaded and verified binary at: ${binaryPath}`);
+  return true;
 }
 
 function getArch() {
@@ -256,4 +344,14 @@ async function run() {
   }
 }
 
-run();
+if (require.main === module) {
+  run();
+}
+
+module.exports = {
+  VerificationError,
+  buildDownloadUrl,
+  downloadFile,
+  getExpectedChecksum,
+  verifyChecksum,
+};
