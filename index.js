@@ -20,10 +20,6 @@ const ALLOWED_DOWNLOAD_HOSTS = new Set([
   "github-releases.githubusercontent.com",
 ]);
 
-/**
- * Raised when a downloaded binary cannot be trusted. Unlike transport
- * failures, this must never fall back to building from source silently.
- */
 class VerificationError extends Error {}
 
 function debug(message) {
@@ -54,8 +50,7 @@ function safeUnlink(filePath) {
 }
 
 /**
- * Downloads a file from a URL to a local path. Redirects are limited in depth
- * and may only point at GitHub's release asset hosts over https.
+ * Downloads a file from a URL to a local path
  */
 function downloadFile(url, outputPath, redirects = 0) {
   return new Promise((resolve, reject) => {
@@ -140,8 +135,7 @@ function getAssetName(targetTriple) {
 }
 
 /**
- * Constructs the GitHub release download URL and checks that it points at this
- * repository's release assets, whatever the inputs.
+ * Constructs the GitHub release download URL
  */
 function buildDownloadUrl(targetTriple, version) {
   if (!SEMVER_PATTERN.test(version)) {
@@ -192,9 +186,7 @@ function verifyChecksum(filePath, expected) {
 }
 
 /**
- * Downloads the pre-built binary from GitHub Releases and verifies it against
- * checksums.json. Returns false only for transport failures; anything that
- * makes the binary untrustworthy throws.
+ * Attempts to download the pre-built binary from GitHub Releases
  */
 async function downloadBinary(targetTriple, binaryPath) {
   const version = getVersion();
